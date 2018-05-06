@@ -54,7 +54,7 @@ class CodeComplexity(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.1.0'
+    version = '0.1.1'
 
     CATEGORIES = [CATEGORY_CODE_COMPLEXITY]
 
@@ -92,6 +92,9 @@ class CodeComplexity(Graal):
 
         :returns: a boolean value
         """
+        if not paths:
+            return False
+
         for f in commit['files']:
             for p in paths:
                 if f['file'].endswith(p):
@@ -111,9 +114,10 @@ class CodeComplexity(Graal):
 
         for f in files:
 
-            found = [p for p in paths if f.endswith(p)]
-            if not found:
-                continue
+            if paths:
+                found = [p for p in paths if f.endswith(p)]
+                if not found:
+                    continue
 
             file_path = os.path.join(self.worktreepath, f)
             file_info = self.file_analyzer.analyze(file_path)
