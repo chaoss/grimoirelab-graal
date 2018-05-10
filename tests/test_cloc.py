@@ -24,10 +24,10 @@
 import os
 import unittest
 
-from tests.test_case_analyzer import (TestCaseAnalyzer,
-                                      ANALYZER_TEST_FILE)
+from base_analyzer import (TestCaseAnalyzer,
+                           ANALYZER_TEST_FILE)
 
-from graal.analyzers.cloc import Cloc
+from graal.backends.core.analyzers.cloc import Cloc
 
 
 class TestCloc(TestCaseAnalyzer):

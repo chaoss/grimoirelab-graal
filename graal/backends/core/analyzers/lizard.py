@@ -24,7 +24,7 @@ import warnings
 
 import lizard
 
-from graal.analyzers.analyzer import Analyzer
+from .analyzer import Analyzer
 
 
 class Lizard(Analyzer):

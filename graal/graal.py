@@ -22,17 +22,23 @@
 
 from glob import glob
 import io
+import importlib
 import logging
 import os
+import pkgutil
 import shutil
 import tarfile
 
+from grimoirelab.toolkit.datetime import datetime_utcnow
 from perceval.backends.core.git import (Git,
                                         GitRepository,
                                         GitCommand)
-from perceval.backend import BackendCommandArgumentParser
+from perceval.backend import (uuid,
+                              BackendCommandArgumentParser)
 from perceval.errors import RepositoryError
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
+
+from ._version import __version__
 
 CATEGORY_GRAAL = 'graal'
 DEFAULT_WORKTREE_PATH = '/tmp/worktrees/'
@@ -177,6 +183,30 @@ class Graal(Git):
 
         logger.info("Fetch process completed: %s commits inspected",
                     icommits)
+
+    def metadata(self, item):
+        """Add metadata to an item.
+
+        It adds metadata to a given item such as how and
+        when it was fetched. The contents from the original item will
+        be stored under the 'data' keyword.
+
+        :param item: an item fetched by a backend
+        """
+        item = {
+            'backend_name': self.__class__.__name__,
+            'backend_version': self.version,
+            'perceval_version': __version__,
+            'timestamp': datetime_utcnow().timestamp(),
+            'origin': self.origin,
+            'uuid': uuid(self.origin, self.metadata_id(item)),
+            'updated_on': self.metadata_updated_on(item),
+            'category': self.metadata_category(item),
+            'tag': self.tag,
+            'data': item,
+        }
+
+        return item
 
     @staticmethod
     def metadata_category(item):
@@ -440,3 +470,53 @@ class GraalCommand(GitCommand):
                                    help="Path where the Git repository will be cloned")
 
         return parser
+
+
+def find_backends(top_package):
+    """Find available backends.
+
+    Look for the Perceval backends and commands under `top_package`
+    and its sub-packages. When `top_package` defines a namespace,
+    backends under that same namespace will be found too.
+
+    :param top_package: package storing backends
+
+    :returns: a tuple with two dicts: one with `Backend` classes and one
+        with `BackendCommand` classes
+    """
+    candidates = pkgutil.walk_packages(top_package.__path__,
+                                       prefix=top_package.__name__ + '.')
+
+    modules = [name for _, name, is_pkg in candidates if not is_pkg]
+
+    return _import_backends(modules)
+
+
+def _import_backends(modules):
+    for module in modules:
+        importlib.import_module(module)
+
+    bkls = _find_classes(Graal, modules)
+    ckls = _find_classes(GraalCommand, modules)
+
+    backends = {name: kls for name, kls in bkls}
+    commands = {name: klass for name, klass in ckls}
+
+    return backends, commands
+
+
+def _find_classes(parent, modules):
+    parents = parent.__subclasses__()
+
+    while parents:
+        kls = parents.pop()
+
+        m = kls.__module__
+
+        if m not in modules:
+            continue
+
+        name = m.split('.')[-1]
+        parents.extend(kls.__subclasses__())
+
+        yield name, kls

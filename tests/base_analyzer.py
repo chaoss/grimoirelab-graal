@@ -27,7 +27,7 @@ import tempfile
 import unittest
 
 ANALYZER_TEST_FOLDER = "data/analyzers/"
-ANALYZER_TEST_FILE = "test_code_analyzer.py"
+ANALYZER_TEST_FILE = "sample_code.py"
 
 
 def get_file_path(filename):

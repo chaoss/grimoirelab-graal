@@ -20,18 +20,4 @@
 #     Valerio Cosentino <valcos@bitergia.com>
 #
 
-
-class BaseError(Exception):
-    """Base class for Graal exceptions.
-
-    Derived classes can overwrite the error message declaring ``message``
-    property.
-    """
-    message = 'Graal base error'
-
-    def __init__(self, **kwargs):
-        super().__init__()
-        self.msg = self.message % kwargs
-
-    def __str__(self):
-        return self.msg
+__import__('pkg_resources').declare_namespace(__name__)

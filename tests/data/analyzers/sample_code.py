@@ -28,8 +28,7 @@ class SlackClient(object):
         """
         if self.blocked_until is not None and \
                 datetime.datetime.utcnow() < self.blocked_until:
-            raise SlackError("Too many requests - wait until {0}" \
-                    .format(self.blocked_until))
+            raise SlackError("Too many requests - wait until {0}".format(self.blocked_until))
 
         url = "%s/%s" % (SlackClient.BASE_URL, method)
         params['token'] = self.token

@@ -27,23 +27,35 @@ from graal.graal import (Graal,
                          GraalRepository,
                          GraalCommand,
                          DEFAULT_WORKTREE_PATH)
-from graal.analyzers.cloc import Cloc
-from graal.analyzers.lizard import Lizard
+from graal.backends.core.analyzers.cloc import Cloc
+from graal.backends.core.analyzers.lizard import Lizard
 from perceval.backend import BackendCommandArgumentParser
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
-CATEGORY_CODE_COMPLEXITY = 'code_complexity'
+CATEGORY_COCOM = 'code_complexity'
 
 logger = logging.getLogger(__name__)
 
 
-class CodeComplexity(Graal):
-    """CodeComplexity backend.
+class CoCom(Graal):
+    """CoCom backend.
 
     This class extends the Graal backend. It gathers
     insights about code complexity, such as cyclomatic complexity,
     number of functions and lines of code of a several programming
-    languages.
+    languages such as:
+        C/C++ (works with C++14)
+        Java
+        C# (C Sharp)
+        JavaScript
+        Objective C
+        Swift
+        Python
+        Ruby
+        TTCN-3
+        PHP
+        Scala
+        GDScript
 
     :param uri: URI of the Git repository
     :param gitpath: path to the repository or to the log file
@@ -56,14 +68,14 @@ class CodeComplexity(Graal):
     """
     version = '0.1.1'
 
-    CATEGORIES = [CATEGORY_CODE_COMPLEXITY]
+    CATEGORIES = [CATEGORY_COCOM]
 
     def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH, functions=False,
                  tag=None, archive=None):
         super().__init__(uri, git_path, worktreepath, tag=tag, archive=archive)
         self.file_analyzer = FileAnalyzer(functions)
 
-    def fetch(self, category=CATEGORY_CODE_COMPLEXITY, paths=None,
+    def fetch(self, category=CATEGORY_COCOM, paths=None,
               from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
               branches=None, latest_items=False):
         """Fetch commits and add code complexity information."""
@@ -81,7 +93,7 @@ class CodeComplexity(Graal):
         This backend only generates one type of item which is
         'code_complexity'.
         """
-        return CATEGORY_CODE_COMPLEXITY
+        return CATEGORY_COCOM
 
     def _filter_commit(self, commit, ncommit, paths=None):
         """Filter a commit according to its data (e.g., author, sha, etc.)
@@ -155,18 +167,21 @@ class FileAnalyzer:
         """Analyze the content of a file using CLOC and Lizard
 
         :param file_path: file path
-        """
-        result = {'blanks': None,
-                  'comments': None,
-                  'loc': None,
-                  'ccn': None,
-                  'avg_ccn': None,
-                  'avg_loc': None,
-                  'avg_tokens': None,
-                  'funs': None,
-                  'tokens': None,
-                  'funs_data': []}
 
+        :returns a dict containing the results of the analysis, like the one below
+        {
+          'blanks': ..,
+          'comments': ..,
+          'loc': ..,
+          'ccn': ..,
+          'avg_ccn': ..,
+          'avg_loc': ..,
+          'avg_tokens': ..,
+          'funs': ..,
+          'tokens': ..,
+          'funs_data': [..]
+        }
+        """
         kwargs = {'file_path': file_path}
         cloc_analysis = self.cloc.analyze(**kwargs)
 
@@ -184,10 +199,10 @@ class FileAnalyzer:
         return lizard_analysis
 
 
-class CodeComplexityCommand(GraalCommand):
-    """Class to run CodeComplexity backend from the command line."""
+class CoComCommand(GraalCommand):
+    """Class to run CoCom backend from the command line."""
 
-    BACKEND = CodeComplexity
+    BACKEND = CoCom
 
     @staticmethod
     def setup_cmd_parser():

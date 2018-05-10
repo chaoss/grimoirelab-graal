@@ -22,7 +22,7 @@
 
 import subprocess
 
-from graal.analyzers.analyzer import Analyzer
+from .analyzer import Analyzer
 
 
 class Cloc(Analyzer):

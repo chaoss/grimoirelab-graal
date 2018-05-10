@@ -23,7 +23,7 @@
 
 import unittest
 
-from graal.analyzers.analyzer import Analyzer
+from graal.backends.core.analyzers.analyzer import Analyzer
 
 
 class TestAnalyzer(unittest.TestCase):

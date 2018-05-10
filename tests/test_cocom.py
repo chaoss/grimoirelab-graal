@@ -30,16 +30,16 @@ import unittest.mock
 from perceval.backend import BackendCommandArgumentParser
 from perceval.utils import DEFAULT_DATETIME
 
-from graal.analyzers.cloc import Cloc
-from graal.analyzers.lizard import Lizard
-from graal.codecomplexity import (DEFAULT_WORKTREE_PATH,
-                                  CATEGORY_CODE_COMPLEXITY,
-                                  CodeComplexity,
-                                  FileAnalyzer,
-                                  CodeComplexityCommand)
-from tests.test_graal import TestCaseGraal
-from tests.test_case_analyzer import (ANALYZER_TEST_FILE,
-                                      TestCaseAnalyzer)
+from graal.backends.core.analyzers.cloc import Cloc
+from graal.backends.core.analyzers.lizard import Lizard
+from graal.backends.core.cocom import (DEFAULT_WORKTREE_PATH,
+                                       CATEGORY_COCOM,
+                                       CoCom,
+                                       FileAnalyzer,
+                                       CoComCommand)
+from test_graal import TestCaseGraal
+from base_analyzer import (ANALYZER_TEST_FILE,
+                           TestCaseAnalyzer)
 
 
 class TestCodeComplexityBackend(TestCaseGraal):
@@ -76,7 +76,7 @@ class TestCodeComplexityBackend(TestCaseGraal):
     def test_initialization(self):
         """Test whether attributes are initializated"""
 
-        cc = CodeComplexity('http://example.com', self.git_path, self.worktree_path, tag='test')
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path, tag='test')
         self.assertEqual(cc.uri, 'http://example.com')
         self.assertEqual(cc.gitpath, self.git_path)
         self.assertEqual(cc.worktreepath, os.path.join(self.worktree_path, os.path.split(cc.gitpath)[1]))
@@ -84,7 +84,7 @@ class TestCodeComplexityBackend(TestCaseGraal):
         self.assertEqual(cc.tag, 'test')
         self.assertEqual(cc.file_analyzer.functions, False)
 
-        cc = CodeComplexity('http://example.com', self.git_path, self.worktree_path, functions=True, tag='test')
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path, functions=True, tag='test')
         self.assertEqual(cc.uri, 'http://example.com')
         self.assertEqual(cc.gitpath, self.git_path)
         self.assertEqual(cc.worktreepath, os.path.join(self.worktree_path, os.path.split(cc.gitpath)[1]))
@@ -93,26 +93,26 @@ class TestCodeComplexityBackend(TestCaseGraal):
         self.assertEqual(cc.file_analyzer.functions, True)
 
         # When tag is empty or None it will be set to the value in uri
-        cc = CodeComplexity('http://example.com', self.git_path, self.worktree_path)
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path)
         self.assertEqual(cc.origin, 'http://example.com')
         self.assertEqual(cc.tag, 'http://example.com')
 
-        cc = CodeComplexity('http://example.com', self.git_path, self.worktree_path)
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path)
         self.assertEqual(cc.origin, 'http://example.com')
         self.assertEqual(cc.tag, 'http://example.com')
 
     def test_fetch(self):
         """Test whether commits are properly processed"""
 
-        cc = CodeComplexity('http://example.com', self.git_path, self.worktree_path)
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path)
         commits = [commit for commit in cc.fetch(paths=['tests/client.py'])]
 
         self.assertEqual(len(commits), 5)
         self.assertFalse(os.path.exists(cc.worktreepath))
 
         for commit in commits:
-            self.assertEqual(commit['backend_name'], 'CodeComplexity')
-            self.assertEqual(commit['category'], CATEGORY_CODE_COMPLEXITY)
+            self.assertEqual(commit['backend_name'], 'CoCom')
+            self.assertEqual(commit['category'], CATEGORY_COCOM)
             self.assertEqual(commit['data']['analysis'][0]['file_path'],
                              os.path.join(cc.worktreepath, 'tests/client.py'))
             self.assertFalse('Author' in commit['data'])
@@ -191,12 +191,12 @@ class TestCodeComplexityCommand(unittest.TestCase):
     def test_backend_class(self):
         """Test if the backend class is Graal"""
 
-        self.assertIs(CodeComplexityCommand.BACKEND, CodeComplexity)
+        self.assertIs(CoComCommand.BACKEND, CoCom)
 
     def test_setup_cmd_parser(self):
         """Test if it parser object is correctly initialized"""
 
-        parser = CodeComplexityCommand.setup_cmd_parser()
+        parser = CoComCommand.setup_cmd_parser()
         self.assertIsInstance(parser, BackendCommandArgumentParser)
 
         args = ['http://example.com/',
