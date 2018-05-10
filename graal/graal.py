@@ -196,7 +196,7 @@ class Graal(Git):
         item = {
             'backend_name': self.__class__.__name__,
             'backend_version': self.version,
-            'perceval_version': __version__,
+            'graal_version': __version__,
             'timestamp': datetime_utcnow().timestamp(),
             'origin': self.origin,
             'uuid': uuid(self.origin, self.metadata_id(item)),
