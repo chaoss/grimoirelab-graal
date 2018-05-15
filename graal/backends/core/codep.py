@@ -46,7 +46,6 @@ class CoDep(Graal):
     :param uri: URI of the Git repository
     :param gitpath: path to the repository or to the log file
     :param worktreepath: the directory where to store the working tree
-    :param module_path: the path of the module to analyze
     :param tag: label used to mark the data
     :param archive: archive to store/retrieve items
 
@@ -57,14 +56,9 @@ class CoDep(Graal):
 
     CATEGORIES = [CATEGORY_CODEP]
 
-    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH, module_path=None,
+    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH,
                  tag=None, archive=None):
         super().__init__(uri, git_path, worktreepath, tag=tag, archive=archive)
-
-        if not module_path:
-            raise GraalError(cause="module_path cannot be null")
-
-        self.module_path = module_path
 
         self.dependency_analyzer = DependencyAnalyzer()
         self.monthly_checkpoints = []
@@ -115,7 +109,13 @@ class CoDep(Graal):
         :param commit: a Perceval commit item
         :param paths: a list of paths to narrow the analysis
         """
-        module_path = os.path.join(self.worktreepath, self.module_path)
+        if not paths:
+            raise GraalError(cause="paths cannot be null")
+
+        if len(paths) > 1:
+            logger.warning("Only the first path will be analyzed")
+
+        module_path = os.path.join(self.worktreepath, paths[0])
 
         if not os.path.exists(module_path):
             logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
@@ -150,7 +150,7 @@ class DependencyAnalyzer:
     def analyze(self, module_path):
         """Analyze the content of a Python project using Pyreverse
 
-        :param folder_path: folder path
+        :param module_path: folder path
 
         :returns a dict containing the results of the analysis, like the one below
         {
@@ -167,35 +167,3 @@ class CoDepCommand(GraalCommand):
     """Class to run CoDep backend from the command line."""
 
     BACKEND = CoDep
-
-    @staticmethod
-    def setup_cmd_parser():
-        """Returns the Graal argument parser."""
-
-        parser = BackendCommandArgumentParser(from_date=True, to_date=True)
-
-        # Optional arguments
-        group = parser.parser.add_argument_group('Git arguments')
-        group.add_argument('--branches', dest='branches',
-                           nargs='+', type=str, default=None,
-                           help="Fetch commits only from these branches")
-        group.add_argument('--latest-items', dest='latest_items',
-                           action='store_true',
-                           help="Fetch latest commits added to the repository")
-        group.add_argument('--worktree-path', dest='worktreepath',
-                           default=DEFAULT_WORKTREE_PATH,
-                           help="Path where to save the working tree")
-        group.add_argument('--paths', dest='paths',
-                           nargs='+', type=str, default=None,
-                           help="Paths to narrow the analysis")
-        group.add_argument('--module-path', dest='module_path',
-                           default=None,
-                           help="Path where the module is located")
-
-        # Required arguments
-        parser.parser.add_argument('uri',
-                                   help="URI of the Git log repository")
-        parser.parser.add_argument('--git-path', dest='git_path',
-                                   help="Path where the Git repository will be cloned")
-
-        return parser
