@@ -60,13 +60,14 @@ class CoCom(Graal):
     :param uri: URI of the Git repository
     :param gitpath: path to the repository or to the log file
     :param worktreepath: the directory where to store the working tree
+    :param functions: if enabled, it returns complexity data about each single function found
     :param tag: label used to mark the data
     :param archive: archive to store/retrieve items
 
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.1.1'
+    version = '0.1.2'
 
     CATEGORIES = [CATEGORY_COCOM]
 
