@@ -33,6 +33,6 @@ class Analyzer:
         is not defined
     """
     version = '0.1.0'
-    
+
     def analyze(self, **kwargs):
         raise NotImplementedError
