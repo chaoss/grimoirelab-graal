@@ -22,6 +22,7 @@
 
 import subprocess
 
+from graal.graal import GraalError
 from .analyzer import Analyzer
 
 
@@ -31,6 +32,7 @@ class Cloc(Analyzer):
     This class allows to call Cloc over a file, parses
     the result of the analysis and returns it as a dict.
     """
+    version = '0.1.0'
 
     def analyze(self, **kwargs):
         """Add information about LOC, blank and commented lines using CLOC
@@ -44,8 +46,12 @@ class Cloc(Analyzer):
         file_path = kwargs['file_path']
         flag = False
 
-        msg = subprocess.check_output(['cloc', file_path]).decode("utf-8")
-        subprocess._cleanup()
+        try:
+            msg = subprocess.check_output(['cloc', file_path]).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            raise GraalError(cause="Cloc failed at %s, %s" % (file_path, e.output.decode("utf-8")))
+        finally:
+            subprocess._cleanup()
 
         for line in msg.split("\n"):
             if flag:
