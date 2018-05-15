@@ -73,6 +73,8 @@ class Lint(Analyzer):
                     details.append(line)
 
         result = {'quality': code_quality,
+                  'affected_modules': len(modules),
+                  'warnings': sum([len(mod) for mod in modules]),
                   'modules': modules}
 
         return result
