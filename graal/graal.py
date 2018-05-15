@@ -35,7 +35,7 @@ from perceval.backends.core.git import (Git,
                                         GitCommand)
 from perceval.backend import (uuid,
                               BackendCommandArgumentParser)
-from perceval.errors import RepositoryError
+from perceval.errors import BaseError, RepositoryError
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
 from ._version import __version__
@@ -44,6 +44,12 @@ CATEGORY_GRAAL = 'graal'
 DEFAULT_WORKTREE_PATH = '/tmp/worktrees/'
 
 logger = logging.getLogger(__name__)
+
+
+class GraalError(BaseError):
+    """Generic error for graal backends"""
+
+    message = "%(cause)s"
 
 
 class Graal(Git):
@@ -287,7 +293,15 @@ class GraalRepository(GitRepository):
 
         try:
             self._exec(cmd_worktree, cwd=self.dirpath, env=self.gitenv)
+            logger.info("Git worktree %s created!" % self.worktreepath)
+            return
         except Exception:
+            pass
+
+        try:
+            self.prune()
+            self.worktree(worktreepath, branch)
+        except RepositoryError:
             cause = "Impossible to create the worktree %s" % (self.worktreepath)
             raise RepositoryError(cause=cause)
 
@@ -296,10 +310,11 @@ class GraalRepository(GitRepository):
 
         :param worktreepath: directory where the working tree is located
         """
-        shutil.rmtree(self.worktreepath)
+        GraalRepository.delete(self.worktreepath)
         cmd_worktree = ['git', 'worktree', 'prune']
         try:
             self._exec(cmd_worktree, cwd=self.dirpath, env=self.gitenv)
+            logger.info("Git worktree %s deleted!" % self.worktreepath)
         except Exception:
             cause = "Impossible to delete the worktree %s" % (self.worktreepath)
             raise RepositoryError(cause=cause)
@@ -312,6 +327,7 @@ class GraalRepository(GitRepository):
         cmd_checkout = ['git', 'checkout', hash]
         try:
             self._exec(cmd_checkout, cwd=self.worktreepath, env=self.gitenv)
+            logger.info("Git repository %s checked out!" % self.dirpath)
         except Exception:
             cause = "Impossible to checkout the worktree %s at %s" % (self.worktreepath, hash)
             raise RepositoryError(cause=cause)
