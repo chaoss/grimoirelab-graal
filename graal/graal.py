@@ -107,7 +107,8 @@ class Graal(Git):
         obtained.
 
         The list of `paths` is a list of strings with the names of
-        paths within the repository used to narrow the analysis.
+        paths (files or folders) within the repository used to narrow
+        the analysis.
 
         When `from_date` parameter is given it returns items commited
         since the given date.
@@ -128,7 +129,7 @@ class Graal(Git):
         occurs accessing the repository.
 
         :param category: the category of items to fetch
-        :param paths: the file paths to narrow the analysis
+        :param paths: the file/folder paths to narrow the analysis
         :param from_date: obtain commits newer than a specific date
             (inclusive)
         :param to_date: obtain commits older than a specific date
