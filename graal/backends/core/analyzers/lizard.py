@@ -43,6 +43,7 @@ class Lizard(Analyzer):
         Scala
         GDScript
     """
+    version = '0.1.0'
 
     def analyze(self, **kwargs):
         """Add code complexity information using Lizard.
