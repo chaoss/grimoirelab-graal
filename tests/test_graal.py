@@ -53,7 +53,7 @@ class MockedGraal(Graal):
               branches=None, latest_items=False):
         """Fetch commits and add code complexity information."""
 
-        items = super().fetch(category, paths=paths,
+        items = super().fetch(category,
                               from_date=from_date, to_date=to_date,
                               branches=branches, latest_items=latest_items)
 
@@ -68,16 +68,18 @@ class MockedGraal(Graal):
         """
         return CATEGORY_MOCKED
 
-    def _filter_commit(self, commit, ncommit, paths=None):
+    def _filter_commit(self, commit):
         """Filter a commit according to its data (e.g., author, sha, etc.)
 
         :param commit: a Perceval commit item
-        :param ncommit: commit number (from the initial commit)
-        :param paths: a list of paths to drive the filtering
 
         :returns: a boolean value
         """
-        return not ncommit % 15 == 0
+        if commit['commit'] in ['33a6622006ce3af10652cf538ff9476959314ae2',
+                                'face3e33c860980d701a4ca651db16f454d3fbbb',
+                                '8a6397b7911e8e82d0fbbccc7ae0c6190b32f2f4']:
+            return False
+        return True
 
     def _analyze(self, commit, paths=None):
         """Analyse a commit and the corresponding
@@ -491,7 +493,10 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.branches, None)
         self.assertFalse(parsed_args.latest_items)
         self.assertEqual(parsed_args.worktreepath, DEFAULT_WORKTREE_PATH)
-        self.assertEqual(parsed_args.paths, None)
+        self.assertEqual(parsed_args.in_paths, None)
+        self.assertEqual(parsed_args.out_paths, None)
+        self.assertEqual(parsed_args.entrypoint, None)
+        self.assertFalse(parsed_args.details)
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath',
@@ -501,7 +506,10 @@ class TestGraalCommand(unittest.TestCase):
                 '--branches', 'master', 'testing',
                 '--latest-items',
                 '--worktree-path', '/tmp/custom-worktrees/',
-                '--paths', '*.py', '*.java']
+                '--in-paths', '*.py', '*.java',
+                '--out-paths', '*.c',
+                '--entrypoint', 'module',
+                '--details']
 
         parsed_args = parser.parse(*args)
         self.assertEqual(parsed_args.uri, 'http://example.com/')
@@ -512,7 +520,10 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.branches, ['master', 'testing'])
         self.assertTrue(parsed_args.latest_items)
         self.assertEqual(parsed_args.worktreepath, '/tmp/custom-worktrees/')
-        self.assertEqual(parsed_args.paths, ['*.py', '*.java'])
+        self.assertEqual(parsed_args.in_paths, ['*.py', '*.java'])
+        self.assertEqual(parsed_args.out_paths, ['*.c'])
+        self.assertEqual(parsed_args.entrypoint, 'module')
+        self.assertTrue(parsed_args.details)
 
 
 if __name__ == "__main__":
