@@ -33,15 +33,18 @@ class Bandit(Analyzer):
     Once Bandit has finished scanning all the files it generates a report.
     """
 
-    version = '0.1.0'
+    version = '0.2.0'
 
     def analyze(self, **kwargs):
         """Add security issue data using Bandit.
 
         :param folder_path: folder path
-        :param result: dict of the results of the analysis
+        :param details: if True, it returns information about single vulnerabilities
+
+        :returns result: dict of the results of the analysis
         """
         folder_path = kwargs['folder_path']
+        details = kwargs['details']
 
         try:
             msg = subprocess.check_output(['bandit', '-r', folder_path]).decode("utf-8")
@@ -56,7 +59,6 @@ class Bandit(Analyzer):
         severities = []
         confidences = []
         loc = None
-        skipped = None
         descr = None
         severity = None
         confidence = None
@@ -100,11 +102,13 @@ class Bandit(Analyzer):
                 else:
                     continue
 
-        result = {'vulns': vulns,
-                  'loc_analyzed': loc,
-                  'total_issues': len(vulns),
+        result = {'loc_analyzed': loc,
+                  'num_vulns': len(vulns),
                   'by_severity': self.__create_ranked_dict(severities),
                   'by_confidence': self.__create_ranked_dict(confidences)}
+
+        if details:
+            result['vulns'] = vulns
 
         return result
 
