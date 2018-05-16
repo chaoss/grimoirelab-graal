@@ -38,7 +38,8 @@ class Cloc(Analyzer):
         """Add information about LOC, blank and commented lines using CLOC
 
         :param file_path: file path
-        :param result: dict of the results of the analysis
+
+        :returns result: dict of the results of the analysis
         """
         result = {'blanks': 0,
                   'comments': 0,
