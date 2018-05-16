@@ -29,7 +29,6 @@ from graal.graal import (Graal,
                          DEFAULT_WORKTREE_PATH)
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
-from perceval.backend import BackendCommandArgumentParser
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
 CATEGORY_COCOM = 'code_complexity'
