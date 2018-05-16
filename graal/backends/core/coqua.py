@@ -28,7 +28,6 @@ from graal.graal import (Graal,
                          GraalError,
                          DEFAULT_WORKTREE_PATH)
 from graal.backends.core.analyzers.lint import Lint
-from perceval.backend import BackendCommandArgumentParser
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 from grimoirelab.toolkit.datetime import str_to_datetime
 
