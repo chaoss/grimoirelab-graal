@@ -28,7 +28,6 @@ from graal.graal import (Graal,
                          GraalError,
                          DEFAULT_WORKTREE_PATH)
 from graal.backends.core.analyzers.reverse import Reverse
-from perceval.backend import BackendCommandArgumentParser
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 from grimoirelab.toolkit.datetime import str_to_datetime
 
@@ -46,19 +45,29 @@ class CoDep(Graal):
     :param uri: URI of the Git repository
     :param gitpath: path to the repository or to the log file
     :param worktreepath: the directory where to store the working tree
+    :param entrypoint: the entrypoint of the analysis
+    :param in_paths: the target paths of the analysis
+    :param out_paths: the paths to be excluded from the analysis
+    :param details: if enable, it returns fine-grained results
     :param tag: label used to mark the data
     :param archive: archive to store/retrieve items
 
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.1.0'
+    version = '0.2.0'
 
     CATEGORIES = [CATEGORY_CODEP]
 
     def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH,
+                 entrypoint=None, in_paths=None, out_paths=None, details=False,
                  tag=None, archive=None):
-        super().__init__(uri, git_path, worktreepath, tag=tag, archive=archive)
+        super().__init__(uri, git_path, worktreepath,
+                         entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
+                         tag=tag, archive=archive)
+
+        if not self.entrypoint:
+            raise GraalError(cause="Entrypoint cannot be null")
 
         self.dependency_analyzer = DependencyAnalyzer()
         self.monthly_checkpoints = []
@@ -68,7 +77,7 @@ class CoDep(Graal):
               branches=None, latest_items=False):
         """Fetch commits and code (package and class) dependencies information."""
 
-        items = super().fetch(category, paths=paths,
+        items = super().fetch(category,
                               from_date=from_date, to_date=to_date,
                               branches=branches, latest_items=latest_items)
 
@@ -83,12 +92,10 @@ class CoDep(Graal):
         """
         return CATEGORY_CODEP
 
-    def _filter_commit(self, commit, ncommit, paths=None):
+    def _filter_commit(self, commit):
         """Filter a commit according to its data (e.g., author, sha, etc.)
 
         :param commit: a Perceval commit item
-        :param ncommit: commit number (from the initial commit)
-        :param paths: a list of paths to drive the filtering
 
         :returns: a boolean value
         """
@@ -102,20 +109,13 @@ class CoDep(Graal):
         self.monthly_checkpoints.append(checkpoint)
         return False
 
-    def _analyze(self, commit, paths=None):
+    def _analyze(self, commit):
         """Analyse a snapshot and the corresponding
         checkout version of the repository
 
         :param commit: a Perceval commit item
-        :param paths: a list of paths to narrow the analysis
         """
-        if not paths:
-            raise GraalError(cause="paths cannot be null")
-
-        if len(paths) > 1:
-            logger.warning("Only the first path will be analyzed")
-
-        module_path = os.path.join(self.worktreepath, paths[0])
+        module_path = os.path.join(self.worktreepath, self.entrypoint)
 
         if not os.path.exists(module_path):
             logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
