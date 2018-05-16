@@ -29,15 +29,18 @@ from .analyzer import Analyzer
 class Lint(Analyzer):
     """A wrapper for Pylint, a source code, bug and quality checker for Python."""
 
-    version = '0.1.0'
+    version = '0.2.0'
 
     def analyze(self, **kwargs):
         """Add quality checks data using Pylint.
 
         :param module_path: module path
-        :param result: dict of the results of the analysis
+        :param details: if True, it returns information about single modules
+
+        :returns result: dict of the results of the analysis
         """
         module_path = kwargs['module_path']
+        details = kwargs['details']
 
         try:
             msg = subprocess.check_output(['pylint', '-rn', '--output-format=text', module_path]).decode("utf-8")
@@ -50,31 +53,33 @@ class Lint(Analyzer):
 
         end = False
         code_quality = None
-        details = []
+        mod_details = []
         module_name = ""
         lines = msg.split('\n')
         modules = {}
         for line in lines:
             if line.startswith("***"):
-                if details:
-                    modules.update({module_name: details})
+                if mod_details:
+                    modules.update({module_name: mod_details})
                 module_name = line.strip("*").strip().replace("Module ", "")
-                details = []
+                mod_details = []
             elif line.strip() == "":
                 continue
             elif line.startswith("----"):
-                modules.update({module_name: details})
+                modules.update({module_name: mod_details})
                 end = True
             else:
                 if end:
                     code_quality = line.split("/")[0].split(" ")[-1]
                     break
                 else:
-                    details.append(line)
+                    mod_details.append(line)
 
         result = {'quality': code_quality,
-                  'affected_modules': len(modules),
-                  'warnings': sum([len(mod) for mod in modules]),
-                  'modules': modules}
+                  'num_modules': len(modules),
+                  'warnings': sum([len(mod) for mod in modules])}
+
+        if details:
+            result['modules'] = modules
 
         return result
