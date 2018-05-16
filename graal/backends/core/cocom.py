@@ -60,28 +60,34 @@ class CoCom(Graal):
     :param uri: URI of the Git repository
     :param gitpath: path to the repository or to the log file
     :param worktreepath: the directory where to store the working tree
-    :param functions: if enabled, it returns complexity data about each single function found
+    :param entrypoint: the entrypoint of the analysis
+    :param in_paths: the target paths of the analysis
+    :param out_paths: the paths to be excluded from the analysis
+    :param details: if enable, it returns complexity data about each single function found
     :param tag: label used to mark the data
     :param archive: archive to store/retrieve items
 
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.1.2'
+    version = '0.2.0'
 
     CATEGORIES = [CATEGORY_COCOM]
 
-    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH, functions=False,
+    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH,
+                 entrypoint=None, in_paths=None, out_paths=None, details=False,
                  tag=None, archive=None):
-        super().__init__(uri, git_path, worktreepath, tag=tag, archive=archive)
-        self.file_analyzer = FileAnalyzer(functions)
+        super().__init__(uri, git_path, worktreepath,
+                         entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
+                         tag=tag, archive=archive)
+        self.file_analyzer = FileAnalyzer(details)
 
     def fetch(self, category=CATEGORY_COCOM, paths=None,
               from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
               branches=None, latest_items=False):
         """Fetch commits and add code complexity information."""
 
-        items = super().fetch(category, paths=paths,
+        items = super().fetch(category,
                               from_date=from_date, to_date=to_date,
                               branches=branches, latest_items=latest_items)
 
@@ -96,39 +102,36 @@ class CoCom(Graal):
         """
         return CATEGORY_COCOM
 
-    def _filter_commit(self, commit, ncommit, paths=None):
+    def _filter_commit(self, commit):
         """Filter a commit according to its data (e.g., author, sha, etc.)
 
         :param commit: a Perceval commit item
-        :param ncommit: commit number (from the initial commit)
-        :param paths: a list of paths to drive the filtering
 
         :returns: a boolean value
         """
-        if not paths:
+        if not self.in_paths:
             return False
 
         for f in commit['files']:
-            for p in paths:
+            for p in self.in_paths:
                 if f['file'].endswith(p):
                     return False
 
         return True
 
-    def _analyze(self, commit, paths=None):
+    def _analyze(self, commit):
         """Analyse a commit and the corresponding
         checkout version of the repository
 
         :param commit: a Perceval commit item
-        :param paths: a list of paths to narrow the analysis
         """
         files = GraalRepository.files(self.worktreepath)
         analysis = []
 
         for f in files:
 
-            if paths:
-                found = [p for p in paths if f.endswith(p)]
+            if self.in_paths:
+                found = [p for p in self.in_paths if f.endswith(p)]
                 if not found:
                     continue
 
@@ -159,8 +162,8 @@ class FileAnalyzer:
     FORBIDDEN_EXTENSIONS = ['tar', 'bz2', "gz", "lz", "apk", "tbz2",
                             "lzma", "tlz", "war", "xar", "zip", "zipx"]
 
-    def __init__(self, functions=False):
-        self.functions = functions
+    def __init__(self, details=False):
+        self.details = details
         self.cloc = Cloc()
         self.lizard = Lizard()
 
@@ -189,7 +192,7 @@ class FileAnalyzer:
         if GraalRepository.extension(file_path) not in self.ALLOWED_EXTENSIONS:
             return cloc_analysis
 
-        kwargs['functions'] = self.functions
+        kwargs['details'] = self.details
         lizard_analysis = self.lizard.analyze(**kwargs)
         # the LOC returned by CLOC is replaced by the one obtained with Lizard
         # for consistency purposes
@@ -204,35 +207,3 @@ class CoComCommand(GraalCommand):
     """Class to run CoCom backend from the command line."""
 
     BACKEND = CoCom
-
-    @staticmethod
-    def setup_cmd_parser():
-        """Returns the Graal argument parser."""
-
-        parser = BackendCommandArgumentParser(from_date=True, to_date=True)
-
-        # Optional arguments
-        group = parser.parser.add_argument_group('Git arguments')
-        group.add_argument('--branches', dest='branches',
-                           nargs='+', type=str, default=None,
-                           help="Fetch commits only from these branches")
-        group.add_argument('--latest-items', dest='latest_items',
-                           action='store_true',
-                           help="Fetch latest commits added to the repository")
-        group.add_argument('--worktree-path', dest='worktreepath',
-                           default=DEFAULT_WORKTREE_PATH,
-                           help="Path where to save the working tree")
-        group.add_argument('--paths', dest='paths',
-                           nargs='+', type=str, default=None,
-                           help="Paths to narrow the analysis")
-        group.add_argument('--functions', dest='functions',
-                           action='store_true', default=False,
-                           help="get function details")
-
-        # Required arguments
-        parser.parser.add_argument('uri',
-                                   help="URI of the Git log repository")
-        parser.parser.add_argument('--git-path', dest='git_path',
-                                   help="Path where the Git repository will be cloned")
-
-        return parser
