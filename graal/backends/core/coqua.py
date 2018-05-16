@@ -46,21 +46,31 @@ class CoQua(Graal):
     :param uri: URI of the Git repository
     :param gitpath: path to the repository or to the log file
     :param worktreepath: the directory where to store the working tree
+    :param entrypoint: the entrypoint of the analysis
+    :param in_paths: the target paths of the analysis
+    :param out_paths: the paths to be excluded from the analysis
+    :param details: if enable, it returns fine-grained results
     :param tag: label used to mark the data
     :param archive: archive to store/retrieve items
 
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.1.0'
+    version = '0.2.0'
 
     CATEGORIES = [CATEGORY_COQUA]
 
     def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH,
+                 entrypoint=None, in_paths=None, out_paths=None, details=False,
                  tag=None, archive=None):
-        super().__init__(uri, git_path, worktreepath, tag=tag, archive=archive)
+        super().__init__(uri, git_path, worktreepath,
+                         entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
+                         tag=tag, archive=archive)
 
-        self.module_analyzer = ModuleAnalyzer()
+        if not self.entrypoint:
+            raise GraalError(cause="Entrypoint cannot be null")
+
+        self.module_analyzer = ModuleAnalyzer(self.details)
         self.monthly_checkpoints = []
 
     def fetch(self, category=CATEGORY_COQUA, paths=None,
@@ -68,7 +78,7 @@ class CoQua(Graal):
               branches=None, latest_items=False):
         """Fetch commits and add code quality information."""
 
-        items = super().fetch(category, paths=paths,
+        items = super().fetch(category,
                               from_date=from_date, to_date=to_date,
                               branches=branches, latest_items=latest_items)
 
@@ -83,12 +93,10 @@ class CoQua(Graal):
         """
         return CATEGORY_COQUA
 
-    def _filter_commit(self, commit, ncommit, paths=None):
+    def _filter_commit(self, commit):
         """Filter a commit according to its data (e.g., author, sha, etc.)
 
         :param commit: a Perceval commit item
-        :param ncommit: commit number (from the initial commit)
-        :param paths: a list of paths to drive the filtering
 
         :returns: a boolean value
         """
@@ -102,20 +110,13 @@ class CoQua(Graal):
         self.monthly_checkpoints.append(checkpoint)
         return False
 
-    def _analyze(self, commit, paths=None):
+    def _analyze(self, commit):
         """Analyse a snapshot and the corresponding
         checkout version of the repository
 
         :param commit: a Perceval commit item
-        :param paths: a list of paths to narrow the analysis
         """
-        if not paths:
-            raise GraalError(cause="paths cannot be null")
-
-        if len(paths) > 1:
-            logger.warning("Only the first path will be analyzed")
-
-        module_path = os.path.join(self.worktreepath, paths[0])
+        module_path = os.path.join(self.worktreepath, self.entrypoint)
 
         if not os.path.exists(module_path):
             logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
@@ -142,7 +143,8 @@ class CoQua(Graal):
 class ModuleAnalyzer:
     """Class to evaluate code quality in a Python project"""
 
-    def __init__(self):
+    def __init__(self, details=False):
+        self.details = details
         self.lint = Lint()
 
     def analyze(self, module_path):
@@ -156,7 +158,10 @@ class ModuleAnalyzer:
           'modules': [..]
         }
         """
-        kwargs = {'module_path': module_path}
+        kwargs = {
+            'module_path': module_path,
+            'details': self.details
+        }
         analysis = self.lint.analyze(**kwargs)
 
         return analysis
