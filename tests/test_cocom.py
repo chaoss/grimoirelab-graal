@@ -82,15 +82,15 @@ class TestCodeComplexityBackend(TestCaseGraal):
         self.assertEqual(cc.worktreepath, os.path.join(self.worktree_path, os.path.split(cc.gitpath)[1]))
         self.assertEqual(cc.origin, 'http://example.com')
         self.assertEqual(cc.tag, 'test')
-        self.assertEqual(cc.file_analyzer.functions, False)
+        self.assertEqual(cc.file_analyzer.details, False)
 
-        cc = CoCom('http://example.com', self.git_path, self.worktree_path, functions=True, tag='test')
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path, details=True, tag='test')
         self.assertEqual(cc.uri, 'http://example.com')
         self.assertEqual(cc.gitpath, self.git_path)
         self.assertEqual(cc.worktreepath, os.path.join(self.worktree_path, os.path.split(cc.gitpath)[1]))
         self.assertEqual(cc.origin, 'http://example.com')
         self.assertEqual(cc.tag, 'test')
-        self.assertEqual(cc.file_analyzer.functions, True)
+        self.assertEqual(cc.file_analyzer.details, True)
 
         # When tag is empty or None it will be set to the value in uri
         cc = CoCom('http://example.com', self.git_path, self.worktree_path)
@@ -104,8 +104,8 @@ class TestCodeComplexityBackend(TestCaseGraal):
     def test_fetch(self):
         """Test whether commits are properly processed"""
 
-        cc = CoCom('http://example.com', self.git_path, self.worktree_path)
-        commits = [commit for commit in cc.fetch(paths=['tests/client.py'])]
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path, in_paths=['tests/client.py'])
+        commits = [commit for commit in cc.fetch()]
 
         self.assertEqual(len(commits), 5)
         self.assertFalse(os.path.exists(cc.worktreepath))
@@ -133,14 +133,14 @@ class TestFileAnalyzer(TestCaseAnalyzer):
         self.assertIsInstance(file_analyzer, FileAnalyzer)
         self.assertIsInstance(file_analyzer.cloc, Cloc)
         self.assertIsInstance(file_analyzer.lizard, Lizard)
-        self.assertFalse(file_analyzer.functions)
+        self.assertFalse(file_analyzer.details)
 
-        file_analyzer = FileAnalyzer(functions=True)
+        file_analyzer = FileAnalyzer(details=True)
 
         self.assertIsInstance(file_analyzer, FileAnalyzer)
         self.assertIsInstance(file_analyzer.cloc, Cloc)
         self.assertIsInstance(file_analyzer.lizard, Lizard)
-        self.assertTrue(file_analyzer.functions)
+        self.assertTrue(file_analyzer.details)
 
     def test_analyze_no_functions(self):
         """Test whether the analyze method works"""
@@ -149,7 +149,7 @@ class TestFileAnalyzer(TestCaseAnalyzer):
         file_analyzer = FileAnalyzer()
         analysis = file_analyzer.analyze(file_path)
 
-        self.assertNotIn('funs_data', analysis)
+        self.assertNotIn('funs', analysis)
         self.assertIn('ccn', analysis)
         self.assertIn('avg_loc', analysis)
         self.assertIn('avg_tokens', analysis)
@@ -162,7 +162,7 @@ class TestFileAnalyzer(TestCaseAnalyzer):
         """Test whether the analyze method returns functions information"""
 
         file_path = os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)
-        file_analyzer = FileAnalyzer(functions=True)
+        file_analyzer = FileAnalyzer(details=True)
         analysis = file_analyzer.analyze(file_path)
 
         self.assertIn('ccn', analysis)
@@ -172,9 +172,9 @@ class TestFileAnalyzer(TestCaseAnalyzer):
         self.assertIn('tokens', analysis)
         self.assertIn('blanks', analysis)
         self.assertIn('comments', analysis)
-        self.assertIn('funs_data', analysis)
+        self.assertIn('funs', analysis)
 
-        for fd in analysis['funs_data']:
+        for fd in analysis['funs']:
             self.assertIn('ccn', fd)
             self.assertIn('tokens', fd)
             self.assertIn('loc', fd)
@@ -212,23 +212,26 @@ class TestCodeComplexityCommand(unittest.TestCase):
         self.assertEqual(parsed_args.branches, None)
         self.assertFalse(parsed_args.latest_items)
         self.assertEqual(parsed_args.worktreepath, DEFAULT_WORKTREE_PATH)
-        self.assertEqual(parsed_args.paths, None)
-        self.assertFalse(parsed_args.functions)
+        self.assertEqual(parsed_args.in_paths, None)
+        self.assertEqual(parsed_args.out_paths, None)
+        self.assertFalse(parsed_args.details)
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath',
                 '--tag', 'test',
                 '--worktree-path', '/tmp/custom-worktrees/',
-                '--paths', '*.py', '*.java',
-                '--functions']
+                '--in-paths', '*.py', '*.java',
+                '--out-paths', '*.uml',
+                '--details']
 
         parsed_args = parser.parse(*args)
         self.assertEqual(parsed_args.uri, 'http://example.com/')
         self.assertEqual(parsed_args.git_path, '/tmp/gitpath')
         self.assertEqual(parsed_args.tag, 'test')
         self.assertEqual(parsed_args.worktreepath, '/tmp/custom-worktrees/')
-        self.assertEqual(parsed_args.paths, ['*.py', '*.java'])
-        self.assertTrue(parsed_args.functions)
+        self.assertEqual(parsed_args.in_paths, ['*.py', '*.java'])
+        self.assertEqual(parsed_args.out_paths, ['*.uml'])
+        self.assertTrue(parsed_args.details)
 
 
 if __name__ == "__main__":
