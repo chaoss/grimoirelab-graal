@@ -28,7 +28,6 @@ from graal.graal import (Graal,
                          GraalError,
                          DEFAULT_WORKTREE_PATH)
 from graal.backends.core.analyzers.bandit import Bandit
-from perceval.backend import BackendCommandArgumentParser
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 from grimoirelab.toolkit.datetime import str_to_datetime
 
@@ -56,7 +55,7 @@ class CoVuln(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.0'
+    version = '0.2.1'
 
     CATEGORIES = [CATEGORY_COVULN]
 
@@ -66,6 +65,9 @@ class CoVuln(Graal):
         super().__init__(uri, git_path, worktreepath,
                          entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
                          tag=tag, archive=archive)
+
+        if not self.entrypoint:
+            raise GraalError(cause="Entrypoint cannot be null")
 
         self.vuln_analyzer = VulnAnalyzer(self.details)
         self.monthly_checkpoints = []
