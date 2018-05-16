@@ -43,7 +43,7 @@ class Lizard(Analyzer):
         Scala
         GDScript
     """
-    version = '0.1.0'
+    version = '0.2.0'
 
     def analyze(self, **kwargs):
         """Add code complexity information using Lizard.
@@ -54,11 +54,13 @@ class Lizard(Analyzer):
         ccn, tokens, LOC, lines, name, args, start, end
 
         :param file_path: file path
-        :param result: dict of the results of the analysis
+        :param details: if True, it returns information about single functions
+
+        :returns  result: dict of the results of the analysis
         """
         result = {}
         file_path = kwargs['file_path']
-        functions = kwargs['functions']
+        details = kwargs['details']
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', DeprecationWarning)
@@ -68,11 +70,11 @@ class Lizard(Analyzer):
         result['avg_ccn'] = analysis.average_cyclomatic_complexity
         result['avg_loc'] = analysis.average_nloc
         result['avg_tokens'] = analysis.average_token_count
-        result['funs'] = len(analysis.function_list)
+        result['num_funs'] = len(analysis.function_list)
         result['loc'] = analysis.nloc
         result['tokens'] = analysis.token_count
 
-        if not functions:
+        if not details:
             return result
 
         funs_data = []
@@ -87,5 +89,5 @@ class Lizard(Analyzer):
                         'end': fun.end_line}
             funs_data.append(fun_data)
 
-        result['funs_data'] = funs_data
+        result['funs'] = funs_data
         return result
