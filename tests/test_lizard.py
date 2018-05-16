@@ -38,15 +38,15 @@ class TestLizard(TestCaseAnalyzer):
 
         lizard = Lizard()
         kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE),
-                  'functions': False}
+                  'details': False}
         result = lizard.analyze(**kwargs)
 
-        self.assertNotIn('funs_data', result)
+        self.assertNotIn('funs', result)
         self.assertIn('ccn', result)
         self.assertIn('avg_ccn', result)
         self.assertIn('avg_loc', result)
         self.assertIn('avg_tokens', result)
-        self.assertIn('funs', result)
+        self.assertIn('num_funs', result)
         self.assertIn('loc', result)
         self.assertIn('tokens', result)
 
@@ -55,19 +55,19 @@ class TestLizard(TestCaseAnalyzer):
 
         lizard = Lizard()
         kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE),
-                  'functions': True}
+                  'details': True}
         result = lizard.analyze(**kwargs)
 
         self.assertIn('ccn', result)
         self.assertIn('avg_ccn', result)
         self.assertIn('avg_loc', result)
         self.assertIn('avg_tokens', result)
-        self.assertIn('funs', result)
+        self.assertIn('num_funs', result)
         self.assertIn('loc', result)
         self.assertIn('tokens', result)
-        self.assertIn('funs_data', result)
+        self.assertIn('funs', result)
 
-        for fd in result['funs_data']:
+        for fd in result['funs']:
             self.assertIn('ccn', fd)
             self.assertIn('tokens', fd)
             self.assertIn('loc', fd)
