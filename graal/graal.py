@@ -30,6 +30,7 @@ import shutil
 import tarfile
 
 from grimoirelab.toolkit.datetime import datetime_utcnow
+from grimoirelab.toolkit.introspect import find_signature_parameters
 from perceval.backends.core.git import (Git,
                                         GitRepository,
                                         GitCommand)
@@ -89,12 +90,12 @@ class Graal(Git):
 
     CATEGORIES = [CATEGORY_GRAAL]
 
-    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH,
+    def __init__(self, uri, gitpath, worktreepath=DEFAULT_WORKTREE_PATH,
                  entrypoint=None, in_paths=None, out_paths=None, details=False,
                  tag=None, archive=None):
-        super().__init__(uri, git_path, tag=tag, archive=archive)
+        super().__init__(uri, gitpath, tag=tag, archive=archive)
         self.uri = uri
-        self.gitpath = git_path
+        self.gitpath = gitpath
 
         self.entrypoint = entrypoint
         self.in_paths = in_paths
@@ -495,6 +496,35 @@ class GraalCommand(GitCommand):
                                    help="Path where the Git repository will be cloned")
 
         return parser
+    
+
+def fetch(backend_class, backend_args):
+    """Fetch items using the given backend.
+
+    Generator to get items using the given backend class.
+
+    The parameters needed to initialize the `backend` class and
+    get the items are given using `backend_args` dict parameter.
+
+    :param backend_class: backend class to fetch items
+    :param backend_args: dict of arguments needed to fetch the items
+
+    :returns: a generator of items
+    """
+    init_args = find_signature_parameters(backend_class.__init__,
+                                          backend_args)
+    init_args['archive'] = None
+
+    backend = backend_class(**init_args)
+    fetch_args = find_signature_parameters(backend.fetch,
+                                           backend_args)
+    items = backend.fetch(**fetch_args)
+
+    try:
+        for item in items:
+            yield item
+    except Exception as e:
+        raise e
 
 
 def find_backends(top_package):
