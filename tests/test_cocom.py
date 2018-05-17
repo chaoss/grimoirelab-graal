@@ -55,7 +55,7 @@ class TestCodeComplexityBackend(TestCaseGraal):
         cls.worktree_path = os.path.join(cls.tmp_path, 'codecomplexity_worktrees')
 
         data_path = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(data_path, 'data/graal')
+        data_path = os.path.join(data_path, 'data')
 
         repo_name = 'graaltest'
         repo_path = cls.git_path

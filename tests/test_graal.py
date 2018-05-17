@@ -132,7 +132,7 @@ class TestGraalBackend(TestCaseGraal):
         cls.worktree_path = os.path.join(cls.tmp_path, 'graal_worktrees')
 
         data_path = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(data_path, 'data/graal')
+        data_path = os.path.join(data_path, 'data')
 
         repo_name = 'graaltest'
         repo_path = cls.git_path
@@ -236,7 +236,7 @@ class TestGraalRepository(TestCaseGraal):
         cls.worktree_path = os.path.join(cls.tmp_path, 'graal_worktrees')
 
         data_path = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(data_path, 'data/graal')
+        data_path = os.path.join(data_path, 'data')
 
         repo_name = 'graaltest'
         repo_path = cls.git_path

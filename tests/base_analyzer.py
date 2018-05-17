@@ -26,7 +26,7 @@ import shutil
 import tempfile
 import unittest
 
-ANALYZER_TEST_FOLDER = "data/analyzers/"
+ANALYZER_TEST_FOLDER = "data/"
 ANALYZER_TEST_FILE = "sample_code.py"
 
 
