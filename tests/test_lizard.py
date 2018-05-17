@@ -33,7 +33,7 @@ from graal.backends.core.analyzers.lizard import Lizard
 class TestLizard(TestCaseAnalyzer):
     """Lizard tests"""
 
-    def test_analyze_no_functions(self):
+    def test_analyze_no_details(self):
         """Test whether lizard returns the expected fields data"""
 
         lizard = Lizard()
@@ -43,14 +43,21 @@ class TestLizard(TestCaseAnalyzer):
 
         self.assertNotIn('funs', result)
         self.assertIn('ccn', result)
+        self.assertTrue(type(result['ccn']), int)
         self.assertIn('avg_ccn', result)
+        self.assertTrue(type(result['avg_ccn']), float)
         self.assertIn('avg_loc', result)
+        self.assertTrue(type(result['avg_loc']), float)
         self.assertIn('avg_tokens', result)
+        self.assertTrue(type(result['avg_tokens']), float)
         self.assertIn('num_funs', result)
+        self.assertTrue(type(result['num_funs']), int)
         self.assertIn('loc', result)
+        self.assertTrue(type(result['loc']), int)
         self.assertIn('tokens', result)
+        self.assertTrue(type(result['tokens']), int)
 
-    def test_analyze_functions(self):
+    def test_analyze_details(self):
         """Test whether lizard returns the expected fields data"""
 
         lizard = Lizard()
@@ -59,23 +66,39 @@ class TestLizard(TestCaseAnalyzer):
         result = lizard.analyze(**kwargs)
 
         self.assertIn('ccn', result)
+        self.assertTrue(type(result['ccn']), int)
         self.assertIn('avg_ccn', result)
+        self.assertTrue(type(result['avg_ccn']), float)
         self.assertIn('avg_loc', result)
+        self.assertTrue(type(result['avg_loc']), float)
         self.assertIn('avg_tokens', result)
+        self.assertTrue(type(result['avg_tokens']), float)
         self.assertIn('num_funs', result)
+        self.assertTrue(type(result['num_funs']), int)
         self.assertIn('loc', result)
+        self.assertTrue(type(result['loc']), int)
         self.assertIn('tokens', result)
+        self.assertTrue(type(result['tokens']), int)
         self.assertIn('funs', result)
+        self.assertTrue(type(result['funs']), dict)
 
         for fd in result['funs']:
             self.assertIn('ccn', fd)
+            self.assertTrue(type(fd['ccn']), int)
             self.assertIn('tokens', fd)
+            self.assertTrue(type(fd['tokens']), int)
             self.assertIn('loc', fd)
+            self.assertTrue(type(fd['loc']), int)
             self.assertIn('lines', fd)
+            self.assertTrue(type(fd['lines']), int)
             self.assertIn('name', fd)
+            self.assertTrue(type(fd['name']), str)
             self.assertIn('args', fd)
+            self.assertTrue(type(fd['args']), int)
             self.assertIn('start', fd)
+            self.assertTrue(type(fd['start']), int)
             self.assertIn('end', fd)
+            self.assertTrue(type(fd['end']), int)
 
 
 if __name__ == "__main__":
