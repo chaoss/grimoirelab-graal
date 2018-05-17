@@ -41,8 +41,11 @@ class TestCloc(TestCaseAnalyzer):
         result = cloc.analyze(**kwargs)
 
         self.assertIn('blanks', result)
+        self.assertTrue(type(result['blanks']), int)
         self.assertIn('comments', result)
+        self.assertTrue(type(result['comments']), int)
         self.assertIn('loc', result)
+        self.assertTrue(type(result['loc']), int)
 
 
 if __name__ == "__main__":
