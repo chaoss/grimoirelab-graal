@@ -64,7 +64,7 @@ class TestLint(TestCaseAnalyzer):
             'details': True
         }
         result = lint.analyze(**kwargs)
-        
+
         self.assertIn('quality', result)
         self.assertTrue(type(result['quality']), str)
         self.assertIn('num_modules', result)

@@ -27,8 +27,7 @@ import subprocess
 import tempfile
 import unittest
 
-from base_analyzer import (TestCaseAnalyzer,
-                           ANALYZER_TEST_FILE)
+from base_analyzer import TestCaseAnalyzer
 
 from graal.backends.core.analyzers.reverse import Reverse
 

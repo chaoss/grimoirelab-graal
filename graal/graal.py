@@ -496,7 +496,7 @@ class GraalCommand(GitCommand):
                                    help="Path where the Git repository will be cloned")
 
         return parser
-    
+
 
 def fetch(backend_class, backend_args):
     """Fetch items using the given backend.
