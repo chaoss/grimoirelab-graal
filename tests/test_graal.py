@@ -159,6 +159,10 @@ class TestGraalBackend(TestCaseGraal):
         self.assertEqual(graal.worktreepath, os.path.join(self.worktree_path, os.path.split(graal.gitpath)[1]))
         self.assertEqual(graal.origin, 'http://example.com')
         self.assertEqual(graal.tag, 'test')
+        self.assertIsNone(graal.entrypoint)
+        self.assertIsNone(graal.in_paths)
+        self.assertIsNone(graal.out_paths)
+        self.assertFalse(graal.details)
 
         # When tag is empty or None it will be set to the value in uri
         graal = Graal('http://example.com', self.git_path, self.worktree_path)
@@ -168,6 +172,14 @@ class TestGraalBackend(TestCaseGraal):
         graal = Graal('http://example.com', self.git_path, self.worktree_path)
         self.assertEqual(graal.origin, 'http://example.com')
         self.assertEqual(graal.tag, 'http://example.com')
+
+        graal = Graal('http://example.com', self.git_path,
+                      entrypoint="entrypoint", in_paths=["x"], out_paths=["y"], details=True)
+        self.assertEqual(graal.worktreepath, os.path.join(DEFAULT_WORKTREE_PATH, os.path.split(graal.gitpath)[1]))
+        self.assertEqual(graal.entrypoint, "entrypoint")
+        self.assertEqual(graal.in_paths, ["x"])
+        self.assertEqual(graal.out_paths, ["y"])
+        self.assertTrue(graal.details)
 
     def test_fetch_no_analysis(self):
         """Test whether commits are inflated with the analysis attribute"""
