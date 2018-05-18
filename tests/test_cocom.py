@@ -27,13 +27,9 @@ import subprocess
 import tempfile
 import unittest.mock
 
-from perceval.backend import BackendCommandArgumentParser
-from perceval.utils import DEFAULT_DATETIME
-
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
-from graal.backends.core.cocom import (DEFAULT_WORKTREE_PATH,
-                                       CATEGORY_COCOM,
+from graal.backends.core.cocom import (CATEGORY_COCOM,
                                        CoCom,
                                        FileAnalyzer,
                                        CoComCommand)
@@ -42,17 +38,17 @@ from base_analyzer import (ANALYZER_TEST_FILE,
                            TestCaseAnalyzer)
 
 
-class TestCodeComplexityBackend(TestCaseGraal):
-    """Graal backend tests"""
+class TestCoComBackend(TestCaseGraal):
+    """CoCom backend tests"""
 
     @classmethod
     def setUpClass(cls):
-        cls.tmp_path = tempfile.mkdtemp(prefix='codecomplexity_')
+        cls.tmp_path = tempfile.mkdtemp(prefix='cocom_')
         cls.tmp_repo_path = os.path.join(cls.tmp_path, 'repos')
         os.mkdir(cls.tmp_repo_path)
 
         cls.git_path = os.path.join(cls.tmp_path, 'graaltest')
-        cls.worktree_path = os.path.join(cls.tmp_path, 'codecomplexity_worktrees')
+        cls.worktree_path = os.path.join(cls.tmp_path, 'cocom_worktrees')
 
         data_path = os.path.dirname(os.path.abspath(__file__))
         data_path = os.path.join(data_path, 'data')
@@ -185,53 +181,13 @@ class TestFileAnalyzer(TestCaseAnalyzer):
             self.assertIn('end', fd)
 
 
-class TestCodeComplexityCommand(unittest.TestCase):
-    """GraalCommand tests"""
+class TestCoComCommand(unittest.TestCase):
+    """CoComCommand tests"""
 
     def test_backend_class(self):
-        """Test if the backend class is Graal"""
+        """Test if the backend class is CoCom"""
 
         self.assertIs(CoComCommand.BACKEND, CoCom)
-
-    def test_setup_cmd_parser(self):
-        """Test if it parser object is correctly initialized"""
-
-        parser = CoComCommand.setup_cmd_parser()
-        self.assertIsInstance(parser, BackendCommandArgumentParser)
-
-        args = ['http://example.com/',
-                '--git-path', '/tmp/gitpath',
-                '--tag', 'test']
-
-        parsed_args = parser.parse(*args)
-        self.assertEqual(parsed_args.uri, 'http://example.com/')
-        self.assertEqual(parsed_args.git_path, '/tmp/gitpath')
-        self.assertEqual(parsed_args.tag, 'test')
-        self.assertEqual(parsed_args.from_date, DEFAULT_DATETIME)
-        self.assertEqual(parsed_args.to_date, None)
-        self.assertEqual(parsed_args.branches, None)
-        self.assertFalse(parsed_args.latest_items)
-        self.assertEqual(parsed_args.worktreepath, DEFAULT_WORKTREE_PATH)
-        self.assertEqual(parsed_args.in_paths, None)
-        self.assertEqual(parsed_args.out_paths, None)
-        self.assertFalse(parsed_args.details)
-
-        args = ['http://example.com/',
-                '--git-path', '/tmp/gitpath',
-                '--tag', 'test',
-                '--worktree-path', '/tmp/custom-worktrees/',
-                '--in-paths', '*.py', '*.java',
-                '--out-paths', '*.uml',
-                '--details']
-
-        parsed_args = parser.parse(*args)
-        self.assertEqual(parsed_args.uri, 'http://example.com/')
-        self.assertEqual(parsed_args.git_path, '/tmp/gitpath')
-        self.assertEqual(parsed_args.tag, 'test')
-        self.assertEqual(parsed_args.worktreepath, '/tmp/custom-worktrees/')
-        self.assertEqual(parsed_args.in_paths, ['*.py', '*.java'])
-        self.assertEqual(parsed_args.out_paths, ['*.uml'])
-        self.assertTrue(parsed_args.details)
 
 
 if __name__ == "__main__":
