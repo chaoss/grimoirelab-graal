@@ -33,7 +33,7 @@ class Bandit(Analyzer):
     Once Bandit has finished scanning all the files it generates a report.
     """
 
-    version = '0.2.0'
+    version = '0.2.1'
 
     def analyze(self, **kwargs):
         """Add security issue data using Bandit.
@@ -85,7 +85,7 @@ class Bandit(Analyzer):
                         line = location.split(":")[-1]
                         file = location.replace(":" + line, "")
                         vuln = {"file": file,
-                                "line": line,
+                                "line": int(line),
                                 "severity": severity,
                                 "confidence": confidence,
                                 "descr": descr}
