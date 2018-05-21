@@ -29,7 +29,6 @@ from graal.graal import (Graal,
                          DEFAULT_WORKTREE_PATH)
 from graal.backends.core.analyzers.bandit import Bandit
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
-from grimoirelab.toolkit.datetime import str_to_datetime
 
 CATEGORY_COVULN = 'code_vulnerabilities'
 
@@ -70,7 +69,6 @@ class CoVuln(Graal):
             raise GraalError(cause="Entrypoint cannot be null")
 
         self.vuln_analyzer = VulnAnalyzer(self.details)
-        self.monthly_checkpoints = []
 
     def fetch(self, category=CATEGORY_COVULN, paths=None,
               from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
@@ -99,14 +97,6 @@ class CoVuln(Graal):
 
         :returns: a boolean value
         """
-        authored_date = str_to_datetime(commit['AuthorDate'])
-
-        checkpoint = '-'.join([str(authored_date.year), str(authored_date.month)])
-
-        if checkpoint in self.monthly_checkpoints:
-            return True
-
-        self.monthly_checkpoints.append(checkpoint)
         return False
 
     def _analyze(self, commit):
