@@ -29,7 +29,6 @@ from graal.graal import (Graal,
                          DEFAULT_WORKTREE_PATH)
 from graal.backends.core.analyzers.reverse import Reverse
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
-from grimoirelab.toolkit.datetime import str_to_datetime
 
 CATEGORY_CODEP = 'code_dependencies'
 
@@ -55,7 +54,7 @@ class CoDep(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.0'
+    version = '0.2.1'
 
     CATEGORIES = [CATEGORY_CODEP]
 
@@ -70,7 +69,6 @@ class CoDep(Graal):
             raise GraalError(cause="Entrypoint cannot be null")
 
         self.dependency_analyzer = DependencyAnalyzer()
-        self.monthly_checkpoints = []
 
     def fetch(self, category=CATEGORY_CODEP, paths=None,
               from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
@@ -99,14 +97,6 @@ class CoDep(Graal):
 
         :returns: a boolean value
         """
-        authored_date = str_to_datetime(commit['AuthorDate'])
-
-        checkpoint = '-'.join([str(authored_date.year), str(authored_date.month)])
-
-        if checkpoint in self.monthly_checkpoints:
-            return True
-
-        self.monthly_checkpoints.append(checkpoint)
         return False
 
     def _analyze(self, commit):
