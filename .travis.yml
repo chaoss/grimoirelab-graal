@@ -12,6 +12,7 @@ before_install:
   - pip install coveralls
   - sudo apt-get install cloc
   - pip install bandit
+  - pip install pylint
 
 install:
   - ./setup.py install
