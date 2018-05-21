@@ -42,7 +42,7 @@ class TestReverse(TestCaseAnalyzer):
         data_path = os.path.dirname(os.path.abspath(__file__))
         data_path = os.path.join(data_path, 'data')
 
-        repo_name = 'graaltest-multipkgs'
+        repo_name = 'graaltest'
         cls.repo_path = os.path.join(cls.tmp_path, repo_name)
 
         fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
@@ -59,7 +59,7 @@ class TestReverse(TestCaseAnalyzer):
 
         reverse = Reverse()
         kwargs = {
-            'module_path': os.path.join(self.tmp_path, 'perceval', 'perceval'),
+            'module_path': os.path.join(self.repo_path, "perceval"),
         }
         result = reverse.analyze(**kwargs)
 

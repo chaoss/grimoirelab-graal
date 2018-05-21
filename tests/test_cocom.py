@@ -100,17 +100,17 @@ class TestCoComBackend(TestCaseGraal):
     def test_fetch(self):
         """Test whether commits are properly processed"""
 
-        cc = CoCom('http://example.com', self.git_path, self.worktree_path, in_paths=['tests/client.py'])
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path, in_paths=['perceval/backends/core/github.py'])
         commits = [commit for commit in cc.fetch()]
 
-        self.assertEqual(len(commits), 5)
+        self.assertEqual(len(commits), 1)
         self.assertFalse(os.path.exists(cc.worktreepath))
 
         for commit in commits:
             self.assertEqual(commit['backend_name'], 'CoCom')
             self.assertEqual(commit['category'], CATEGORY_COCOM)
             self.assertEqual(commit['data']['analysis'][0]['file_path'],
-                             os.path.join(cc.worktreepath, 'tests/client.py'))
+                             os.path.join(cc.worktreepath, 'perceval/backends/core/github.py'))
             self.assertFalse('Author' in commit['data'])
             self.assertFalse('Commit' in commit['data'])
             self.assertFalse('files' in commit['data'])

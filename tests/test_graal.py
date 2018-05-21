@@ -75,11 +75,7 @@ class MockedGraal(Graal):
 
         :returns: a boolean value
         """
-        if commit['commit'] in ['33a6622006ce3af10652cf538ff9476959314ae2',
-                                'face3e33c860980d701a4ca651db16f454d3fbbb',
-                                '8a6397b7911e8e82d0fbbccc7ae0c6190b32f2f4']:
-            return False
-        return True
+        return False
 
     def _analyze(self, commit, paths=None):
         """Analyse a commit and the corresponding
@@ -187,7 +183,7 @@ class TestGraalBackend(TestCaseGraal):
         graal = Graal('http://example.com', self.git_path, self.worktree_path)
         commits = [commit for commit in graal.fetch()]
 
-        self.assertEqual(len(commits), 41)
+        self.assertEqual(len(commits), 3)
         self.assertFalse(os.path.exists(graal.worktreepath))
 
         for commit in commits:
@@ -207,7 +203,7 @@ class TestGraalBackend(TestCaseGraal):
         commit = commits[0]
         self.assertEqual(commit['backend_name'], 'MockedGraal')
         self.assertEqual(commit['category'], CATEGORY_MOCKED)
-        self.assertEqual(commit['data']['analysis']['lines_modified'], 66)
+        self.assertEqual(commit['data']['analysis']['lines_modified'], 4177)
         self.assertFalse('Author' in commit['data'])
         self.assertFalse('Commit' in commit['data'])
         self.assertFalse('files' in commit['data'])
@@ -217,7 +213,7 @@ class TestGraalBackend(TestCaseGraal):
         commit = commits[1]
         self.assertEqual(commit['backend_name'], 'MockedGraal')
         self.assertEqual(commit['category'], CATEGORY_MOCKED)
-        self.assertEqual(commit['data']['analysis']['lines_modified'], 6)
+        self.assertEqual(commit['data']['analysis']['lines_modified'], 25)
         self.assertFalse('Author' in commit['data'])
         self.assertFalse('Commit' in commit['data'])
         self.assertFalse('files' in commit['data'])
@@ -227,7 +223,7 @@ class TestGraalBackend(TestCaseGraal):
         commit = commits[2]
         self.assertEqual(commit['backend_name'], 'MockedGraal')
         self.assertEqual(commit['category'], CATEGORY_MOCKED)
-        self.assertEqual(commit['data']['analysis']['lines_modified'], 1)
+        self.assertEqual(commit['data']['analysis']['lines_modified'], 12)
         self.assertFalse('Author' in commit['data'])
         self.assertFalse('Commit' in commit['data'])
         self.assertFalse('files' in commit['data'])
@@ -320,17 +316,17 @@ class TestGraalRepository(TestCaseGraal):
         self.assertIsNone(repo.worktreepath)
         repo.worktree(new_path)
 
-        repo.checkout("c22232bf73128979780545e3e57e545e27d5260c")
+        repo.checkout("075f0c6161db5a3b1c8eca45e08b88469bb148b9")
         current_commit_hash = self.__git_show_hash(repo)
-        self.assertEqual("c22232bf73128979780545e3e57e545e27d5260c", current_commit_hash)
+        self.assertEqual("075f0c6161db5a3b1c8eca45e08b88469bb148b9", current_commit_hash)
 
-        repo.checkout("623cbae074ee07066753bfec7c2ced386d152cb3")
+        repo.checkout("4f3b403d47fb291a9a942a62d62c24faa79244c8")
         current_commit_hash = self.__git_show_hash(repo)
-        self.assertEqual("623cbae074ee07066753bfec7c2ced386d152cb3", current_commit_hash)
+        self.assertEqual("4f3b403d47fb291a9a942a62d62c24faa79244c8", current_commit_hash)
 
-        repo.checkout("a76b0a7b0f0e2a15382bf943048a0f19fee6bbe0")
+        repo.checkout("825b4da7ca740f7f2abbae1b3402908a44d130cd")
         current_commit_hash = self.__git_show_hash(repo)
-        self.assertEqual("a76b0a7b0f0e2a15382bf943048a0f19fee6bbe0", current_commit_hash)
+        self.assertEqual("825b4da7ca740f7f2abbae1b3402908a44d130cd", current_commit_hash)
 
         repo.prune()
         self.assertFalse(os.path.exists(repo.worktreepath))
@@ -339,7 +335,7 @@ class TestGraalRepository(TestCaseGraal):
         """Test whether a Git archive command is correctly executed"""
 
         repo = GraalRepository('http://example.git', self.git_path)
-        file_obj = repo.archive("c22232bf73128979780545e3e57e545e27d5260c")
+        file_obj = repo.archive("825b4da7ca740f7f2abbae1b3402908a44d130cd")
 
         self.assertIsInstance(file_obj, io.BytesIO)
 
@@ -347,7 +343,7 @@ class TestGraalRepository(TestCaseGraal):
         """Test whether a BytesIO object is converted to a tar object"""
 
         repo = GraalRepository('http://example.git', self.git_path)
-        file_obj = repo.archive("c22232bf73128979780545e3e57e545e27d5260c")
+        file_obj = repo.archive("825b4da7ca740f7f2abbae1b3402908a44d130cd")
 
         tar_obj = repo.tar_obj(file_obj)
         self.assertIsInstance(tar_obj, tarfile.TarFile)
@@ -356,9 +352,9 @@ class TestGraalRepository(TestCaseGraal):
         """Test whether tar object members are filtered"""
 
         repo = GraalRepository('http://example.git', self.git_path)
-        file_obj = repo.archive("623cbae074ee07066753bfec7c2ced386d152cb3")
+        file_obj = repo.archive("825b4da7ca740f7f2abbae1b3402908a44d130cd")
         tar_obj = repo.tar_obj(file_obj)
-        self.assertEqual(len(tar_obj.getmembers()), 12)
+        self.assertEqual(len(tar_obj.getmembers()), 18)
 
         to_select = ['.gitignore']
         filtered_obj = repo.filter_tar(tar_obj, to_select)
@@ -371,7 +367,7 @@ class TestGraalRepository(TestCaseGraal):
         tar_path = os.path.join(self.tmp_path, 'testtar.tar.gz')
 
         repo = GraalRepository('http://example.git', self.git_path)
-        file_obj = repo.archive("623cbae074ee07066753bfec7c2ced386d152cb3")
+        file_obj = repo.archive("825b4da7ca740f7f2abbae1b3402908a44d130cd")
         tar_obj = repo.tar_obj(file_obj)
 
         repo.tar(tar_obj, tar_path)
@@ -387,7 +383,7 @@ class TestGraalRepository(TestCaseGraal):
         untar_path = os.path.join(self.tmp_path, 'untesttar')
 
         repo = GraalRepository('http://example.git', self.git_path)
-        file_obj = repo.archive("623cbae074ee07066753bfec7c2ced386d152cb3")
+        file_obj = repo.archive("825b4da7ca740f7f2abbae1b3402908a44d130cd")
         tar_obj = repo.tar_obj(file_obj)
 
         repo.untar(tar_obj, untar_path)
@@ -411,11 +407,19 @@ class TestGraalRepository(TestCaseGraal):
         repo = GraalRepository('http://example.git', self.git_path)
         repo.worktree(new_path)
 
-        expected = [os.path.join(new_path, 'setup.py'), os.path.join(new_path, 'README.md'),
-                    os.path.join(new_path, 'LICENSE'), os.path.join(new_path, 'requirements.txt'),
-                    os.path.join(new_path, 'pyslack/__init__.py'), os.path.join(new_path, 'tests/handler.py'),
-                    os.path.join(new_path, 'tests/__init__.py'), os.path.join(new_path, 'tests/client.py'),
-                    os.path.join(new_path, 'tests/requirements.txt')]
+        expected = [os.path.join(new_path, 'perceval/archive.py'),
+                    os.path.join(new_path, 'perceval/backend.py'),
+                    os.path.join(new_path, 'perceval/client.py'),
+                    os.path.join(new_path, 'perceval/__init__.py'),
+                    os.path.join(new_path, 'perceval/_version.py'),
+                    os.path.join(new_path, 'perceval/utils.py'),
+                    os.path.join(new_path, 'perceval/errors.py'),
+                    os.path.join(new_path, 'perceval/backends/__init__.py'),
+                    os.path.join(new_path, 'perceval/backends/core/__init__.py'),
+                    os.path.join(new_path, 'perceval/backends/core/github.py'),
+                    os.path.join(new_path, 'perceval/backends/core/mbox.py'),
+                    os.path.join(new_path, 'perceval/backends/core/git.py')
+                    ]
 
         files = repo.files(new_path)
 
@@ -434,8 +438,8 @@ class TestGraalRepository(TestCaseGraal):
         repo = GraalRepository('http://example.git', self.git_path)
         repo.worktree(new_path)
 
-        target_file = os.path.join(new_path, 'setup.py')
-        target_folder = os.path.join(new_path, 'tests')
+        target_file = os.path.join(new_path, 'perceval/_version.py')
+        target_folder = os.path.join(new_path, 'perceval/backends')
 
         self.assertTrue(os.path.exists(target_file))
         repo.delete(target_file)

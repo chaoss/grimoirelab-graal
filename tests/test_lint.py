@@ -60,7 +60,7 @@ class TestLint(TestCaseAnalyzer):
 
         lint = Lint()
         kwargs = {
-            'module_path': os.path.join(self.repo_path, "pyslack"),
+            'module_path': os.path.join(self.repo_path, "perceval"),
             'details': True
         }
         result = lint.analyze(**kwargs)
