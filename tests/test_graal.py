@@ -32,6 +32,7 @@ import unittest.mock
 
 from grimoirelab.toolkit.datetime import str_to_datetime
 from perceval.backend import BackendCommandArgumentParser
+from perceval.errors import RepositoryError
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
 import graal
@@ -45,9 +46,40 @@ from graal.graal import (DEFAULT_WORKTREE_PATH,
 CATEGORY_MOCKED = 'mocked'
 
 
+class MockedGraalRepository(GraalRepository):
+
+    RAISE_EXCEPTION = False
+
+    def __init__(self, uri, dirpath, raise_exception):
+        super().__init__(uri, dirpath)
+        self.worktreepath = None
+        MockedGraalRepository.RAISE_EXCEPTION = raise_exception
+
+    @staticmethod
+    def _exec(cmd, cwd=None, env=None, ignored_error_codes=None,
+              encoding='utf-8'):
+
+        if MockedGraalRepository.RAISE_EXCEPTION:
+            if cmd[:2] == ["git", "archive"]:
+                raise OSError
+
+            raise Exception
+
+        super()._exec(cmd, cwd=cwd, env=env, ignored_error_codes=ignored_error_codes,
+                      encoding=encoding)
+
+
 class MockedGraal(Graal):
 
     CATEGORIES = [CATEGORY_MOCKED]
+
+    def __init__(self, uri, gitpath, worktreepath=DEFAULT_WORKTREE_PATH,
+                 entrypoint=None, in_paths=None, out_paths=None, details=False,
+                 tag=None, archive=None, raise_exception=False):
+        super().__init__(uri, gitpath, worktreepath=worktreepath, entrypoint=entrypoint,
+                         in_paths=in_paths, out_paths=out_paths, details=details,
+                         tag=tag, archive=archive)
+        self.raise_exception = raise_exception
 
     def fetch(self, category=CATEGORY_MOCKED, paths=None,
               from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
@@ -98,6 +130,9 @@ class MockedGraal(Graal):
 
         :param commit: a Graal commit item
         """
+        if self.raise_exception:
+            raise Exception
+
         commit.pop('Author', None)
         commit.pop('Commit', None)
         commit.pop('files', None)
@@ -248,6 +283,11 @@ class TestGraalBackend(TestCaseGraal):
         self.assertFalse('parents' in commit['data'])
         self.assertFalse('refs' in commit['data'])
 
+    def test_fetch_analysis_on_error(self):
+        mocked = MockedGraal('http://example.com', self.git_path, self.worktree_path, raise_exception=True)
+        with self.assertRaises(Exception):
+            _ = [commit for commit in mocked.fetch()]
+
 
 class TestGraalRepository(TestCaseGraal):
     """GraalRepository tests"""
@@ -311,6 +351,15 @@ class TestGraalRepository(TestCaseGraal):
         repo.prune()
         self.assertFalse(os.path.exists(repo.worktreepath))
 
+    def test_worktree_on_error(self):
+        """Test whether a RepositoryError is thrown in case of error"""
+
+        new_path = os.path.join(self.tmp_path, 'testworktree')
+
+        repo = MockedGraalRepository('http://example.git', self.git_path, raise_exception=True)
+        with self.assertRaises(RepositoryError):
+            repo.worktree(new_path)
+
     def test_prune(self):
         """Test whether a working tree is deleted"""
 
@@ -324,6 +373,13 @@ class TestGraalRepository(TestCaseGraal):
 
         repo.prune()
         self.assertFalse(os.path.exists(repo.worktreepath))
+
+    def test_prune_on_error(self):
+        """Test whether a RepositoryError is thrown in case of error"""
+
+        repo = MockedGraalRepository('http://example.git', self.git_path, raise_exception=True)
+        with self.assertRaises(RepositoryError):
+            repo.prune()
 
     def test_checkout(self):
         """Test whether Git checkout commands are correctly executed"""
@@ -349,6 +405,13 @@ class TestGraalRepository(TestCaseGraal):
         repo.prune()
         self.assertFalse(os.path.exists(repo.worktreepath))
 
+    def test_checkout_on_error(self):
+        """Test whether a RepositoryError is thrown in case of error"""
+
+        repo = MockedGraalRepository('http://example.git', self.git_path, raise_exception=True)
+        with self.assertRaises(RepositoryError):
+            repo.checkout("825b4da7ca740f7f2abbae1b3402908a44d130cd")
+
     def test_archive(self):
         """Test whether a Git archive command is correctly executed"""
 
@@ -356,6 +419,13 @@ class TestGraalRepository(TestCaseGraal):
         file_obj = repo.archive("825b4da7ca740f7f2abbae1b3402908a44d130cd")
 
         self.assertIsInstance(file_obj, io.BytesIO)
+
+    def test_archive_on_error(self):
+        """Test whether the method return nothing in case of error"""
+
+        repo = MockedGraalRepository('http://example.git', self.git_path, raise_exception=True)
+        file_obj = repo.archive("825b4da7ca740f7f2abbae1b3402908a44d130cd")
+        self.assertIsNone(file_obj)
 
     def test_tar_obj(self):
         """Test whether a BytesIO object is converted to a tar object"""
@@ -365,6 +435,14 @@ class TestGraalRepository(TestCaseGraal):
 
         tar_obj = repo.tar_obj(file_obj)
         self.assertIsInstance(tar_obj, tarfile.TarFile)
+
+    def test_tar_obj_on_error(self):
+        """Test whether the method return nothing in case of error"""
+
+        repo = GraalRepository('http://example.git', self.git_path)
+        file_obj = io.BytesIO(b'abcdefghilmnopqrstuvz')
+        tar_obj = repo.tar_obj(file_obj)
+        self.assertIsNone(tar_obj)
 
     def test_filter_tar(self):
         """Test whether tar object members are filtered"""
@@ -378,6 +456,17 @@ class TestGraalRepository(TestCaseGraal):
         filtered_obj = repo.filter_tar(tar_obj, to_select)
         self.assertEqual(len(filtered_obj.getmembers()), 1)
         self.assertEqual(filtered_obj.getmembers()[0].name, '.gitignore')
+
+    def test_filter_tar_no_members(self):
+        """Test whether an null object is returned if not members are present"""
+
+        repo = GraalRepository('http://example.git', self.git_path)
+        file_obj = repo.archive("825b4da7ca740f7f2abbae1b3402908a44d130cd")
+        tar_obj = repo.tar_obj(file_obj)
+
+        to_select = []
+        filtered_obj = repo.filter_tar(tar_obj, to_select)
+        self.assertIsNone(filtered_obj)
 
     def test_tar(self):
         """Test whether tar object is saved to disk"""
@@ -447,6 +536,13 @@ class TestGraalRepository(TestCaseGraal):
 
         repo.prune()
         self.assertFalse(os.path.exists(repo.worktreepath))
+
+    def test_files_no_dir(self):
+        """Test whether an empty list is returned when the input is none"""
+
+        repo = GraalRepository('http://example.git', self.git_path)
+        files = repo.files(None)
+        self.assertEqual(files, [])
 
     def test_delete(self):
         """Test whether files and directories are deleted"""
