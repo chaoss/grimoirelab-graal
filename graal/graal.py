@@ -86,7 +86,7 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.0'
+    version = '0.2.1'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
@@ -146,18 +146,9 @@ class Graal(Git):
 
         :returns: a generator of commits
         """
-        if not from_date:
-            from_date = DEFAULT_DATETIME
-        if not to_date:
-            to_date = DEFAULT_LAST_DATETIME
-
-        kwargs = {
-            'from_date': from_date,
-            'to_date': to_date,
-            'branches': branches,
-            'latest_items': latest_items
-        }
-        items = super(Git, self).fetch(category, **kwargs)
+        items = super().fetch(category=category,
+                              from_date=from_date, to_date=to_date,
+                              branches=branches, latest_items=latest_items)
 
         return items
 
