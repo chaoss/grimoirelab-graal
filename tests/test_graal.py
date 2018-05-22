@@ -106,6 +106,23 @@ class MockedGraal(Graal):
         return commit
 
 
+class CommandBackend(MockedGraal):
+    """Backend used for testing in BackendCommand tests"""
+
+    def fetch_items(self, category, **kwargs):
+        for item in super().fetch_items(category, **kwargs):
+            yield item
+
+
+class ErrorCommandBackend(CommandBackend):
+    """Backend which raises an exception while fetching items"""
+
+    def fetch_items(self, category, **kwargs):
+        for item in super().fetch_items(category, **kwargs):
+            yield item
+            raise Exception
+
+
 class TestCaseGraal(unittest.TestCase):
     """Base case for Graal tests"""
 
@@ -550,6 +567,68 @@ class TesGraalFunctions(unittest.TestCase):
         backends = graal.graal.find_backends(graal)[0]
         for b in backends.keys():
             self.assertTrue(issubclass(backends.get(b), Graal))
+
+
+class TestFetch(unittest.TestCase):
+    """Unit tests for fetch function"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp_path = tempfile.mkdtemp(prefix='graal_')
+        cls.tmp_repo_path = os.path.join(cls.tmp_path, 'repos')
+        os.mkdir(cls.tmp_repo_path)
+
+        cls.git_path = os.path.join(cls.tmp_path, 'graaltest')
+        cls.worktree_path = os.path.join(cls.tmp_path, 'graal_worktrees')
+
+        data_path = os.path.dirname(os.path.abspath(__file__))
+        data_path = os.path.join(data_path, 'data')
+
+        repo_name = 'graaltest'
+        repo_path = cls.git_path
+
+        fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
+
+        zip_path = os.path.join(data_path, repo_name + '.zip')
+        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_repo_path])
+
+        origin_path = os.path.join(cls.tmp_repo_path, repo_name)
+        subprocess.check_call(['git', 'clone', '-q', '--bare', origin_path, repo_path],
+                              stderr=fdout)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp_path)
+
+    def test_items(self):
+        """Test whether a set of items is returned"""
+
+        args = {
+            'uri': 'http://example.com/',
+            'gitpath': self.git_path,
+            'category': CATEGORY_MOCKED,
+            'tag': 'test'
+        }
+
+        items = graal.graal.fetch(CommandBackend, args)
+        items = [item for item in items]
+
+        self.assertEqual(len(items), 3)
+
+    def test_items_on_error(self):
+        """Test whether an exception is thrown when fetching items"""
+
+        args = {
+            'uri': 'http://example.com/',
+            'gitpath': self.git_path,
+            'category': CATEGORY_MOCKED,
+            'tag': 'test'
+        }
+
+        items = graal.graal.fetch(ErrorCommandBackend, args)
+
+        with self.assertRaises(Exception):
+            _ = [item for item in items]
 
 
 if __name__ == "__main__":
