@@ -34,6 +34,7 @@ from grimoirelab.toolkit.datetime import str_to_datetime
 from perceval.backend import BackendCommandArgumentParser
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
+import graal
 from graal.graal import (DEFAULT_WORKTREE_PATH,
                          CATEGORY_GRAAL,
                          Graal,
@@ -540,6 +541,15 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.out_paths, ['*.c'])
         self.assertEqual(parsed_args.entrypoint, 'module')
         self.assertTrue(parsed_args.details)
+
+
+class TesGraalFunctions(unittest.TestCase):
+    """Graal functions tests"""
+
+    def test_find_backends(self):
+        backends = graal.graal.find_backends(graal)[0]
+        for b in backends.keys():
+            self.assertTrue(issubclass(backends.get(b), Graal))
 
 
 if __name__ == "__main__":
