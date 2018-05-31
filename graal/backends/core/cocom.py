@@ -21,7 +21,6 @@
 #
 
 import logging
-import os
 
 from graal.graal import (Graal,
                          GraalRepository,
