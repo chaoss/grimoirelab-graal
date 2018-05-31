@@ -104,6 +104,7 @@ setup(name="graal",
           'pylint>=1.8.4',
           'networkx>=2.1',
           'pydot>=1.2.4',
+          'bandit>=1.4.0',
           'grimoirelab-toolkit>=0.1.4'
       ],
       scripts=[
