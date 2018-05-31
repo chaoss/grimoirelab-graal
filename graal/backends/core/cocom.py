@@ -69,7 +69,7 @@ class CoCom(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.0'
+    version = '0.2.1'
 
     CATEGORIES = [CATEGORY_COCOM]
 
@@ -127,16 +127,15 @@ class CoCom(Graal):
         files = GraalRepository.files(self.worktreepath)
         analysis = []
 
-        for f in files:
+        for file_path in files:
 
             if self.in_paths:
-                found = [p for p in self.in_paths if f.endswith(p)]
+                found = [p for p in self.in_paths if file_path.endswith(p)]
                 if not found:
                     continue
 
-            file_path = os.path.join(self.worktreepath, f)
             file_info = self.file_analyzer.analyze(file_path)
-            file_info.update({'file_path': f})
+            file_info.update({'file_path': file_path.replace(self.worktreepath + '/', "")})
             analysis.append(file_info)
 
         return analysis
