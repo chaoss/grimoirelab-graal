@@ -43,7 +43,7 @@ class Lizard(Analyzer):
         Scala
         GDScript
     """
-    version = '0.2.0'
+    version = '0.2.1'
 
     def analyze(self, **kwargs):
         """Add code complexity information using Lizard.
@@ -73,7 +73,8 @@ class Lizard(Analyzer):
         result['num_funs'] = len(analysis.function_list)
         result['loc'] = analysis.nloc
         result['tokens'] = analysis.token_count
-
+        result['ext'] = file_path.split(".")[-1]
+        
         if not details:
             return result
 
