@@ -32,7 +32,7 @@ class Cloc(Analyzer):
     This class allows to call Cloc over a file, parses
     the result of the analysis and returns it as a dict.
     """
-    version = '0.1.0'
+    version = '0.1.1'
 
     def analyze(self, **kwargs):
         """Add information about LOC, blank and commented lines using CLOC
@@ -43,7 +43,8 @@ class Cloc(Analyzer):
         """
         result = {'blanks': 0,
                   'comments': 0,
-                  'loc': 0}
+                  'loc': 0
+                  }
         file_path = kwargs['file_path']
         flag = False
 
@@ -70,5 +71,6 @@ class Cloc(Analyzer):
 
             if line.lower().startswith("language"):
                 flag = True
-
+        
+        result['ext'] = file_path.split(".")[-1]
         return result
