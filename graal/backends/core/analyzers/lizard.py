@@ -74,7 +74,7 @@ class Lizard(Analyzer):
         result['loc'] = analysis.nloc
         result['tokens'] = analysis.token_count
         result['ext'] = file_path.split(".")[-1]
-        
+
         if not details:
             return result
 

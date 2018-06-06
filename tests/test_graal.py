@@ -702,14 +702,31 @@ class TestFetch(unittest.TestCase):
         args = {
             'uri': 'http://example.com/',
             'gitpath': self.git_path,
-            'category': CATEGORY_MOCKED,
             'tag': 'test'
         }
 
-        items = graal.graal.fetch(CommandBackend, args)
+        items = graal.graal.fetch(CommandBackend, args, CATEGORY_MOCKED)
         items = [item for item in items]
 
         self.assertEqual(len(items), 3)
+        for i in items:
+            self.assertEqual(i['category'], CATEGORY_MOCKED)
+
+    def test_items_no_category(self):
+        """Test whether a set of items is returned"""
+
+        args = {
+            'uri': 'http://example.com/',
+            'gitpath': self.git_path,
+            'tag': 'test'
+        }
+
+        items = graal.graal.fetch(CommandBackend, args, None)
+        items = [item for item in items]
+
+        self.assertEqual(len(items), 3)
+        for i in items:
+            self.assertEqual(i['category'], CATEGORY_MOCKED)
 
     def test_items_on_error(self):
         """Test whether an exception is thrown when fetching items"""
@@ -717,11 +734,10 @@ class TestFetch(unittest.TestCase):
         args = {
             'uri': 'http://example.com/',
             'gitpath': self.git_path,
-            'category': CATEGORY_MOCKED,
             'tag': 'test'
         }
 
-        items = graal.graal.fetch(ErrorCommandBackend, args)
+        items = graal.graal.fetch(ErrorCommandBackend, args, CATEGORY_MOCKED)
 
         with self.assertRaises(Exception):
             _ = [item for item in items]

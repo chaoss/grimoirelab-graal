@@ -111,8 +111,8 @@ class TestCoComBackend(TestCaseGraal):
             self.assertEqual(commit['category'], CATEGORY_COCOM)
             self.assertEqual(commit['data']['analysis'][0]['file_path'],
                              'perceval/backends/core/github.py')
-            self.assertFalse('Author' in commit['data'])
-            self.assertFalse('Commit' in commit['data'])
+            self.assertTrue('Author' in commit['data'])
+            self.assertTrue('Commit' in commit['data'])
             self.assertFalse('files' in commit['data'])
             self.assertFalse('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])

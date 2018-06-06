@@ -71,6 +71,6 @@ class Cloc(Analyzer):
 
             if line.lower().startswith("language"):
                 flag = True
-        
+
         result['ext'] = file_path.split(".")[-1]
         return result
