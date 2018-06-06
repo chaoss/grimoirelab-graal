@@ -489,7 +489,7 @@ class GraalCommand(GitCommand):
         return parser
 
 
-def fetch(backend_class, backend_args):
+def fetch(backend_class, backend_args, category):
     """Fetch items using the given backend.
 
     Generator to get items using the given backend class.
@@ -499,6 +499,7 @@ def fetch(backend_class, backend_args):
 
     :param backend_class: backend class to fetch items
     :param backend_args: dict of arguments needed to fetch the items
+    :param category: category of the items to retrieve
 
     :returns: a generator of items
     """
@@ -507,6 +508,10 @@ def fetch(backend_class, backend_args):
     init_args['archive'] = None
 
     backend = backend_class(**init_args)
+
+    if category:
+        backend_args['category'] = category
+
     fetch_args = find_signature_parameters(backend.fetch,
                                            backend_args)
     items = backend.fetch(**fetch_args)
