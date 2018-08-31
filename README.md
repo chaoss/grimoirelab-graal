@@ -51,8 +51,15 @@ and define the **details** level of the analysis (useful when analyzing large so
    Follow the instructions on the [ScanCode](https://github.com/nexB/scancode-toolkit#installation) GitHub repository
 
 ##  How to install/uninstall
+
 Graal is being developed and tested mainly on GNU/Linux platforms. Thus it is very likely it will work out of the box
 on any Linux-like (or Unix-like) platform, upon providing the right version of Python (3.5, 3.6).
+
+If you intend to use the cocom backend, you need to have installed cloc. In Debian/Ubuntu this is done as:
+
+```
+$ sudo apt-get install cloc
+```
 
 
 **To install**, run:
