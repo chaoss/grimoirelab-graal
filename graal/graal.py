@@ -29,8 +29,8 @@ import pkgutil
 import shutil
 import tarfile
 
-from grimoirelab.toolkit.datetime import datetime_utcnow
-from grimoirelab.toolkit.introspect import find_signature_parameters
+from grimoirelab_toolkit.datetime import datetime_utcnow
+from grimoirelab_toolkit.introspect import find_signature_parameters
 from perceval.backends.core.git import (Git,
                                         GitRepository,
                                         GitCommand)
