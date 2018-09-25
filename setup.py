@@ -100,12 +100,11 @@ setup(name="graal",
       namespace_packages=['graal', 'graal.backends'],
       install_requires=[
           'lizard>=1.14.10',
-          'perceval>=0.9.6',
+          'perceval>=0.11.0',
           'pylint>=1.8.4',
           'networkx>=2.1',
           'pydot>=1.2.4',
-          'bandit>=1.4.0',
-          'grimoirelab-toolkit>=0.1.4'
+          'bandit>=1.4.0'
       ],
       scripts=[
           'bin/graal'
