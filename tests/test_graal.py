@@ -30,7 +30,7 @@ import tempfile
 import unittest
 import unittest.mock
 
-from grimoirelab.toolkit.datetime import str_to_datetime
+from grimoirelab_toolkit.datetime import str_to_datetime
 from perceval.backend import BackendCommandArgumentParser
 from perceval.errors import RepositoryError
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
