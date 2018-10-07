@@ -62,6 +62,7 @@ and [NetworkX](https://networkx.github.io/).
 imported modules and code clones. It uses [PyLint](https://www.pylint.org/).
 - **CoVuln** scans the code to identify security vulnerabilities such as potential SQL and Shell injections, hard-coded
 passwords and weak cryptographic key size. It relies on [Bandit](https://github.com/PyCQA/bandit).
+- **CoLic** scans the code to extract license information. It relies on [Fossology-Nomos](https://github.com/fossology/fossology/tree/master/src/nomos).
 
 ### How to develop a backend
 Creating your own backend is pretty easy, you only need to redefine the following methods of Graal:
