@@ -95,12 +95,13 @@ setup(name="graal",
           'graal',
           'graal.backends',
           'graal.backends.core',
-          'graal.backends.core.analyzers'
+          'graal.backends.core.analyzers',
+          'graal.backends.core.analyzers.libs'
       ],
       namespace_packages=['graal', 'graal.backends'],
       install_requires=[
           'lizard>=1.14.10',
-          'perceval>=0.11.0',
+          'perceval>=0.12.0',
           'pylint>=1.8.4',
           'networkx>=2.1',
           'pydot>=1.2.4',
