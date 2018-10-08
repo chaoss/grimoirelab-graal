@@ -102,7 +102,7 @@ class Graal(Git):
         self.out_paths = out_paths
         self.details = details
 
-        if not os.path.exists(worktreepath):
+        if not GraalRepository.exists(worktreepath):
             os.mkdir(worktreepath)
 
         self.worktreepath = os.path.join(worktreepath, os.path.split(self.gitpath)[1])
@@ -243,12 +243,12 @@ class Graal(Git):
         return commit
 
     def __create_graal_repository(self):
-        if not os.path.exists(self.gitpath):
+        if not GraalRepository.exists(self.gitpath):
             repo = GraalRepository.clone(self.uri, self.gitpath)
         elif os.path.isdir(self.gitpath):
             repo = GraalRepository(self.uri, self.gitpath)
 
-        if os.path.exists(self.worktreepath):
+        if GraalRepository.exists(self.worktreepath):
             shutil.rmtree(self.worktreepath)
 
         repo.worktree(self.worktreepath)
@@ -389,13 +389,22 @@ class GraalRepository(GitRepository):
         logger.info("Tar file created at %s" % dest)
 
     @staticmethod
+    def exists(dest):
+        """Check that a dest path exists
+
+        :param dest: a destination path
+        """
+
+        return os.path.exists(dest)
+
+    @staticmethod
     def untar(tar_obj, dest):
         """Untar a tar obj to the `dest` directory
 
         :param tar_obj: a tar obj
         :param dest: a destination folder
         """
-        if not os.path.exists(dest):
+        if not GraalRepository.exists(dest):
             os.mkdir(dest)
 
         tar_obj.extractall(path=dest)

@@ -484,6 +484,16 @@ class TestGraalRepository(TestCaseGraal):
 
         os.remove(tar_path)
 
+    def test_exists(self):
+        """Test whether the method exists works properly"""
+
+        exists_path = os.path.join(self.tmp_path, 'existtest')
+
+        self.assertFalse(GraalRepository.exists(exists_path))
+        f = open(exists_path, 'w')
+        f.close()
+        self.assertTrue(GraalRepository.exists(exists_path))
+
     def test_untar(self):
         """Test whether tar file is untarred"""
 
