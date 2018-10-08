@@ -29,6 +29,15 @@ and define the **details** level of the analysis (useful when analyzing large so
 - bandit>=1.4.0
 - grimoirelab-toolkit>=0.1.4
 - [cloc](http://cloc.sourceforge.net/)
+- [nomos](https://github.com/fossology/fossology/tree/master/src/nomos) * 
+
+*An executable is already contained in the [repository](https://github.com/valeriocos/graal/tree/master/graal/backends/core/analyzers/libs). In case it doesn't work with your machine, you should recreate it:
+
+```
+$> git clone https://github.com/fossology/fossology
+$> cd <...>/fossology/src/nomos/agent
+$> make -f Makefile.sa
+```
 
 ##  How to install/uninstall
 Graal is being developed and tested mainly on GNU/Linux platforms. Thus it is very likely it will work out of the box
