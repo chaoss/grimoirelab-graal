@@ -26,10 +26,12 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import unittest.mock
 
 from base_analyzer import TestCaseAnalyzer
 
 from graal.backends.core.analyzers.reverse import Reverse
+from graal.graal import GraalError
 
 
 class TestReverse(TestCaseAnalyzer):
@@ -74,6 +76,19 @@ class TestReverse(TestCaseAnalyzer):
         self.assertTrue(type(result['packages']['nodes']), list)
         self.assertIn('links', result['packages'])
         self.assertTrue(type(result['packages']['links']), list)
+
+    @unittest.mock.patch('subprocess.check_output')
+    def test_analyze_error(self, check_output_mock):
+        """Test whether an exception is thrown in case of errors"""
+
+        check_output_mock.side_effect = subprocess.CalledProcessError(-1, "command", output=b'output')
+
+        reverse = Reverse()
+        kwargs = {
+            'module_path': os.path.join(self.repo_path, "perceval"),
+        }
+        with self.assertRaises(GraalError):
+            _ = reverse.analyze(**kwargs)
 
 
 if __name__ == "__main__":
