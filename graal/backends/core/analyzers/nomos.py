@@ -20,12 +20,11 @@
 #     Valerio Cosentino <valcos@bitergia.com>
 #
 
-import os
 import re
 import subprocess
 
-from graal.graal import GraalError
-import graal.backends.core.analyzers.libs as libs
+from graal.graal import (GraalError,
+                         GraalRepository)
 from .analyzer import Analyzer
 
 
@@ -34,11 +33,16 @@ class Nomos(Analyzer):
 
     This class allows to call Nomos over a file, parses
     the result of the analysis and returns it as a dict.
-    """
-    version = '0.1.0'
 
-    def __init__(self):
-        self.nomos_path = os.path.abspath(os.path.dirname(libs.__file__)) + '/nomossa'
+    :param exec_path: path of the executable
+    """
+    version = '0.2.0'
+
+    def __init__(self, exec_path):
+        if not GraalRepository.exists(exec_path):
+            raise GraalError(cause="executable path %s not valid" % exec_path)
+
+        self.exec_path = exec_path
         self.search_pattern = re.compile(r'license\(s\) .*$')
 
     def analyze(self, **kwargs):
@@ -52,7 +56,7 @@ class Nomos(Analyzer):
         file_path = kwargs['file_path']
 
         try:
-            msg = subprocess.check_output([self.nomos_path, file_path]).decode("utf-8")
+            msg = subprocess.check_output([self.exec_path, file_path]).decode("utf-8")
         except subprocess.CalledProcessError as e:
             raise GraalError(cause="Nomos failed at %s, %s" % (file_path, e.output.decode("utf-8")))
         finally:
