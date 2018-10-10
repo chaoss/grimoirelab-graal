@@ -29,15 +29,25 @@ and define the **details** level of the analysis (useful when analyzing large so
 - bandit>=1.4.0
 - grimoirelab-toolkit>=0.1.4
 - [cloc](http://cloc.sourceforge.net/)
-- [nomos](https://github.com/fossology/fossology/tree/master/src/nomos) * 
+- [nomos](https://github.com/fossology/fossology/tree/master/src/nomos) 
+- [scancode](https://github.com/nexB/scancode-toolkit) 
 
-*An executable is already contained in the [repository](https://github.com/valeriocos/graal/tree/master/graal/backends/core/analyzers/libs). In case it doesn't work with your machine, you should recreate it:
+### How to install/create the executables:
+- **Cloc**
+  ```
+  $> sudo apt-get install cloc
+  ```
 
-```
-$> git clone https://github.com/fossology/fossology
-$> cd <...>/fossology/src/nomos/agent
-$> make -f Makefile.sa
-```
+- **Nomos**
+    ```
+    $> git clone https://github.com/fossology/fossology
+    $> cd <...>/fossology/src/nomos/agent
+    $> make -f Makefile.sa
+    ```
+
+- **ScanCode**
+
+   Follow the instructions on the [ScanCode](https://github.com/nexB/scancode-toolkit#installation) GitHub repository
 
 ##  How to install/uninstall
 Graal is being developed and tested mainly on GNU/Linux platforms. Thus it is very likely it will work out of the box
@@ -71,7 +81,8 @@ and [NetworkX](https://networkx.github.io/).
 imported modules and code clones. It uses [PyLint](https://www.pylint.org/).
 - **CoVuln** scans the code to identify security vulnerabilities such as potential SQL and Shell injections, hard-coded
 passwords and weak cryptographic key size. It relies on [Bandit](https://github.com/PyCQA/bandit).
-- **CoLic** scans the code to extract license information. It relies on [Fossology-Nomos](https://github.com/fossology/fossology/tree/master/src/nomos).
+- **CoLic** scans the code to extract license information. It currently supports [Nomos](https://github.com/fossology/fossology/tree/master/src/nomos) and [ScanCode](https://github.com/nexB/scancode-toolkit). They can be
+activated by passing the corresponding category: `code_license_nomos` or `code_license_scancode`.
 
 ### How to develop a backend
 Creating your own backend is pretty easy, you only need to redefine the following methods of Graal:
