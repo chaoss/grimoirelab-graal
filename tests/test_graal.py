@@ -31,7 +31,6 @@ import unittest
 import unittest.mock
 
 from grimoirelab_toolkit.datetime import str_to_datetime
-from perceval.backend import BackendCommandArgumentParser
 from perceval.errors import RepositoryError
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
@@ -40,7 +39,8 @@ from graal.graal import (DEFAULT_WORKTREE_PATH,
                          CATEGORY_GRAAL,
                          Graal,
                          GraalCommand,
-                         GraalRepository)
+                         GraalRepository,
+                         GraalCommandArgumentParser)
 
 
 CATEGORY_MOCKED = 'mocked'
@@ -618,7 +618,7 @@ class TestGraalCommand(unittest.TestCase):
         """Test if it parser object is correctly initialized"""
 
         parser = GraalCommand.setup_cmd_parser()
-        self.assertIsInstance(parser, BackendCommandArgumentParser)
+        self.assertIsInstance(parser, GraalCommandArgumentParser)
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath',
@@ -664,6 +664,29 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.out_paths, ['*.c'])
         self.assertEqual(parsed_args.entrypoint, 'module')
         self.assertTrue(parsed_args.details)
+
+        parser = GraalCommand.setup_cmd_parser(exec_path=True)
+        self.assertIsInstance(parser, GraalCommandArgumentParser)
+
+        args = ['http://example.com/',
+                '--git-path', '/tmp/gitpath',
+                '--tag', 'test',
+                '--exec-path', '/tmp/execpath']
+
+        parsed_args = parser.parse(*args)
+        self.assertEqual(parsed_args.uri, 'http://example.com/')
+        self.assertEqual(parsed_args.git_path, '/tmp/gitpath')
+        self.assertEqual(parsed_args.exec_path, '/tmp/execpath')
+        self.assertEqual(parsed_args.tag, 'test')
+        self.assertEqual(parsed_args.from_date, DEFAULT_DATETIME)
+        self.assertEqual(parsed_args.to_date, None)
+        self.assertEqual(parsed_args.branches, None)
+        self.assertFalse(parsed_args.latest_items)
+        self.assertEqual(parsed_args.worktreepath, DEFAULT_WORKTREE_PATH)
+        self.assertEqual(parsed_args.in_paths, None)
+        self.assertEqual(parsed_args.out_paths, None)
+        self.assertEqual(parsed_args.entrypoint, None)
+        self.assertFalse(parsed_args.details)
 
 
 class TesGraalFunctions(unittest.TestCase):
