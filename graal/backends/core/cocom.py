@@ -68,7 +68,7 @@ class CoCom(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.2'
+    version = '0.2.3'
 
     CATEGORIES = [CATEGORY_COCOM]
 
@@ -123,18 +123,22 @@ class CoCom(Graal):
 
         :param commit: a Perceval commit item
         """
-        files = GraalRepository.files(self.worktreepath)
         analysis = []
 
-        for file_path in files:
+        for committed_file in commit['files']:
 
+            file_path = committed_file['file']
             if self.in_paths:
                 found = [p for p in self.in_paths if file_path.endswith(p)]
                 if not found:
                     continue
 
-            file_info = self.file_analyzer.analyze(file_path)
-            file_info.update({'file_path': file_path.replace(self.worktreepath + '/', "")})
+            local_path = self.worktreepath + '/' + file_path
+            if not GraalRepository.exists(local_path):
+                continue
+
+            file_info = self.file_analyzer.analyze(local_path)
+            file_info.update({'file_path': file_path})
             analysis.append(file_info)
 
         return analysis
