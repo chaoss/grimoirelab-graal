@@ -95,8 +95,7 @@ setup(name="graal",
           'graal',
           'graal.backends',
           'graal.backends.core',
-          'graal.backends.core.analyzers',
-          'graal.backends.core.analyzers.libs'
+          'graal.backends.core.analyzers'
       ],
       namespace_packages=['graal', 'graal.backends'],
       install_requires=[
