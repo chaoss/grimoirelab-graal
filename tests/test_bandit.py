@@ -26,11 +26,13 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import unittest.mock
 
 from base_analyzer import (TestCaseAnalyzer,
                            ANALYZER_TEST_FILE)
 
 from graal.backends.core.analyzers.bandit import Bandit
+from graal.graal import GraalError
 
 
 class TestBandit(TestCaseAnalyzer):
@@ -142,6 +144,20 @@ class TestBandit(TestCaseAnalyzer):
         self.assertTrue(type(result['by_confidence']['high']), int)
 
         self.assertNotIn('vulns', result)
+
+    @unittest.mock.patch('subprocess.check_output')
+    def test_analyze_error(self, check_output_mock):
+        """Test whether an exception is thrown in case of errors"""
+
+        check_output_mock.side_effect = subprocess.CalledProcessError(-1, "command", output=b'output')
+
+        bandit = Bandit()
+        kwargs = {
+            'folder_path': os.path.join(self.repo_path, ANALYZER_TEST_FILE),
+            'details': False
+        }
+        with self.assertRaises(GraalError):
+            _ = bandit.analyze(**kwargs)
 
 
 if __name__ == "__main__":
