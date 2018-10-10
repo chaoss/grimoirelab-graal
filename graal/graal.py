@@ -20,6 +20,7 @@
 #     Valerio Cosentino <valcos@bitergia.com>
 #
 
+import argparse
 from glob import glob
 import io
 import importlib
@@ -27,15 +28,16 @@ import logging
 import os
 import pkgutil
 import shutil
+import sys
 import tarfile
 
-from grimoirelab_toolkit.datetime import datetime_utcnow
+from grimoirelab_toolkit.datetime import (datetime_utcnow,
+                                          str_to_datetime)
 from grimoirelab_toolkit.introspect import find_signature_parameters
 from perceval.backends.core.git import (Git,
                                         GitRepository,
                                         GitCommand)
-from perceval.backend import (uuid,
-                              BackendCommandArgumentParser)
+from perceval.backend import uuid
 from perceval.errors import BaseError, RepositoryError
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
@@ -86,7 +88,7 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.1'
+    version = '0.3.0'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
@@ -460,10 +462,10 @@ class GraalCommand(GitCommand):
         setattr(self.parsed_args, 'gitpath', git_path)
 
     @staticmethod
-    def setup_cmd_parser():
+    def setup_cmd_parser(exec_path=False):
         """Returns the Graal argument parser."""
 
-        parser = BackendCommandArgumentParser(from_date=True, to_date=True)
+        parser = GraalCommandArgumentParser(from_date=True, to_date=True, exec_path=exec_path)
 
         # Optional arguments
         group = parser.parser.add_argument_group('Git arguments')
@@ -496,6 +498,83 @@ class GraalCommand(GitCommand):
                                    help="Path where the Git repository will be cloned")
 
         return parser
+
+
+class GraalCommandArgumentParser:
+    """Manage and parse backend command arguments.
+
+    This class defines and parses a set of arguments common to
+    backends commands. Some parameters like from date or the path
+    of the executable can be set during the initialization
+    of the instance.
+
+    :param from_date: set from_date argument
+    :param to_date: set to_date argument
+    :param exec_path: set the path of the analysis tool executable
+    """
+    def __init__(self, from_date=False, to_date=False, exec_path=False):
+        self._from_date = from_date
+        self._to_date = to_date
+        self._exec_path = exec_path
+
+        self.parser = argparse.ArgumentParser()
+
+        group = self.parser.add_argument_group('general arguments')
+        group.add_argument('--category', dest='category',
+                           help="type of the items to fetch")
+        group.add_argument('--tag', dest='tag',
+                           help="tag the items generated during the fetching process")
+
+        if from_date:
+            group.add_argument('--from-date', dest='from_date',
+                               default='1970-01-01',
+                               help="fetch items updated since this date")
+        if to_date:
+            group.add_argument('--to-date', dest='to_date',
+                               help="fetch items updated before this date")
+
+        if exec_path:
+            group.add_argument('--exec-path', dest='exec_path',
+                               default='1970-01-01',
+                               help="fetch items updated since this date")
+
+        self._set_output_arguments()
+
+    def parse(self, *args):
+        """Parse a list of arguments.
+
+        Parse argument strings needed to run a backend command. The result
+        will be a `argparse.Namespace` object populated with the values
+        obtained after the validation of the parameters.
+
+        :param args: argument strings
+
+        :result: an object with the parsed values
+        """
+        parsed_args = self.parser.parse_args(args)
+
+        # Category was not set, remove it
+        if parsed_args.category is None:
+            delattr(parsed_args, 'category')
+
+        if self._from_date:
+            parsed_args.from_date = str_to_datetime(parsed_args.from_date)
+        if self._to_date and parsed_args.to_date:
+            parsed_args.to_date = str_to_datetime(parsed_args.to_date)
+        if self._exec_path:
+            parsed_args.exec_path = parsed_args.exec_path
+
+        return parsed_args
+
+    def _set_output_arguments(self):
+        """Activate output arguments parsing"""
+
+        group = self.parser.add_argument_group('output arguments')
+        group.add_argument('-o', '--output', type=argparse.FileType('w'),
+                           dest='outfile', default=sys.stdout,
+                           help="output file")
+        group.add_argument('--json-line', dest='json_line', action='store_true',
+                           help="produce a JSON line for each output item")
 
 
 def fetch(backend_class, backend_args, category):
