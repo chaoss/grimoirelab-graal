@@ -26,6 +26,7 @@ import os
 from graal.graal import (Graal,
                          GraalCommand,
                          GraalError,
+                         GraalRepository,
                          DEFAULT_WORKTREE_PATH)
 from graal.backends.core.analyzers.lint import Lint
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
@@ -54,7 +55,7 @@ class CoQua(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.0'
+    version = '0.2.1'
 
     CATEGORIES = [CATEGORY_COQUA]
 
@@ -107,7 +108,7 @@ class CoQua(Graal):
         """
         module_path = os.path.join(self.worktreepath, self.entrypoint)
 
-        if not os.path.exists(module_path):
+        if not GraalRepository.exists(module_path):
             logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
                            % (module_path, commit['commit']))
             return {}
