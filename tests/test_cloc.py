@@ -22,12 +22,15 @@
 #
 
 import os
+import subprocess
 import unittest
+import unittest.mock
 
 from base_analyzer import (TestCaseAnalyzer,
                            ANALYZER_TEST_FILE)
 
 from graal.backends.core.analyzers.cloc import Cloc
+from graal.graal import GraalError
 
 
 class TestCloc(TestCaseAnalyzer):
@@ -46,6 +49,17 @@ class TestCloc(TestCaseAnalyzer):
         self.assertTrue(type(result['comments']), int)
         self.assertIn('loc', result)
         self.assertTrue(type(result['loc']), int)
+
+    @unittest.mock.patch('subprocess.check_output')
+    def test_analyze_error(self, check_output_mock):
+        """Test whether an exception is thrown in case of errors"""
+
+        check_output_mock.side_effect = subprocess.CalledProcessError(-1, "command", output=b'output')
+
+        cloc = Cloc()
+        kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)}
+        with self.assertRaises(GraalError):
+            _ = cloc.analyze(**kwargs)
 
 
 if __name__ == "__main__":
