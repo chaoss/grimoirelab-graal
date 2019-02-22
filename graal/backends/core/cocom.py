@@ -56,7 +56,7 @@ class CoCom(Graal):
         GDScript
 
     :param uri: URI of the Git repository
-    :param gitpath: path to the repository or to the log file
+    :param git_path: path to the repository or to the log file
     :param worktreepath: the directory where to store the working tree
     :param entrypoint: the entrypoint of the analysis
     :param in_paths: the target paths of the analysis

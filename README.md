@@ -137,7 +137,7 @@ repo_uri = ’http://github.com/chaoss/grimoirelab-perceval’
 repo_dir = ’/tmp/graal-cocom’
 
 # Cocom object initialization
-cc = CoCom(uri=repo_url, gitpath=repo_dir)
+cc = CoCom(uri=repo_uri, git_path=repo_dir)
 
 # fetch all commits
 commits = [commit for commit in cc.fetch()]
