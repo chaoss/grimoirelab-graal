@@ -42,10 +42,7 @@ from graal.backends.core.colic import (CATEGORY_COLIC_NOMOS,
 from test_graal import TestCaseGraal
 from base_analyzer import (ANALYZER_TEST_FILE,
                            TestCaseAnalyzer)
-
-
-NOMOS_PATH = "/home/slimbook/Escritorio/sources/graal-libs/nomossa"
-SCANCODE_PATH = "/home/slimbook/Escritorio/sources/graal-libs/scancode-toolkit-2.9.2/scancode"
+from utils import NOMOS_PATH, SCANCODE_PATH
 
 
 class TestCoLicBackend(TestCaseGraal):

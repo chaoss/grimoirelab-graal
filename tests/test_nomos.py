@@ -31,8 +31,7 @@ from base_analyzer import (TestCaseAnalyzer,
 
 from graal.backends.core.analyzers.nomos import Nomos
 from graal.graal import GraalError
-
-NOMOS_PATH = "/home/slimbook/Escritorio/sources/graal-libs/nomossa"
+from utils import NOMOS_PATH
 
 
 class TestNomos(TestCaseAnalyzer):
