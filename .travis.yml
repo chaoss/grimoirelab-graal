@@ -17,8 +17,21 @@ before_install:
 install:
   - ./setup.py install
 
+before_script:
+  - mkdir exec
+  - cd exec
+  - git clone https://github.com/fossology/fossology
+  - cd fossology/src/nomos/agent/
+  - make -f Makefile.sa
+  - cd /home/travis/build/chaoss/grimoirelab-graal/exec
+  - wget https://github.com/nexB/scancode-toolkit/releases/download/v3.0.0/scancode-toolkit-3.0.0.zip
+  - unzip -q scancode-toolkit-3.0.0.zip
+  - cd scancode-toolkit-3.0.0
+  - ./scancode --help
+  - cd /home/travis/build/chaoss/grimoirelab-graal
+
 script:
-  - flake8 .
+  - flake8 . --exclude=exec
   - cd tests
   - coverage run --source=graal run_tests.py
 
