@@ -41,8 +41,7 @@ try:
     import pypandoc
     long_description = pypandoc.convert(readme_md, 'rst')
 except (IOError, ImportError):
-    print("Warning: pypandoc module not found, or pandoc not installed. " +
-          "Using md instead of rst")
+    print("Warning: pypandoc module not found, or pandoc not installed. " + "Using md instead of rst")
     with codecs.open(readme_md, encoding='utf-8') as f:
         long_description = f.read()
 
@@ -78,7 +77,7 @@ setup(name="graal",
       long_description="Graal extends the Git backend of Perceval to enable source code analysis. Thus, "
                        "it fetches the commits from a Git repository and provides a mechanism to plug third party "
                        "tools/libraries focused on source code analysis",
-      url="https://github.com/valeriocos/graal",
+      url="https://github.com/chaoss/grimoirelab-graal",
       version=version,
       author="Bitergia",
       author_email="valcos@bitergia.com",
