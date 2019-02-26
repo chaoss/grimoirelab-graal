@@ -31,8 +31,7 @@ from base_analyzer import (TestCaseAnalyzer,
 
 from graal.backends.core.analyzers.scancode import ScanCode
 from graal.graal import GraalError
-
-SCANCODE_PATH = "/home/slimbook/Escritorio/sources/graal-libs/scancode-toolkit-2.9.2/scancode"
+from utils import SCANCODE_PATH
 
 
 class TestScanCode(TestCaseAnalyzer):
