@@ -54,6 +54,8 @@ class CoCom(Graal):
         PHP
         Scala
         GDScript
+        Golang
+        Lua
 
     :param uri: URI of the Git repository
     :param git_path: path to the repository or to the log file
@@ -157,7 +159,7 @@ class CoCom(Graal):
 class FileAnalyzer:
     """Class to analyse the content of files"""
 
-    ALLOWED_EXTENSIONS = ['java', 'py', 'php', 'scala', 'js', 'rb', 'cs', 'cpp', 'c']
+    ALLOWED_EXTENSIONS = ['java', 'py', 'php', 'scala', 'js', 'rb', 'cs', 'cpp', 'c', 'lua', 'go', 'swift']
     FORBIDDEN_EXTENSIONS = ['tar', 'bz2', "gz", "lz", "apk", "tbz2",
                             "lzma", "tlz", "war", "xar", "zip", "zipx"]
 

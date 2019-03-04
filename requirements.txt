@@ -1,4 +1,4 @@
-lizard>=1.14.10
+lizard>=1.16.3
 pylint>=1.8.4
 networkx>=2.1
 pydot>=1.2.4

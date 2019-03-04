@@ -98,7 +98,7 @@ setup(name="graal",
       ],
       namespace_packages=['graal', 'graal.backends'],
       install_requires=[
-          'lizard>=1.14.10',
+          'lizard>=1.16.3',
           'perceval>=0.12.0',
           'pylint>=1.8.4',
           'networkx>=2.1',
