@@ -42,6 +42,8 @@ class Lizard(Analyzer):
         PHP
         Scala
         GDScript
+        Golang
+        Lua
     """
     version = '0.2.1'
 

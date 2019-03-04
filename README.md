@@ -21,7 +21,7 @@ the analysis to filter in/out files and directories in the repository (**in_path
 and define the **details** level of the analysis (useful when analyzing large software projects).
 
 ## Requirements
-- lizard>=1.14.10
+- lizard>=1.16.3
 - perceval>=0.9.6
 - pylint>=1.8.4
 - networkx>=2.1
@@ -72,7 +72,7 @@ tools, where executions are triggered via system calls or their Python interface
 mostly target Python code, however other backends can be easily developed to cover other programming languages. The
 currently available backends are:
 - **CoCom** gathers data about code complexity (e.g., cyclomatic complexity, LOC) from projects written in popular
-programming languages such as: C/C++, Java, Scala, JavaScript, Ruby and Python. It leverages on [Cloc](http://cloc.sourceforge.net/)) and
+programming languages such as: C/C++, Java, Scala, JavaScript, Ruby, Python, Lua and Golang. It leverages on [Cloc](http://cloc.sourceforge.net/)) and
 [Lizard](https://github.com/terryyin/lizard).
 - **CoDep** extracts package and class dependencies of a Python module and serialized them as JSON structures, composed of
 edges and nodes, thus easing the bridging with front-end technologies for graph visualizations. It combines [PyReverse](https://pypi.org/project/pyreverse/)

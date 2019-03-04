@@ -54,6 +54,8 @@ class CoCom(Graal):
         PHP
         Scala
         GDScript
+        Golang
+        Lua
 
     :param uri: URI of the Git repository
     :param git_path: path to the repository or to the log file
