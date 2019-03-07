@@ -56,7 +56,7 @@ on any Linux-like (or Unix-like) platform, upon providing the right version of P
 
 **To install**, run:
 ```
-$> git clone https://github.com/valeriocos/graal
+$> git clone https://github.com/chaoss/grimoirelab-graal.git
 $> python3 setup.py build
 $> python3 setup.py install
 ```
