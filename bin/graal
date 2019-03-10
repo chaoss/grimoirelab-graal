@@ -102,9 +102,9 @@ def parse_args():
 
 
 def configure_logging(debug=False):
-    """Configure Perceval logging
+    """Configure Graal logging
 
-    The function configures the log messages produced by Perceval.
+    The function configures the log messages produced by Graal.
     By default, log messages are sent to stderr. Set the parameter
     `debug` to activate the debug mode.
 
