@@ -31,11 +31,11 @@ import unittest.mock
 from base_analyzer import (TestCaseAnalyzer,
                            ANALYZER_TEST_FILE)
 
-from graal.backends.core.analyzers.lint import Lint
+from graal.backends.core.analyzers.pylint import PyLint
 from graal.graal import GraalError
 
 
-class TestLint(TestCaseAnalyzer):
+class TestPyLint(TestCaseAnalyzer):
     """Lint tests"""
 
     @classmethod
@@ -60,7 +60,7 @@ class TestLint(TestCaseAnalyzer):
     def test_analyze_details(self):
         """Test whether lint returns the expected fields data"""
 
-        lint = Lint()
+        lint = PyLint()
         kwargs = {
             'module_path': os.path.join(self.repo_path, "perceval"),
             'details': True
@@ -83,7 +83,7 @@ class TestLint(TestCaseAnalyzer):
     def test_analyze_no_details(self):
         """Test whether lint returns the expected fields data"""
 
-        lint = Lint()
+        lint = PyLint()
         kwargs = {
             'module_path': os.path.join(self.repo_path, ANALYZER_TEST_FILE),
             'details': False
@@ -104,7 +104,7 @@ class TestLint(TestCaseAnalyzer):
 
         check_output_mock.side_effect = subprocess.CalledProcessError(-1, "command", output=b'output')
 
-        lint = Lint()
+        lint = PyLint()
         kwargs = {
             'module_path': os.path.join(self.repo_path, ANALYZER_TEST_FILE),
             'details': False

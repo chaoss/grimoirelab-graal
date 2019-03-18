@@ -153,7 +153,7 @@ class CoQua(Graal):
 
 class ModuleAnalyzer:
     """Class to evaluate code quality in a Python project
-    
+
     :params details: if enable, it returns fine-grained results
     :param kind: the analyzer kind (e.g., PYLINT, FLAKE8)
     """

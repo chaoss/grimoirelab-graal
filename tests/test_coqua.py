@@ -27,8 +27,11 @@ import subprocess
 import tempfile
 import unittest.mock
 
-from graal.backends.core.analyzers.lint import Lint
-from graal.backends.core.coqua import (CATEGORY_COQUA,
+from graal.backends.core.analyzers.pylint import PyLint
+from graal.backends.core.analyzers.flake8 import Flake8
+from graal.backends.core.coqua import (CATEGORY_COQUA_PYLINT,
+                                       CATEGORY_COQUA_FLAKE8,
+                                       FLAKE8,
                                        CoQua,
                                        ModuleAnalyzer,
                                        CoQuaCommand)
@@ -58,7 +61,8 @@ class TestCoQuaBackend(TestCaseGraal):
         fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
 
         zip_path = os.path.join(data_path, repo_name + '.zip')
-        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_repo_path])
+        subprocess.check_call(
+            ['unzip', '-qq', zip_path, '-d', cls.tmp_repo_path])
 
         origin_path = os.path.join(cls.tmp_repo_path, repo_name)
         subprocess.check_call(['git', 'clone', '-q', '--bare', origin_path, repo_path],
@@ -71,21 +75,25 @@ class TestCoQuaBackend(TestCaseGraal):
     def test_initialization(self):
         """Test whether attributes are initializated"""
 
-        cq = CoQua('http://example.com', self.git_path, self.worktree_path, entrypoint="module", tag='test')
+        cq = CoQua('http://example.com', self.git_path,
+                   self.worktree_path, entrypoint="module", tag='test')
         self.assertEqual(cq.uri, 'http://example.com')
         self.assertEqual(cq.gitpath, self.git_path)
-        self.assertEqual(cq.worktreepath, os.path.join(self.worktree_path, os.path.split(cq.gitpath)[1]))
+        self.assertEqual(cq.worktreepath, os.path.join(
+            self.worktree_path, os.path.split(cq.gitpath)[1]))
         self.assertEqual(cq.origin, 'http://example.com')
         self.assertEqual(cq.tag, 'test')
         self.assertEqual(cq.entrypoint, "module")
 
         with self.assertRaises(GraalError):
-            _ = CoQua('http://example.com', self.git_path, self.worktree_path, details=True, tag='test')
+            _ = CoQua('http://example.com', self.git_path,
+                      self.worktree_path, details=True, tag='test')
 
-    def test_fetch(self):
+    def test_fetch_pylint(self):
         """Test whether commits are properly processed"""
 
-        cd = CoQua('http://example.com', self.git_path, self.worktree_path, entrypoint="perceval")
+        cd = CoQua('http://example.com', self.git_path,
+                   self.worktree_path, entrypoint="perceval")
         commits = [commit for commit in cd.fetch()]
 
         self.assertEqual(len(commits), 3)
@@ -93,7 +101,7 @@ class TestCoQuaBackend(TestCaseGraal):
 
         commit = commits[0]
         self.assertEqual(commit['backend_name'], 'CoQua')
-        self.assertEqual(commit['category'], CATEGORY_COQUA)
+        self.assertEqual(commit['category'], CATEGORY_COQUA_PYLINT)
         result = commit['data']['analysis']
         self.assertNotIn('modules', result)
         self.assertIn('quality', result)
@@ -102,6 +110,25 @@ class TestCoQuaBackend(TestCaseGraal):
         self.assertTrue(type(result['num_modules']), int)
         self.assertIn('warnings', result)
         self.assertTrue(type(result['warnings']), int)
+
+    def test_fetch_flake8(self):
+        """Test whether commits are properly processed"""
+
+        cd = CoQua('http://example.com', self.git_path,
+                   self.worktree_path, entrypoint="perceval")
+        commits = [commit for commit in cd.fetch(
+            category=CATEGORY_COQUA_FLAKE8)]
+
+        self.assertEqual(len(commits), 3)
+        self.assertFalse(os.path.exists(cd.worktreepath))
+
+        commit = commits[0]
+        self.assertEqual(commit['backend_name'], 'CoQua')
+        self.assertEqual(commit['category'], CATEGORY_COQUA_FLAKE8)
+        result = commit['data']['analysis']
+        self.assertIn('warnings', result)
+        self.assertTrue(type(result['warnings']), int)
+        self.assertNotIn('lines', result)
 
 
 class TestModuleAnalyzer(TestCaseAnalyzer):
@@ -130,22 +157,31 @@ class TestModuleAnalyzer(TestCaseAnalyzer):
         """Test initialization"""
 
         mod_analyzer = ModuleAnalyzer()
-
         self.assertIsInstance(mod_analyzer, ModuleAnalyzer)
-        self.assertIsInstance(mod_analyzer.lint, Lint)
+        self.assertIsInstance(mod_analyzer.analyzer, PyLint)
+
+        mod_analyzer = ModuleAnalyzer(kind=FLAKE8)
+        self.assertIsInstance(mod_analyzer, ModuleAnalyzer)
+        self.assertIsInstance(mod_analyzer.analyzer, Flake8)
 
     def test_analyze(self):
         """Test whether the analyze method works"""
 
         module_path = os.path.join(self.tmp_path, 'graaltest', 'perceval')
+
         mod_analyzer = ModuleAnalyzer()
         result = mod_analyzer.analyze(module_path)
-
         self.assertNotIn('modules', result)
         self.assertIn('quality', result)
         self.assertTrue(type(result['quality']), str)
         self.assertIn('num_modules', result)
         self.assertTrue(type(result['num_modules']), int)
+        self.assertIn('warnings', result)
+        self.assertTrue(type(result['warnings']), int)
+
+        mod_analyzer = ModuleAnalyzer(kind=FLAKE8)
+        result = mod_analyzer.analyze(module_path)
+        self.assertNotIn('lines', result)
         self.assertIn('warnings', result)
         self.assertTrue(type(result['warnings']), int)
 
