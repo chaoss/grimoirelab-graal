@@ -26,7 +26,7 @@ from graal.graal import GraalError
 from .analyzer import Analyzer
 
 
-class Lint(Analyzer):
+class PyLint(Analyzer):
     """A wrapper for Pylint, a source code, bug and quality checker for Python."""
 
     version = '0.2.0'
