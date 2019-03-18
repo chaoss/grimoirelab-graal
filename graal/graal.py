@@ -535,7 +535,6 @@ class GraalCommandArgumentParser:
 
         if exec_path:
             group.add_argument('--exec-path', dest='exec_path',
-                               default='1970-01-01',
                                help="local path of the particular tool")
 
         self._set_output_arguments()
