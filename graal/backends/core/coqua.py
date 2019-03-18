@@ -28,10 +28,15 @@ from graal.graal import (Graal,
                          GraalError,
                          GraalRepository,
                          DEFAULT_WORKTREE_PATH)
-from graal.backends.core.analyzers.lint import Lint
+from graal.backends.core.analyzers.pylint import PyLint
+from graal.backends.core.analyzers.flake8 import Flake8
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
-CATEGORY_COQUA = 'code_quality'
+PYLINT = "pylint"
+FLAKE8 = "flake8"
+
+CATEGORY_COQUA_PYLINT = 'code_quality_' + PYLINT
+CATEGORY_COQUA_FLAKE8 = 'code_quality_' + FLAKE8
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +62,7 @@ class CoQua(Graal):
     """
     version = '0.2.1'
 
-    CATEGORIES = [CATEGORY_COQUA]
+    CATEGORIES = [CATEGORY_COQUA_PYLINT, CATEGORY_COQUA_FLAKE8]
 
     def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH,
                  entrypoint=None, in_paths=None, out_paths=None, details=False,
@@ -69,12 +74,22 @@ class CoQua(Graal):
         if not self.entrypoint:
             raise GraalError(cause="Entrypoint cannot be null")
 
-        self.module_analyzer = ModuleAnalyzer(self.details)
+        self.analyzer_kind = None
+        self.analyzer = None
 
-    def fetch(self, category=CATEGORY_COQUA, paths=None,
+    def fetch(self, category=CATEGORY_COQUA_PYLINT, paths=None,
               from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
               branches=None, latest_items=False):
         """Fetch commits and add code quality information."""
+
+        if category == CATEGORY_COQUA_PYLINT:
+            self.analyzer_kind = PYLINT
+        elif category == CATEGORY_COQUA_FLAKE8:
+            self.analyzer_kind = FLAKE8
+        else:
+            raise GraalError(cause="Unknown category %s" % category)
+
+        self.module_analyzer = ModuleAnalyzer(self.details, self.analyzer_kind)
 
         items = super().fetch(category,
                               from_date=from_date, to_date=to_date,
@@ -86,10 +101,15 @@ class CoQua(Graal):
     def metadata_category(item):
         """Extracts the category from a Code item.
 
-        This backend only generates one type of item which is
-        'code_quality'.
+        This backend generates two types of item which can be:
+        'code_quality_pylint' or 'code_quality_flake8'
         """
-        return CATEGORY_COQUA
+        if item['analyzer'] == PYLINT:
+            return CATEGORY_COQUA_PYLINT
+        elif item['analyzer'] == FLAKE8:
+            return CATEGORY_COQUA_FLAKE8
+        else:
+            raise GraalError(cause="Unknown analyzer %s" % item['analyzer'])
 
     def _filter_commit(self, commit):
         """Filter a commit according to its data (e.g., author, sha, etc.)
@@ -127,32 +147,39 @@ class CoQua(Graal):
         commit.pop('files', None)
         commit.pop('parents', None)
         commit.pop('refs', None)
+        commit['analyzer'] = self.analyzer_kind
         return commit
 
 
 class ModuleAnalyzer:
-    """Class to evaluate code quality in a Python project"""
+    """Class to evaluate code quality in a Python project
+    
+    :params details: if enable, it returns fine-grained results
+    :param kind: the analyzer kind (e.g., PYLINT, FLAKE8)
+    """
 
-    def __init__(self, details=False):
+    def __init__(self, details=False, kind=PYLINT):
         self.details = details
-        self.lint = Lint()
+        if kind == PYLINT:
+            self.analyzer = PyLint()
+        else:
+            self.analyzer = Flake8()
 
     def analyze(self, module_path):
-        """Analyze the content of a module using Pylint
+        """Analyze the content of a module
 
-        :param folder_path: folder path
+        :param module_path: module path
 
         :returns a dict containing the results of the analysis, like the one below
         {
-          'code_quality': ..,
-          'modules': [..]
+          'warnings': [..]
         }
         """
         kwargs = {
             'module_path': module_path,
             'details': self.details
         }
-        analysis = self.lint.analyze(**kwargs)
+        analysis = self.analyzer.analyze(**kwargs)
 
         return analysis
 
