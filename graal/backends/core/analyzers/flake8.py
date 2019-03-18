@@ -22,7 +22,6 @@
 
 import subprocess
 
-from graal.graal import GraalError
 from .analyzer import Analyzer
 
 
