@@ -24,6 +24,7 @@ and define the **details** level of the analysis (useful when analyzing large so
 - lizard>=1.16.3
 - perceval>=0.9.6
 - pylint>=1.8.4
+- flake8>=3.7.7
 - networkx>=2.1
 - pydot>=1.2.4
 - bandit>=1.4.0
@@ -78,7 +79,7 @@ programming languages such as: C/C++, Java, Scala, JavaScript, Ruby, Python, Lua
 edges and nodes, thus easing the bridging with front-end technologies for graph visualizations. It combines [PyReverse](https://pypi.org/project/pyreverse/)
 and [NetworkX](https://networkx.github.io/).
 - **CoQua** retrieves code quality insights, such as checks about line-code’s length, well-formed variable names, unused
-imported modules and code clones. It uses [PyLint](https://www.pylint.org/).
+imported modules and code clones. It uses [PyLint](https://www.pylint.org/) and [Flake8](http://flake8.pycqa.org/en/latest/index.html).
 - **CoVuln** scans the code to identify security vulnerabilities such as potential SQL and Shell injections, hard-coded
 passwords and weak cryptographic key size. It relies on [Bandit](https://github.com/PyCQA/bandit).
 - **CoLic** scans the code to extract license information. It currently supports [Nomos](https://github.com/fossology/fossology/tree/master/src/nomos) and [ScanCode](https://github.com/nexB/scancode-toolkit). They can be
