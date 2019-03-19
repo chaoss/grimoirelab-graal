@@ -60,7 +60,7 @@ class CoQua(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.1'
+    version = '0.3.0'
 
     CATEGORIES = [CATEGORY_COQUA_PYLINT, CATEGORY_COQUA_FLAKE8]
 

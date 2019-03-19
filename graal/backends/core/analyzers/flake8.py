@@ -28,7 +28,7 @@ from .analyzer import Analyzer
 class Flake8(Analyzer):
     """A wrapper for Flake8, a source code style checker for Python."""
 
-    version = '0.2.0'
+    version = '0.1.0'
 
     def analyze(self, **kwargs):
         """Add quality checks data using Flake8.
