@@ -35,7 +35,7 @@ from graal.backends.core.analyzers.flake8 import Flake8
 
 
 class TestFlake8(TestCaseAnalyzer):
-    """Lint tests"""
+    """Flake8 tests"""
 
     @classmethod
     def setUpClass(cls):
@@ -57,14 +57,14 @@ class TestFlake8(TestCaseAnalyzer):
         shutil.rmtree(cls.tmp_path)
 
     def test_analyze_details(self):
-        """Test whether lint returns the expected fields data"""
+        """Test whether flake8 returns the expected fields data"""
 
-        lint = Flake8()
+        flake8 = Flake8()
         kwargs = {
             'module_path': os.path.join(self.repo_path, "perceval"),
             'details': True
         }
-        result = lint.analyze(**kwargs)
+        result = flake8.analyze(**kwargs)
 
         self.assertIn('lines', result)
         self.assertTrue(type(result['lines']), list)
@@ -72,14 +72,14 @@ class TestFlake8(TestCaseAnalyzer):
         self.assertTrue(type(result['warnings']), int)
 
     def test_analyze_no_details(self):
-        """Test whether lint returns the expected fields data"""
+        """Test whether flake8 returns the expected fields data"""
 
-        lint = Flake8()
+        flake8 = Flake8()
         kwargs = {
             'module_path': os.path.join(self.repo_path, ANALYZER_TEST_FILE),
             'details': False
         }
-        result = lint.analyze(**kwargs)
+        result = flake8.analyze(**kwargs)
 
         self.assertNotIn('lines', result)
         self.assertIn('warnings', result)
@@ -92,12 +92,12 @@ class TestFlake8(TestCaseAnalyzer):
         check_output_mock.side_effect = subprocess.CalledProcessError(
             -1, "command", output=b'output')
 
-        lint = Flake8()
+        flake8 = Flake8()
         kwargs = {
             'module_path': os.path.join(self.repo_path, ANALYZER_TEST_FILE),
             'details': False
         }
-        _ = lint.analyze(**kwargs)
+        _ = flake8.analyze(**kwargs)
 
 
 if __name__ == "__main__":
