@@ -48,7 +48,7 @@ class Flake8(Analyzer):
         finally:
             subprocess._cleanup()
 
-        lines = msg.split('\n')
+        lines = msg.strip().split('\n') if msg else []
 
         result = {'warnings': len(lines)}
 
