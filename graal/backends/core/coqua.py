@@ -133,7 +133,7 @@ class CoQua(Graal):
                            % (module_path, commit['commit']))
             return {}
 
-        analysis = self.module_analyzer.analyze(module_path)
+        analysis = self.module_analyzer.analyze(module_path, self.worktreepath)
 
         return analysis
 
@@ -160,15 +160,18 @@ class ModuleAnalyzer:
 
     def __init__(self, details=False, kind=PYLINT):
         self.details = details
+        self.kind = kind
+
         if kind == PYLINT:
             self.analyzer = PyLint()
         else:
             self.analyzer = Flake8()
 
-    def analyze(self, module_path):
+    def analyze(self, module_path, worktree_path):
         """Analyze the content of a module
 
         :param module_path: module path
+        :param worktree_path: worktree path
 
         :returns a dict containing the results of the analysis, like the one below
         {
@@ -179,6 +182,8 @@ class ModuleAnalyzer:
             'module_path': module_path,
             'details': self.details
         }
+        if self.kind == FLAKE8:
+            kwargs['worktree_path'] = worktree_path
         analysis = self.analyzer.analyze(**kwargs)
 
         return analysis
