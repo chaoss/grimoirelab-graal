@@ -92,12 +92,12 @@ class TestCoQuaBackend(TestCaseGraal):
     def test_fetch_pylint(self):
         """Test whether commits are properly processed"""
 
-        cd = CoQua('http://example.com', self.git_path,
+        cq = CoQua('http://example.com', self.git_path,
                    self.worktree_path, entrypoint="perceval")
-        commits = [commit for commit in cd.fetch()]
+        commits = [commit for commit in cq.fetch()]
 
         self.assertEqual(len(commits), 3)
-        self.assertFalse(os.path.exists(cd.worktreepath))
+        self.assertFalse(os.path.exists(cq.worktreepath))
 
         commit = commits[0]
         self.assertEqual(commit['backend_name'], 'CoQua')
@@ -114,13 +114,13 @@ class TestCoQuaBackend(TestCaseGraal):
     def test_fetch_flake8(self):
         """Test whether commits are properly processed"""
 
-        cd = CoQua('http://example.com', self.git_path,
+        cq = CoQua('http://example.com', self.git_path,
                    self.worktree_path, entrypoint="perceval")
-        commits = [commit for commit in cd.fetch(
+        commits = [commit for commit in cq.fetch(
             category=CATEGORY_COQUA_FLAKE8)]
 
         self.assertEqual(len(commits), 3)
-        self.assertFalse(os.path.exists(cd.worktreepath))
+        self.assertFalse(os.path.exists(cq.worktreepath))
 
         commit = commits[0]
         self.assertEqual(commit['backend_name'], 'CoQua')
@@ -129,6 +129,57 @@ class TestCoQuaBackend(TestCaseGraal):
         self.assertIn('warnings', result)
         self.assertTrue(type(result['warnings']), int)
         self.assertNotIn('lines', result)
+
+        cq = CoQua('http://example.com', self.git_path,
+                   self.worktree_path, entrypoint="unknown")
+
+    def test_fetch_unknown(self):
+        """Test whether commits are properly processed"""
+
+        cq = CoQua('http://example.com', self.git_path,
+                   self.worktree_path, entrypoint="perceval")
+
+        with self.assertRaises(GraalError):
+            _ = cq.fetch(category="unknown")
+
+    def test_metadata_category(self):
+        """Test metadata_category"""
+        item = {
+            "Author": "Nishchith Shetty <inishchith@gmail.com>",
+            "AuthorDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "Commit": "Nishchith Shetty <inishchith@gmail.com>",
+            "CommitDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "analysis": [],
+            "analyzer": "pylint",
+            "commit": "5866a479587e8b548b0cb2d591f3a3f5dab04443",
+            "message": "[copyright] Update copyright dates"
+        }
+        self.assertEqual(CoQua.metadata_category(item), CATEGORY_COQUA_PYLINT)
+
+        item = {
+            "Author": "Nishchith Shetty <inishchith@gmail.com>",
+            "AuthorDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "Commit": "Nishchith Shetty <inishchith@gmail.com>",
+            "CommitDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "analysis": [],
+            "analyzer": "flake8",
+            "commit": "5866a479587e8b548b0cb2d591f3a3f5dab04443",
+            "message": "[copyright] Update copyright dates"
+        }
+        self.assertEqual(CoQua.metadata_category(item), CATEGORY_COQUA_FLAKE8)
+
+        item = {
+            "Author": "Nishchith Shetty <inishchith@gmail.com>",
+            "AuthorDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "Commit": "Nishchith Shetty <inishchith@gmail.com>",
+            "CommitDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "analysis": [],
+            "analyzer": "unknown",
+            "commit": "5866a479587e8b548b0cb2d591f3a3f5dab04443",
+            "message": "[copyright] Update copyright dates"
+        }
+        with self.assertRaises(GraalError):
+            _ = CoQua.metadata_category(item)
 
 
 class TestModuleAnalyzer(TestCaseAnalyzer):
@@ -143,6 +194,7 @@ class TestModuleAnalyzer(TestCaseAnalyzer):
 
         repo_name = 'graaltest'
         cls.repo_path = os.path.join(cls.tmp_path, repo_name)
+        cls.worktree_path = os.path.join(cls.tmp_path, 'colic_worktrees')
 
         fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
 
@@ -170,7 +222,7 @@ class TestModuleAnalyzer(TestCaseAnalyzer):
         module_path = os.path.join(self.tmp_path, 'graaltest', 'perceval')
 
         mod_analyzer = ModuleAnalyzer()
-        result = mod_analyzer.analyze(module_path)
+        result = mod_analyzer.analyze(module_path, self.worktree_path)
         self.assertNotIn('modules', result)
         self.assertIn('quality', result)
         self.assertTrue(type(result['quality']), str)
@@ -180,7 +232,7 @@ class TestModuleAnalyzer(TestCaseAnalyzer):
         self.assertTrue(type(result['warnings']), int)
 
         mod_analyzer = ModuleAnalyzer(kind=FLAKE8)
-        result = mod_analyzer.analyze(module_path)
+        result = mod_analyzer.analyze(module_path, self.worktree_path)
         self.assertNotIn('lines', result)
         self.assertIn('warnings', result)
         self.assertTrue(type(result['warnings']), int)
