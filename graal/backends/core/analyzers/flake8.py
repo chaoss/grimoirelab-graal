@@ -40,9 +40,11 @@ class Flake8(Analyzer):
         """
         module_path = kwargs['module_path']
         details = kwargs['details']
+        worktree_path = kwargs['worktree_path']
 
         try:
-            msg = subprocess.check_output(['flake8', module_path]).decode("utf-8")
+            msg = subprocess.check_output(
+                ['flake8', "--format='%(path)s::%(row)d::%(col)d::%(code)s::%(text)s'", module_path]).decode("utf-8")
         except subprocess.CalledProcessError as e:
             msg = e.output.decode("utf-8")
         finally:
@@ -53,6 +55,20 @@ class Flake8(Analyzer):
         result = {'warnings': len(lines)}
 
         if details:
-            result['lines'] = lines
+            flake8_verbose = []
+            for line in lines:
+                path, row, column, type_of_warning, description = line.split("::")
+                file_path = path[path.index(worktree_path) + 1:] if path.startswith(worktree_path) else path
+
+                line_details = {
+                    "file_path": file_path,
+                    "type_of_warning": type_of_warning,
+                    "line": row,
+                    "column": column,
+                    "description": description
+                }
+                flake8_verbose.append(line_details)
+
+            result['lines'] = flake8_verbose
 
         return result

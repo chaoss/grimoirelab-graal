@@ -194,7 +194,7 @@ class TestModuleAnalyzer(TestCaseAnalyzer):
 
         repo_name = 'graaltest'
         cls.repo_path = os.path.join(cls.tmp_path, repo_name)
-        cls.worktree_path = os.path.join(cls.tmp_path, 'colic_worktrees')
+        cls.worktree_path = os.path.join(cls.tmp_path, 'coqua_worktrees')
 
         fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
 
