@@ -31,12 +31,12 @@ import unittest.mock
 from base_analyzer import (TestCaseAnalyzer,
                            ANALYZER_TEST_FILE)
 
-from graal.backends.core.analyzers.lint import Lint
+from graal.backends.core.analyzers.pylint import PyLint
 from graal.graal import GraalError
 
 
-class TestLint(TestCaseAnalyzer):
-    """Lint tests"""
+class TestPyLint(TestCaseAnalyzer):
+    """PyLint tests"""
 
     @classmethod
     def setUpClass(cls):
@@ -58,14 +58,14 @@ class TestLint(TestCaseAnalyzer):
         shutil.rmtree(cls.tmp_path)
 
     def test_analyze_details(self):
-        """Test whether lint returns the expected fields data"""
+        """Test whether pylint returns the expected fields data"""
 
-        lint = Lint()
+        pylint = PyLint()
         kwargs = {
             'module_path': os.path.join(self.repo_path, "perceval"),
             'details': True
         }
-        result = lint.analyze(**kwargs)
+        result = pylint.analyze(**kwargs)
 
         self.assertIn('quality', result)
         self.assertTrue(type(result['quality']), str)
@@ -81,14 +81,14 @@ class TestLint(TestCaseAnalyzer):
             self.assertTrue(type(md), str)
 
     def test_analyze_no_details(self):
-        """Test whether lint returns the expected fields data"""
+        """Test whether pylint returns the expected fields data"""
 
-        lint = Lint()
+        pylint = PyLint()
         kwargs = {
             'module_path': os.path.join(self.repo_path, ANALYZER_TEST_FILE),
             'details': False
         }
-        result = lint.analyze(**kwargs)
+        result = pylint.analyze(**kwargs)
 
         self.assertNotIn('modules', result)
         self.assertIn('quality', result)
@@ -104,13 +104,13 @@ class TestLint(TestCaseAnalyzer):
 
         check_output_mock.side_effect = subprocess.CalledProcessError(-1, "command", output=b'output')
 
-        lint = Lint()
+        pylint = PyLint()
         kwargs = {
             'module_path': os.path.join(self.repo_path, ANALYZER_TEST_FILE),
             'details': False
         }
         with self.assertRaises(GraalError):
-            _ = lint.analyze(**kwargs)
+            _ = pylint.analyze(**kwargs)
 
 
 if __name__ == "__main__":

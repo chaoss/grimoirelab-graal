@@ -26,10 +26,10 @@ from graal.graal import GraalError
 from .analyzer import Analyzer
 
 
-class Lint(Analyzer):
+class PyLint(Analyzer):
     """A wrapper for Pylint, a source code, bug and quality checker for Python."""
 
-    version = '0.2.0'
+    version = '0.2.1'
 
     def analyze(self, **kwargs):
         """Add quality checks data using Pylint.

@@ -101,6 +101,7 @@ setup(name="graal",
           'lizard>=1.16.3',
           'perceval>=0.12.0',
           'pylint>=1.8.4',
+          'flake8>=3.7.7',
           'networkx>=2.1',
           'pydot>=1.2.4',
           'bandit>=1.4.0'
