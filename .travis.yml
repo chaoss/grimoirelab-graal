@@ -22,8 +22,8 @@ before_script:
   - cd exec
   - git clone https://github.com/fossology/fossology
   - cd fossology/src/nomos/agent/
-  - git checkout ba2b25ba6bc3397823ee39c35e21034fe771617d
-  - make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq  -lglib-2.0 -ljson-c -lpthread -lrt"
+  - sudo apt-get install libjson-c-dev
+  - make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq -lglib-2.0 -ljson-c -lpthread -lrt"
   - cd /home/travis/build/chaoss/grimoirelab-graal/exec
   - wget https://github.com/nexB/scancode-toolkit/releases/download/v3.0.0/scancode-toolkit-3.0.0.zip
   - unzip -q scancode-toolkit-3.0.0.zip
