@@ -40,10 +40,20 @@ and define the **details** level of the analysis (useful when analyzing large so
   ```
 
 - **Nomos**
+
+Maybe you'll need to install some packages for compiling the tool.
+For example, in Debian, likely you'll need:
+
+```
+sudo apt-get install pkg-config libglib2.0-dev libjson-c-dev libpq-dev
+```
+
+For compiling the tool (`nomossa`):
+
     ```
     $> git clone https://github.com/fossology/fossology
     $> cd <...>/fossology/src/nomos/agent
-    $> make -f Makefile.sa
+    $> make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq  -lglib-2.0 -ljson-c -lpthread -lrt"
     ```
 
 - **ScanCode**
