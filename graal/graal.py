@@ -88,7 +88,7 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.3.0'
+    version = '0.4.0'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
@@ -187,7 +187,7 @@ class Graal(Git):
         logger.info("Fetch process completed: %s commits inspected",
                     icommits)
 
-    def metadata(self, item):
+    def metadata(self, item, filter_classified=False):
         """Add metadata to an item.
 
         It adds metadata to a given item such as how and
@@ -195,6 +195,7 @@ class Graal(Git):
         be stored under the 'data' keyword.
 
         :param item: an item fetched by a backend
+        :param filter_classified: sets if classified fields were filtered
         """
         item = {
             'backend_name': self.__class__.__name__,
