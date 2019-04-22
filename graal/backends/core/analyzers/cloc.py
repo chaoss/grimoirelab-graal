@@ -22,7 +22,8 @@
 
 import subprocess
 
-from graal.graal import GraalError
+from graal.graal import (GraalError,
+                         GraalRepository)
 from .analyzer import Analyzer
 
 
@@ -32,30 +33,24 @@ class Cloc(Analyzer):
     This class allows to call Cloc over a file, parses
     the result of the analysis and returns it as a dict.
     """
-    version = '0.1.1'
+    version = '0.2.0'
 
-    def analyze(self, **kwargs):
-        """Add information about LOC, blank and commented lines using CLOC
+    def __analyze_file(self, message):
+        """Add 
 
-        :param file_path: file path
+        :param message: 
 
-        :returns result: dict of the results of the analysis
+        :returns result: dict of the results of the analysis over a file
         """
-        result = {'blanks': 0,
-                  'comments': 0,
-                  'loc': 0
-                  }
-        file_path = kwargs['file_path']
+
         flag = False
+        results = {
+            "blanks": 0,
+            "comments": 0,
+            "loc": 0
+        }
 
-        try:
-            msg = subprocess.check_output(['cloc', file_path]).decode("utf-8")
-        except subprocess.CalledProcessError as e:
-            raise GraalError(cause="Cloc failed at %s, %s" % (file_path, e.output.decode("utf-8")))
-        finally:
-            subprocess._cleanup()
-
-        for line in msg.split("\n"):
+        for line in message.strip().split("\n"):
             if flag:
                 if not line.startswith("-----"):
                     digested = " ".join(line.split())
@@ -63,14 +58,74 @@ class Cloc(Analyzer):
                     blank_lines = int(info_file[2])
                     commented_lines = int(info_file[3])
                     loc = int(info_file[4])
-
-                    result['blanks'] = blank_lines
-                    result['comments'] = commented_lines
-                    result['loc'] = loc
+                    results["blanks"] = blank_lines
+                    results["comments"] = commented_lines
+                    results["loc"] = loc
                     break
 
             if line.lower().startswith("language"):
                 flag = True
 
-        result['ext'] = file_path.split(".")[-1]
-        return result
+        return results
+
+    def __analyze_repository(self, message):
+        """Add 
+
+        :param message: 
+
+        :returns result: dict of the results of the analysis over a repository
+        """
+
+        results = {}
+        flag = False
+
+        for line in message.strip().split("\n"):
+            if flag:
+                if line.lower().startswith("sum"):
+                    break
+                elif not line.startswith("-----"):
+                    digested = " ".join(line.split())
+                    info_file = digested.split(" ")
+                    blank_lines = int(info_file[2])
+                    commented_lines = int(info_file[3])
+                    loc = int(info_file[4])
+                    language = info_file[0]
+                    language_result = {
+                        "total_files": int(info_file[1]),
+                        "blanks": blank_lines,
+                        "comments": commented_lines,
+                        "loc": loc
+                    }
+                    results[language] = language_result
+
+            if line.lower().startswith("language"):
+                flag = True
+
+        return results
+
+    def analyze(self, **kwargs):
+        """Add information about LOC, blank and commented lines using CLOC
+
+        :param file_path: file path
+        :param repository_level: set to True if analysis has to be performed on a repository
+
+        :returns result: dict of the results of the analysis
+        """
+
+        file_path = kwargs['file_path']
+        repository_level = kwargs.get('repository_level', False)
+
+        try:
+            message = subprocess.check_output(['cloc', file_path]).decode("utf-8")
+        except subprocess.CalledProcessError as e:
+            raise GraalError(cause="Cloc failed at %s, %s" % (file_path, e.output.decode("utf-8")))
+        finally:
+            subprocess._cleanup()
+
+        if repository_level:
+            results = self.__analyze_repository(message)
+        else:
+            results = self.__analyze_file(message)
+            results['ext'] = GraalRepository.extension(file_path)
+
+        return results
