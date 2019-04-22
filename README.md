@@ -32,6 +32,7 @@ and define the **details** level of the analysis (useful when analyzing large so
 - [cloc](http://cloc.sourceforge.net/)
 - [nomos](https://github.com/fossology/fossology/tree/master/src/nomos) 
 - [scancode](https://github.com/nexB/scancode-toolkit) 
+- [github-linguist](https://github.com/github/linguist)
 
 ### How to install/create the executables:
 - **Cloc**
@@ -82,18 +83,12 @@ Several backends have been developed to assess the genericity of Graal. Those ba
 tools, where executions are triggered via system calls or their Python interfaces. In the current status, the backends
 mostly target Python code, however other backends can be easily developed to cover other programming languages. The
 currently available backends are:
-- **CoCom** gathers data about code complexity (e.g., cyclomatic complexity, LOC) from projects written in popular
-programming languages such as: C/C++, Java, Scala, JavaScript, Ruby, Python, Lua and Golang. It leverages on [Cloc](http://cloc.sourceforge.net/)) and
-[Lizard](https://github.com/terryyin/lizard).
-- **CoDep** extracts package and class dependencies of a Python module and serialized them as JSON structures, composed of
-edges and nodes, thus easing the bridging with front-end technologies for graph visualizations. It combines [PyReverse](https://pypi.org/project/pyreverse/)
-and [NetworkX](https://networkx.github.io/).
-- **CoQua** retrieves code quality insights, such as checks about line-code’s length, well-formed variable names, unused
-imported modules and code clones. It uses [PyLint](https://www.pylint.org/) and [Flake8](http://flake8.pycqa.org/en/latest/index.html).
-- **CoVuln** scans the code to identify security vulnerabilities such as potential SQL and Shell injections, hard-coded
-passwords and weak cryptographic key size. It relies on [Bandit](https://github.com/PyCQA/bandit).
-- **CoLic** scans the code to extract license information. It currently supports [Nomos](https://github.com/fossology/fossology/tree/master/src/nomos) and [ScanCode](https://github.com/nexB/scancode-toolkit). They can be
-activated by passing the corresponding category: `code_license_nomos` or `code_license_scancode`.
+- **CoCom** gathers data about code complexity (e.g., cyclomatic complexity, LOC) from projects written in popular programming languages such as: C/C++, Java, Scala, JavaScript, Ruby, Python, Lua and Golang. It leverages on [Cloc](http://cloc.sourceforge.net/) and [Lizard](https://github.com/terryyin/lizard).
+- **CoDep** extracts package and class dependencies of a Python module and serialized them as JSON structures, composed of edges and nodes, thus easing the bridging with front-end technologies for graph visualizations. It combines [PyReverse](https://pypi.org/project/pyreverse/) and [NetworkX](https://networkx.github.io/).
+- **CoQua** retrieves code quality insights, such as checks about line-code’s length, well-formed variable names, unused imported modules and code clones. It uses [PyLint](https://www.pylint.org/) and [Flake8](http://flake8.pycqa.org/en/latest/index.html). The tools can be activated by passing the corresponding category: `code_quality_pylint` or `code_quality_flake8`
+- **CoVuln** scans the code to identify security vulnerabilities such as potential SQL and Shell injections, hard-coded passwords and weak cryptographic key size. It relies on [Bandit](https://github.com/PyCQA/bandit).
+- **CoLic** scans the code to extract license information. It currently supports [Nomos](https://github.com/fossology/fossology/tree/master/src/nomos) and [ScanCode](https://github.com/nexB/scancode-toolkit). They can be activated by passing the corresponding category: `code_license_nomos` or `code_license_scancode`.
+- **CoLang** gathers insights about code language distribution of a git repository. It relies on [Linguist](https://github.com/github/linguist) and [Cloc](http://cloc.sourceforge.net/) tools. They can be activated by passing the corresponding category: `code_language_linguist` or `code_language_cloc`
 
 ### How to develop a backend
 Creating your own backend is pretty easy, you only need to redefine the following methods of Graal:

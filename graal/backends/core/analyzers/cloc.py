@@ -36,9 +36,9 @@ class Cloc(Analyzer):
     version = '0.2.0'
 
     def __analyze_file(self, message):
-        """Add 
+        """Add information about LOC, blank and commented lines using CLOC for a given file
 
-        :param message: 
+        :param message: message from standard output after execution of cloc
 
         :returns result: dict of the results of the analysis over a file
         """
@@ -69,9 +69,9 @@ class Cloc(Analyzer):
         return results
 
     def __analyze_repository(self, message):
-        """Add 
+        """Add information LOC, total files, blank and commented lines using CLOC for the entire repository
 
-        :param message: 
+        :param message: message from standard output after execution of cloc
 
         :returns result: dict of the results of the analysis over a repository
         """
@@ -104,7 +104,7 @@ class Cloc(Analyzer):
         return results
 
     def analyze(self, **kwargs):
-        """Add information about LOC, blank and commented lines using CLOC
+        """Add information using CLOC
 
         :param file_path: file path
         :param repository_level: set to True if analysis has to be performed on a repository
