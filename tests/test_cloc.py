@@ -22,7 +22,9 @@
 #
 
 import os
+import shutil
 import subprocess
+import tempfile
 import unittest
 import unittest.mock
 
@@ -36,11 +38,32 @@ from graal.graal import GraalError
 class TestCloc(TestCaseAnalyzer):
     """Cloc tests"""
 
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp_path = tempfile.mkdtemp(prefix='cloc_')
+        cls.tmp_repo_path = os.path.join(cls.tmp_path, 'repos')
+        os.mkdir(cls.tmp_repo_path)
+
+        data_path = os.path.dirname(os.path.abspath(__file__))
+        cls.data_path = os.path.join(data_path, 'data')
+
+        repo_name = 'graaltest'
+        fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
+
+        zip_path = os.path.join(cls.data_path, repo_name + '.zip')
+        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_repo_path])
+
+        cls.origin_path = os.path.join(cls.tmp_repo_path, repo_name)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp_path)
+
     def test_analyze(self):
         """Test whether cloc returns the expected fields data"""
 
         cloc = Cloc()
-        kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)}
+        kwargs = {'file_path': os.path.join(self.data_path, ANALYZER_TEST_FILE)}
         result = cloc.analyze(**kwargs)
 
         self.assertIn('blanks', result)
@@ -50,6 +73,26 @@ class TestCloc(TestCaseAnalyzer):
         self.assertIn('loc', result)
         self.assertTrue(type(result['loc']), int)
 
+    def test_analyze_repository_level(self):
+        """Test whether cloc returns the expected fields data for repository level"""
+
+        cloc = Cloc()
+        kwargs = {
+            'file_path': self.origin_path,
+            'repository_level': True
+        }
+        results = cloc.analyze(**kwargs)
+        result = results[next(iter(results))]
+
+        self.assertIn('blanks', result)
+        self.assertTrue(type(result['blanks']), int)
+        self.assertIn('comments', result)
+        self.assertTrue(type(result['comments']), int)
+        self.assertIn('loc', result)
+        self.assertTrue(type(result['loc']), int)
+        self.assertIn('total_files', result)
+        self.assertTrue(type(result['total_files']), int)
+
     @unittest.mock.patch('subprocess.check_output')
     def test_analyze_error(self, check_output_mock):
         """Test whether an exception is thrown in case of errors"""
@@ -57,7 +100,7 @@ class TestCloc(TestCaseAnalyzer):
         check_output_mock.side_effect = subprocess.CalledProcessError(-1, "command", output=b'output')
 
         cloc = Cloc()
-        kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)}
+        kwargs = {'file_path': os.path.join(self.data_path, ANALYZER_TEST_FILE)}
         with self.assertRaises(GraalError):
             _ = cloc.analyze(**kwargs)
 
