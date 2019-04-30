@@ -27,12 +27,14 @@ import subprocess
 import tempfile
 import unittest.mock
 
+from graal.graal import GraalCommandArgumentParser
 from graal.backends.core.analyzers.reverse import Reverse
 from graal.backends.core.codep import (CATEGORY_CODEP,
                                        CoDep,
                                        DependencyAnalyzer,
                                        CoDepCommand)
 from graal.graal import GraalError
+from perceval.utils import DEFAULT_DATETIME
 from test_graal import TestCaseGraal
 from base_analyzer import TestCaseAnalyzer
 
@@ -160,6 +162,24 @@ class TestCoDepCommand(unittest.TestCase):
         """Test if the backend class is CoDep"""
 
         self.assertIs(CoDepCommand.BACKEND, CoDep)
+
+    def test_setup_cmd_parser(self):
+        """Test setup_cmd_parser"""
+
+        parser = CoDepCommand.setup_cmd_parser()
+        self.assertIsInstance(parser, GraalCommandArgumentParser)
+        self.assertEqual(parser._categories, CoDep.CATEGORIES)
+
+        args = ['http://example.com/',
+                '--git-path', '/tmp/gitpath',
+                '--tag', 'test',
+                '--from-date', '1970-01-01']
+
+        parsed_args = parser.parse(*args)
+        self.assertEqual(parsed_args.uri, 'http://example.com/')
+        self.assertEqual(parsed_args.git_path, '/tmp/gitpath')
+        self.assertEqual(parsed_args.tag, 'test')
+        self.assertEqual(parsed_args.from_date, DEFAULT_DATETIME)
 
 
 if __name__ == "__main__":

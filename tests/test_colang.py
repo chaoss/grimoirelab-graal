@@ -27,6 +27,7 @@ import subprocess
 import tempfile
 import unittest.mock
 
+from graal.graal import GraalCommandArgumentParser
 from graal.backends.core.analyzers.linguist import Linguist
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.colang import (CATEGORY_COLANG_LINGUIST,
@@ -36,6 +37,7 @@ from graal.backends.core.colang import (CATEGORY_COLANG_LINGUIST,
                                         RepositoryAnalyzer,
                                         CoLangCommand)
 from graal.graal import GraalError
+from perceval.utils import DEFAULT_DATETIME
 from test_graal import TestCaseGraal
 from base_analyzer import TestCaseAnalyzer
 
@@ -236,6 +238,24 @@ class TestCoLangCommand(unittest.TestCase):
         """Test if the backend class is CoLang"""
 
         self.assertIs(CoLangCommand.BACKEND, CoLang)
+
+    def test_setup_cmd_parser(self):
+        """Test setup_cmd_parser"""
+
+        parser = CoLangCommand.setup_cmd_parser()
+        self.assertIsInstance(parser, GraalCommandArgumentParser)
+        self.assertEqual(parser._categories, CoLang.CATEGORIES)
+
+        args = ['http://example.com/',
+                '--git-path', '/tmp/gitpath',
+                '--tag', 'test',
+                '--from-date', '1970-01-01']
+
+        parsed_args = parser.parse(*args)
+        self.assertEqual(parsed_args.uri, 'http://example.com/')
+        self.assertEqual(parsed_args.git_path, '/tmp/gitpath')
+        self.assertEqual(parsed_args.tag, 'test')
+        self.assertEqual(parsed_args.from_date, DEFAULT_DATETIME)
 
 
 if __name__ == "__main__":

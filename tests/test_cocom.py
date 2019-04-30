@@ -27,12 +27,14 @@ import subprocess
 import tempfile
 import unittest.mock
 
+from graal.graal import GraalCommandArgumentParser
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
 from graal.backends.core.cocom import (CATEGORY_COCOM,
                                        CoCom,
                                        FileAnalyzer,
                                        CoComCommand)
+from perceval.utils import DEFAULT_DATETIME
 from test_graal import TestCaseGraal
 from base_analyzer import (ANALYZER_TEST_FILE,
                            TestCaseAnalyzer)
@@ -188,6 +190,24 @@ class TestCoComCommand(unittest.TestCase):
         """Test if the backend class is CoCom"""
 
         self.assertIs(CoComCommand.BACKEND, CoCom)
+
+    def test_setup_cmd_parser(self):
+        """Test setup_cmd_parser"""
+
+        parser = CoComCommand.setup_cmd_parser()
+        self.assertIsInstance(parser, GraalCommandArgumentParser)
+        self.assertEqual(parser._categories, CoCom.CATEGORIES)
+
+        args = ['http://example.com/',
+                '--git-path', '/tmp/gitpath',
+                '--tag', 'test',
+                '--from-date', '1970-01-01']
+
+        parsed_args = parser.parse(*args)
+        self.assertEqual(parsed_args.uri, 'http://example.com/')
+        self.assertEqual(parsed_args.git_path, '/tmp/gitpath')
+        self.assertEqual(parsed_args.tag, 'test')
+        self.assertEqual(parsed_args.from_date, DEFAULT_DATETIME)
 
 
 if __name__ == "__main__":
