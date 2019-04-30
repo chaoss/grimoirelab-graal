@@ -193,3 +193,11 @@ class CoQuaCommand(GraalCommand):
     """Class to run CoQua backend from the command line."""
 
     BACKEND = CoQua
+
+    @classmethod
+    def setup_cmd_parser(cls):
+        """Returns the CoQua argument parser."""
+
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES)
+
+        return parser

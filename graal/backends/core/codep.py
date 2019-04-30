@@ -158,3 +158,11 @@ class CoDepCommand(GraalCommand):
     """Class to run CoDep backend from the command line."""
 
     BACKEND = CoDep
+
+    @classmethod
+    def setup_cmd_parser(cls):
+        """Returns the CoDep argument parser."""
+
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES)
+
+        return parser
