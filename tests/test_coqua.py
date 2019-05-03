@@ -27,6 +27,7 @@ import subprocess
 import tempfile
 import unittest.mock
 
+from graal.graal import GraalCommandArgumentParser
 from graal.backends.core.analyzers.pylint import PyLint
 from graal.backends.core.analyzers.flake8 import Flake8
 from graal.backends.core.coqua import (CATEGORY_COQUA_PYLINT,
@@ -35,6 +36,7 @@ from graal.backends.core.coqua import (CATEGORY_COQUA_PYLINT,
                                        CoQua,
                                        ModuleAnalyzer,
                                        CoQuaCommand)
+from perceval.utils import DEFAULT_DATETIME
 from graal.graal import GraalError
 from test_graal import TestCaseGraal
 from base_analyzer import TestCaseAnalyzer
@@ -245,6 +247,25 @@ class TestCoDepCommand(unittest.TestCase):
         """Test if the backend class is CoQua"""
 
         self.assertIs(CoQuaCommand.BACKEND, CoQua)
+
+    def test_setup_cmd_parser(self):
+        """Test setup_cmd_parser"""
+
+        parser = CoQuaCommand.setup_cmd_parser()
+
+        self.assertIsInstance(parser, GraalCommandArgumentParser)
+        self.assertEqual(parser._categories, CoQua.CATEGORIES)
+
+        args = ['http://example.com/',
+                '--git-path', '/tmp/gitpath',
+                '--tag', 'test',
+                '--from-date', '1970-01-01']
+
+        parsed_args = parser.parse(*args)
+        self.assertEqual(parsed_args.uri, 'http://example.com/')
+        self.assertEqual(parsed_args.git_path, '/tmp/gitpath')
+        self.assertEqual(parsed_args.tag, 'test')
+        self.assertEqual(parsed_args.from_date, DEFAULT_DATETIME)
 
 
 if __name__ == "__main__":

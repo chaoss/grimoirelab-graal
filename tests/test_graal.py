@@ -141,6 +141,17 @@ class MockedGraal(Graal):
         return commit
 
 
+class MockedGraalCommand(GraalCommand):
+    BACKEND = MockedGraal
+
+    @classmethod
+    def setup_cmd_parser(cls):
+
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES)
+
+        return parser
+
+
 class CommandBackend(MockedGraal):
     """Backend used for testing in BackendCommand tests"""
 
@@ -611,13 +622,13 @@ class TestGraalCommand(unittest.TestCase):
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath']
 
-        cmd = GraalCommand(*args)
-        self.assertEqual(cmd.parsed_args.gitpath, '/tmp/gitpath')
+        cmd = MockedGraalCommand(*args)
+        self.assertEqual(cmd.parsed_args.git_path, '/tmp/gitpath')
 
     def test_setup_cmd_parser(self):
         """Test if it parser object is correctly initialized"""
 
-        parser = GraalCommand.setup_cmd_parser()
+        parser = GraalCommand.setup_cmd_parser(CATEGORY_MOCKED)
         self.assertIsInstance(parser, GraalCommandArgumentParser)
 
         args = ['http://example.com/',
@@ -637,6 +648,7 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.out_paths, None)
         self.assertEqual(parsed_args.entrypoint, None)
         self.assertFalse(parsed_args.details)
+        self.assertEqual(parser._categories, CATEGORY_MOCKED)
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath',
@@ -665,7 +677,7 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.entrypoint, 'module')
         self.assertTrue(parsed_args.details)
 
-        parser = GraalCommand.setup_cmd_parser(exec_path=True)
+        parser = GraalCommand.setup_cmd_parser(CATEGORY_MOCKED, exec_path=True)
         self.assertIsInstance(parser, GraalCommandArgumentParser)
 
         args = ['http://example.com/',
@@ -687,6 +699,7 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.out_paths, None)
         self.assertEqual(parsed_args.entrypoint, None)
         self.assertFalse(parsed_args.details)
+        self.assertEqual(parser._categories, CATEGORY_MOCKED)
 
 
 class TesGraalFunctions(unittest.TestCase):

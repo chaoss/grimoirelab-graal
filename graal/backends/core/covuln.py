@@ -163,3 +163,11 @@ class CoVulnCommand(GraalCommand):
     """Class to run CoVuln backend from the command line."""
 
     BACKEND = CoVuln
+
+    @classmethod
+    def setup_cmd_parser(cls):
+        """Returns the CoVuln argument parser."""
+
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES)
+
+        return parser

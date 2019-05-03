@@ -208,3 +208,11 @@ class CoComCommand(GraalCommand):
     """Class to run CoCom backend from the command line."""
 
     BACKEND = CoCom
+
+    @classmethod
+    def setup_cmd_parser(cls):
+        """Returns the CoCom argument parser."""
+
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES)
+
+        return parser

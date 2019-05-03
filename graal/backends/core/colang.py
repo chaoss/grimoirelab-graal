@@ -180,3 +180,11 @@ class CoLangCommand(GraalCommand):
     """Class to run CoLang backend from the command line."""
 
     BACKEND = CoLang
+
+    @classmethod
+    def setup_cmd_parser(cls):
+        """Returns the CoLang argument parser."""
+
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES)
+
+        return parser

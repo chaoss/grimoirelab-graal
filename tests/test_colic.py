@@ -27,7 +27,6 @@ import subprocess
 import tempfile
 import unittest.mock
 
-from grimoirelab_toolkit.datetime import str_to_datetime
 from graal.graal import (GraalCommandArgumentParser,
                          GraalError)
 from graal.backends.core.analyzers.nomos import Nomos
@@ -39,6 +38,7 @@ from graal.backends.core.colic import (CATEGORY_COLIC_NOMOS,
                                        CoLic,
                                        LicenseAnalyzer,
                                        CoLicCommand)
+from perceval.utils import DEFAULT_DATETIME
 from test_graal import TestCaseGraal
 from base_analyzer import (ANALYZER_TEST_FILE,
                            TestCaseAnalyzer)
@@ -251,18 +251,19 @@ class TestCoLicCommand(unittest.TestCase):
         parser = CoLicCommand.setup_cmd_parser()
 
         self.assertIsInstance(parser, GraalCommandArgumentParser)
+        self.assertEqual(parser._categories, CoLic.CATEGORIES)
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath',
                 '--tag', 'test',
-                '--from-date', '1975-01-01',
+                '--from-date', '1970-01-01',
                 '--exec-path', '/tmp/execpath']
 
         parsed_args = parser.parse(*args)
         self.assertEqual(parsed_args.uri, 'http://example.com/')
         self.assertEqual(parsed_args.git_path, '/tmp/gitpath')
         self.assertEqual(parsed_args.tag, 'test')
-        self.assertEqual(parsed_args.from_date, str_to_datetime('1975-01-01'))
+        self.assertEqual(parsed_args.from_date, DEFAULT_DATETIME)
         self.assertEqual(parsed_args.exec_path, '/tmp/execpath')
 
 
