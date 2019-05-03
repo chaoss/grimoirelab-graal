@@ -33,10 +33,14 @@ GRAAL_USAGE_MSG = """%(prog)s [-g] <backend> [<args>] | --help | --version"""
 
 GRAAL_DESC_MSG = """Start a Graal quest to retrieve source code data from Git repositories.
 
-Repositories are reached using specific backends. The most common backends
-are:
+Repositories are reached using specific backends, which are:
 
-    cocom            Fetch code complexity data from several programming languages
+    cocom            Fetch code complexity for many programming languages
+    codep            Fetch package and class dependencies of Python modules
+    colang           Fetch code language distribution
+    colic            Fetch license information
+    coqua            Fetch code quality data of Python code
+    covuln           Fetch security vulnerabilities in Python code
 
 optional arguments:
   -h, --help            show this help message and exit
