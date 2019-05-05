@@ -48,12 +48,12 @@ class Nomos(Analyzer):
     def analyze(self, **kwargs):
         """Add information about license
 
-        :param file_path: file path
+        :param file_paths: file path
 
         :returns result: dict of the results of the analysis
         """
         result = {'licenses': []}
-        file_path = kwargs['file_path']
+        file_path = kwargs['file_paths']
 
         try:
             msg = subprocess.check_output([self.exec_path, file_path]).decode("utf-8")
