@@ -33,8 +33,10 @@ from graal.backends.core.analyzers.nomos import Nomos
 from graal.backends.core.analyzers.scancode import ScanCode
 from graal.backends.core.colic import (CATEGORY_COLIC_NOMOS,
                                        CATEGORY_COLIC_SCANCODE,
+                                       CATEGORY_COLIC_SCANCODE_CLI,
                                        NOMOS,
                                        SCANCODE,
+                                       SCANCODE_CLI,
                                        CoLic,
                                        LicenseAnalyzer,
                                        CoLicCommand)
@@ -42,7 +44,7 @@ from perceval.utils import DEFAULT_DATETIME
 from test_graal import TestCaseGraal
 from base_analyzer import (ANALYZER_TEST_FILE,
                            TestCaseAnalyzer)
-from utils import NOMOS_PATH, SCANCODE_PATH
+from utils import NOMOS_PATH, SCANCODE_PATH, SCANCODE_CLI_PATH
 
 
 class TestCoLicBackend(TestCaseGraal):
@@ -122,7 +124,7 @@ class TestCoLicBackend(TestCaseGraal):
 
         cl = CoLic('http://example.com', self.git_path, NOMOS_PATH, self.worktree_path,
                    in_paths=['perceval/backends/core/github.py'])
-        commits = [commit for commit in cl.fetch()]
+        commits = [commit for commit in cl.fetch(category=CATEGORY_COLIC_NOMOS)]
 
         self.assertEqual(len(commits), 1)
         self.assertFalse(os.path.exists(cl.worktreepath))
@@ -159,6 +161,36 @@ class TestCoLicBackend(TestCaseGraal):
             self.assertFalse('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
+    def test_fetch_scancode_cli(self):
+        """Test whether commits are properly processed"""
+
+        cl = CoLic('http://example.com', self.git_path, SCANCODE_CLI_PATH, self.worktree_path,
+                   in_paths=['perceval/backends/core/github.py'])
+        commits = [commit for commit in cl.fetch(category=CATEGORY_COLIC_SCANCODE_CLI)]
+
+        self.assertEqual(len(commits), 1)
+        self.assertFalse(os.path.exists(cl.worktreepath))
+
+        for commit in commits:
+            self.assertEqual(commit['backend_name'], 'CoLic')
+            self.assertEqual(commit['category'], CATEGORY_COLIC_SCANCODE_CLI)
+            self.assertEqual(commit['data']['analysis']['files'][0]['file_path'],
+                             'perceval/backends/core/github.py')
+            self.assertTrue('Author' in commit['data'])
+            self.assertTrue('Commit' in commit['data'])
+            self.assertFalse('files' in commit['data'])
+            self.assertFalse('parents' in commit['data'])
+            self.assertFalse('refs' in commit['data'])
+
+    def test_fetch_unknown(self):
+        """Test whether commits are properly processed"""
+
+        cl = CoLic('http://example.com', self.git_path, SCANCODE_CLI_PATH, self.worktree_path,
+                   in_paths=['perceval/backends/core/github.py'])
+
+        with self.assertRaises(GraalError):
+            _ = cl.fetch(category="unknown")
+
     def test_metadata_category(self):
         """Test metadata_category"""
 
@@ -192,6 +224,18 @@ class TestCoLicBackend(TestCaseGraal):
             "Commit": "Valerio Cosentino <valcos@bitergia.com>",
             "CommitDate": "Fri May 18 18:26:48 2018 +0200",
             "analysis": [],
+            "analyzer": "scancode_cli",
+            "commit": "075f0c6161db5a3b1c8eca45e08b88469bb148b9",
+            "message": "[perceval] first commit"
+        }
+        self.assertEqual(CoLic.metadata_category(item), CATEGORY_COLIC_SCANCODE_CLI)
+
+        item = {
+            "Author": "Valerio Cosentino <valcos@bitergia.com>",
+            "AuthorDate": "Fri May 18 18:26:48 2018 +0200",
+            "Commit": "Valerio Cosentino <valcos@bitergia.com>",
+            "CommitDate": "Fri May 18 18:26:48 2018 +0200",
+            "analysis": [],
             "analyzer": "unknown",
             "commit": "075f0c6161db5a3b1c8eca45e08b88469bb148b9",
             "message": "[perceval] first commit"
@@ -218,6 +262,10 @@ class TestLicenseAnalyzer(TestCaseAnalyzer):
         self.assertIsInstance(license_analyzer, LicenseAnalyzer)
         self.assertIsInstance(license_analyzer.analyzer, ScanCode)
 
+        license_analyzer = LicenseAnalyzer(SCANCODE_CLI_PATH, SCANCODE_CLI)
+        self.assertIsInstance(license_analyzer, LicenseAnalyzer)
+        self.assertIsInstance(license_analyzer.analyzer, ScanCode)
+
         with self.assertRaises(GraalError):
             _ = LicenseAnalyzer("/tmp/analyzer", SCANCODE)
 
@@ -235,6 +283,12 @@ class TestLicenseAnalyzer(TestCaseAnalyzer):
         analysis = license_analyzer.analyze(file_path)
 
         self.assertIn('licenses', analysis)
+
+        file_paths = [os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)]
+        license_analyzer = LicenseAnalyzer(SCANCODE_CLI_PATH, kind=SCANCODE_CLI)
+        analysis = license_analyzer.analyze(file_paths)
+
+        self.assertIn('licenses', analysis['files'][0])
 
 
 class TestCoLicCommand(unittest.TestCase):
