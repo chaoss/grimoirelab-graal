@@ -33,9 +33,11 @@ from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
 NOMOS = 'nomos'
 SCANCODE = 'scancode'
+SCANCODE_CLI = 'scancode_cli'
 
 CATEGORY_COLIC_NOMOS = 'code_license_' + NOMOS
 CATEGORY_COLIC_SCANCODE = 'code_license_' + SCANCODE
+CATEGORY_COLIC_SCANCODE_CLI = 'code_license_' + SCANCODE_CLI
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +46,7 @@ class CoLic(Graal):
     """CoLic backend.
 
     This class extends the Graal backend. It gathers license information
-    using Nomos
+    using Nomos, Scancode or Scancode-cli
 
     :param uri: URI of the Git repository
     :param git_path: path to the repository or to the log file
@@ -59,9 +61,9 @@ class CoLic(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.4.0'
+    version = '0.5.0'
 
-    CATEGORIES = [CATEGORY_COLIC_NOMOS, CATEGORY_COLIC_SCANCODE]
+    CATEGORIES = [CATEGORY_COLIC_NOMOS, CATEGORY_COLIC_SCANCODE, CATEGORY_COLIC_SCANCODE_CLI]
 
     def __init__(self, uri, git_path, exec_path, worktreepath=DEFAULT_WORKTREE_PATH,
                  entrypoint=None, in_paths=None, out_paths=None,
@@ -84,6 +86,8 @@ class CoLic(Graal):
 
         if category == CATEGORY_COLIC_SCANCODE:
             self.analyzer_kind = SCANCODE
+        elif category == CATEGORY_COLIC_SCANCODE_CLI:
+            self.analyzer_kind = SCANCODE_CLI
         elif category == CATEGORY_COLIC_NOMOS:
             self.analyzer_kind = NOMOS
         else:
@@ -108,6 +112,8 @@ class CoLic(Graal):
             return CATEGORY_COLIC_NOMOS
         elif item['analyzer'] == SCANCODE:
             return CATEGORY_COLIC_SCANCODE
+        elif item['analyzer'] == SCANCODE_CLI:
+            return CATEGORY_COLIC_SCANCODE_CLI
         else:
             raise GraalError(cause="Unknown analyzer %s" % item['analyzer'])
 
@@ -135,6 +141,7 @@ class CoLic(Graal):
         :param commit: a Perceval commit item
         """
         analysis = []
+        files_to_process = []
 
         for committed_file in commit['files']:
 
@@ -148,9 +155,23 @@ class CoLic(Graal):
             if not GraalRepository.exists(local_path):
                 continue
 
-            license_info = self.analyzer.analyze(local_path)
-            license_info.update({'file_path': file_path})
-            analysis.append(license_info)
+            if self.analyzer_kind == NOMOS:
+                license_info = self.analyzer.analyze(local_path)
+                license_info.update({'file_path': file_path})
+                analysis.append(license_info)
+            elif self.analyzer_kind == SCANCODE:
+                license_info = self.analyzer.analyze(local_path)
+                license_info.update({'file_path': file_path})
+                analysis.append(license_info)
+            else:
+                files_to_process.append((file_path, local_path))
+
+        if files_to_process:
+            local_paths = [f[1] for f in files_to_process]
+            analysis = self.analyzer.analyze(local_paths)
+
+            for i in range(len(analysis['files'])):
+                analysis['files'][i]['file_path'] = files_to_process[i][0]
 
         return analysis
 
@@ -176,11 +197,13 @@ class LicenseAnalyzer:
     def __init__(self, exec_path, kind=NOMOS):
         if kind == SCANCODE:
             self.analyzer = ScanCode(exec_path)
+        elif kind == SCANCODE_CLI:
+            self.analyzer = ScanCode(exec_path, cli=True)
         else:
             self.analyzer = Nomos(exec_path)
 
     def analyze(self, file_path):
-        """Analyze the content of a file using Nomos
+        """Analyze the content of a file using Nomos/Scancode
 
         :param file_path: file path
 
@@ -189,7 +212,7 @@ class LicenseAnalyzer:
           'licenses': [..]
         }
         """
-        kwargs = {'file_path': file_path}
+        kwargs = {'file_paths': file_path}
         analysis = self.analyzer.analyze(**kwargs)
 
         return analysis
