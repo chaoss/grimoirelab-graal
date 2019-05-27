@@ -49,17 +49,33 @@ For example, in Debian, likely you'll need:
 sudo apt-get install pkg-config libglib2.0-dev libjson-c-dev libpq-dev
 ```
 
-For compiling the tool (`nomossa`):
+- For compiling the tool (`nomossa`):
 
-    ```
-    $> git clone https://github.com/fossology/fossology
-    $> cd <...>/fossology/src/nomos/agent
-    $> make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq  -lglib-2.0 -ljson-c -lpthread -lrt"
-    ```
+```
+$> git clone https://github.com/fossology/fossology
+$> cd <...>/fossology/src/nomos/agent
+$> make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq  -lglib-2.0 -ljson-c -lpthread -lrt"
+```
 
 - **ScanCode**
 
-   Follow the instructions on the [ScanCode](https://github.com/nexB/scancode-toolkit#installation) GitHub repository
+```
+git clone https://github.com/nexB/scancode-toolkit.git
+cd scancode-toolkit
+git checkout -b test_scancli 96069fd84066c97549d54f66bd2fe8c7813c6b52
+./scancode --help
+```
+
+   **Note**: We're now using a clone of scancode-toolkit instead of a release, as the latest release is of 15th February 2019 and the `scancli.py` script (required for execution of scancode_cli) was incroporated later i.e 5th March 2019 and there hasn't been a release since.
+
+- **ScanCode Cli**
+
+After successfully executing the above mentioned steps, (if required) we have to install python modules: `simplejson` and `execnet`, for the execution of `scancode_cli` analyzer.
+
+```
+pip install simplejson execnet
+```
+
 
 ##  How to install/uninstall
 Graal is being developed and tested mainly on GNU/Linux platforms. Thus it is very likely it will work out of the box
@@ -111,6 +127,8 @@ The example below shows how easy it is to fetch code complexity information from
 requires the URL where the repository is located (_https://github.com/chaoss/grimoirelab-perceval_) and the local path
 where to mirror the repository (_/tmp/graal-cocom_). Then, the JSON documents produced are redirected to the file _graal-cocom.test_.
 
+- **CoCom Backend**
+
 ```
 $ graal cocom https://github.com/chaoss/grimoirelab-perceval --git-path /tmp/graal-cocom > /graal-cocom.test
 Starting the quest for the Graal.
@@ -120,6 +138,20 @@ Git worktree /tmp/... deleted!
 Fetch process completed: .. commits inspected
 Quest completed.
 ```
+
+- **CoLic Backend**
+
+```
+graal colic https://github.com/chaoss/grimoirelab-toolkit --git-path /tmp/scancode_cli --exec-path /home/scancode-toolkit/etc/scripts/scancli.py --category code_license_scancode_cli
+Starting the quest for the Graal.
+Git worktree /tmp/... created!
+Fetching commits: ...
+Git worktree /tmp/... deleted!
+Fetch process completed: .. commits inspected
+Quest completed.
+```
+
+In the above example, we're using scancode_cli analyzer. Similarly, we can use the scancode analyzer by providing the category as `code_license_scancode` and it's corresponding executable path.
 
 ### From Python
 Graal’s functionalities can be embedded in Python scripts. Again, the effort of using Graal is minimum. In this case the user
