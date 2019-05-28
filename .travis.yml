@@ -14,6 +14,7 @@ before_install:
   - gem install github-linguist
   - pip install bandit
   - pip install pylint
+  - pip install execnet
 
 install:
   - ./setup.py install
@@ -26,9 +27,9 @@ before_script:
   - sudo apt-get install libjson-c-dev
   - make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq -lglib-2.0 -ljson-c -lpthread -lrt"
   - cd /home/travis/build/chaoss/grimoirelab-graal/exec
-  - wget https://github.com/nexB/scancode-toolkit/releases/download/v3.0.0/scancode-toolkit-3.0.0.zip
-  - unzip -q scancode-toolkit-3.0.0.zip
-  - cd scancode-toolkit-3.0.0
+  - git clone https://github.com/nexB/scancode-toolkit.git
+  - cd scancode-toolkit
+  - git checkout -b test_scancli 96069fd84066c97549d54f66bd2fe8c7813c6b52
   - ./scancode --help
   - cd /home/travis/build/chaoss/grimoirelab-graal
 

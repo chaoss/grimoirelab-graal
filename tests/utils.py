@@ -22,4 +22,5 @@
 #
 
 NOMOS_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/fossology/src/nomos/agent/nomossa"
-SCANCODE_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/scancode-toolkit-3.0.0/scancode"
+SCANCODE_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/scancode-toolkit/scancode"
+SCANCODE_CLI_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/scancode-toolkit/etc/scripts/scancli.py"

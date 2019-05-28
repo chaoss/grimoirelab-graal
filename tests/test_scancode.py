@@ -31,7 +31,7 @@ from base_analyzer import (TestCaseAnalyzer,
 
 from graal.backends.core.analyzers.scancode import ScanCode
 from graal.graal import GraalError
-from utils import SCANCODE_PATH
+from utils import SCANCODE_PATH, SCANCODE_CLI_PATH
 
 
 class TestScanCode(TestCaseAnalyzer):
@@ -46,8 +46,8 @@ class TestScanCode(TestCaseAnalyzer):
         with self.assertRaises(GraalError):
             _ = ScanCode("/tmp/invalid")
 
-    def test_analyze(self):
-        """Test whether nomos returns the expected fields data"""
+    def test_analyze_scancode(self):
+        """Test whether scancode returns the expected fields data"""
 
         scancode = ScanCode(exec_path=SCANCODE_PATH)
         kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)}
@@ -65,6 +65,36 @@ class TestScanCode(TestCaseAnalyzer):
         kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)}
         with self.assertRaises(GraalError):
             _ = scancode.analyze(**kwargs)
+
+
+class TestScanCodeCli(TestCaseAnalyzer):
+    """ScanCodeCli tests"""
+
+    def test_init(self):
+        """Test the analyzer is properly initialized"""
+
+        scancode_cli = ScanCode(exec_path=SCANCODE_CLI_PATH)
+        self.assertEqual(scancode_cli.exec_path, SCANCODE_CLI_PATH)
+
+        with self.assertRaises(GraalError):
+            _ = ScanCode("/tmp/invalid")
+
+    def test_analyze_scancode_cli(self):
+        """Test whether scancode_cli returns the expected fields data"""
+
+        scancode_cli = ScanCode(exec_path=SCANCODE_CLI_PATH, cli=True)
+        kwargs = {'file_paths': [os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)]}
+        result = scancode_cli.analyze(**kwargs)
+
+        self.assertIn('licenses', result['files'][0])
+
+    def test_analyze_error(self):
+        """Test whether an exception is thrown in case of error"""
+
+        scancode_cli = ScanCode(exec_path=SCANCODE_CLI_PATH, cli=True)
+        kwargs = {'file_paths': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)}
+        with self.assertRaises(GraalError):
+            _ = scancode_cli.analyze(**kwargs)
 
 
 if __name__ == "__main__":
