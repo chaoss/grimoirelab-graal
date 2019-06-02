@@ -459,8 +459,14 @@ class GraalCommand(GitCommand):
     def _pre_init(self):
         """Initialize repositories directory path"""
 
-        git_path = self.parsed_args.git_path
-        setattr(self.parsed_args, 'gitpath', git_path)
+        if not self.parsed_args.git_path:
+            base_path = os.path.expanduser('~/.graal/repositories/')
+            processed_uri = self.parsed_args.uri.lstrip('/')
+            git_path = os.path.join(base_path, processed_uri) + '-git'
+        else:
+            git_path = self.parsed_args.git_path
+
+        setattr(self.parsed_args, 'git_path', git_path)
 
     @staticmethod
     def setup_cmd_parser(categories, exec_path=False):
