@@ -616,8 +616,16 @@ class TestGraalCommand(unittest.TestCase):
 
         self.assertIs(GraalCommand.BACKEND, Graal)
 
-    def test_gitpath_init(self):
+    @unittest.mock.patch('os.path.expanduser')
+    def test_gitpath_init(self, mock_expanduser):
         """Test gitpath initialization"""
+
+        mock_expanduser.return_value = os.path.join(self.tmp_path, 'testpath')
+        args = ['http://example.com/']
+
+        cmd = MockedGraalCommand(*args)
+        self.assertEqual(cmd.parsed_args.git_path,
+                         os.path.join(self.tmp_path, 'testpath/http://example.com/' + '-git'))
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath']
