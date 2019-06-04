@@ -288,7 +288,7 @@ class GraalRepository(GitRepository):
 
         try:
             self._exec(cmd_worktree, cwd=self.dirpath, env=self.gitenv)
-            logger.info("Git worktree %s created!" % self.worktreepath)
+            logger.debug("Git worktree %s created!" % self.worktreepath)
             return
         except Exception:
             pass
@@ -309,7 +309,7 @@ class GraalRepository(GitRepository):
         cmd_worktree = ['git', 'worktree', 'prune']
         try:
             self._exec(cmd_worktree, cwd=self.dirpath, env=self.gitenv)
-            logger.info("Git worktree %s deleted!" % self.worktreepath)
+            logger.debug("Git worktree %s deleted!" % self.worktreepath)
         except Exception:
             cause = "Impossible to delete the worktree %s" % (self.worktreepath)
             raise RepositoryError(cause=cause)
@@ -322,7 +322,7 @@ class GraalRepository(GitRepository):
         cmd_checkout = ['git', 'checkout', hash]
         try:
             self._exec(cmd_checkout, cwd=self.worktreepath, env=self.gitenv)
-            logger.info("Git repository %s checked out!" % self.dirpath)
+            logger.debug("Git repository %s checked out!" % self.dirpath)
         except Exception:
             cause = "Impossible to checkout the worktree %s at %s" % (self.worktreepath, hash)
             raise RepositoryError(cause=cause)
@@ -389,7 +389,7 @@ class GraalRepository(GitRepository):
             tar.addfile(member)
         tar.close()
 
-        logger.info("Tar file created at %s" % dest)
+        logger.debug("Tar file created at %s" % dest)
 
     @staticmethod
     def exists(dest):
@@ -411,7 +411,7 @@ class GraalRepository(GitRepository):
             os.mkdir(dest)
 
         tar_obj.extractall(path=dest)
-        logger.info("Tar object untarred at %s" % dest)
+        logger.debug("Tar object untarred at %s" % dest)
 
     @staticmethod
     def extension(file_path):
@@ -448,7 +448,7 @@ class GraalRepository(GitRepository):
         else:
             os.remove(target_path)
 
-        logger.info("%s deleted!" % target_path)
+        logger.debug("%s deleted!" % target_path)
 
 
 class GraalCommand(GitCommand):
