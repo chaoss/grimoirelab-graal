@@ -90,7 +90,7 @@ class TestCoVulnBackend(TestCaseGraal):
         cd = CoVuln('http://example.com', self.git_path, self.worktree_path, entrypoint="perceval")
         commits = [commit for commit in cd.fetch()]
 
-        self.assertEqual(len(commits), 3)
+        self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(cd.worktreepath))
 
         commit = commits[0]

@@ -119,6 +119,29 @@ class TestCoComBackend(TestCaseGraal):
             self.assertFalse('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
+    def test_fetch_analysis(self):
+        """Test whether commits have properly set values"""
+
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path)
+        commits = [commit for commit in cc.fetch()]
+
+        self.assertEqual(len(commits), 6)
+        self.assertFalse(os.path.exists(cc.worktreepath))
+
+        deleted_file_commit = commits[5]
+
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['file_path'],
+                         'perceval/backends/graal.py')
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['blanks'], None)
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['comments'], None)
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['loc'], None)
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['ccn'], None)
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['avg_ccn'], None)
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['avg_loc'], None)
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['avg_tokens'], None)
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['num_funs'], None)
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['tokens'], None)
+
 
 class TestFileAnalyzer(TestCaseAnalyzer):
     """FileAnalyzer tests"""

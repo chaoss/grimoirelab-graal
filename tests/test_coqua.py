@@ -98,7 +98,7 @@ class TestCoQuaBackend(TestCaseGraal):
                    self.worktree_path, entrypoint="perceval")
         commits = [commit for commit in cq.fetch()]
 
-        self.assertEqual(len(commits), 3)
+        self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(cq.worktreepath))
 
         commit = commits[0]
@@ -121,7 +121,7 @@ class TestCoQuaBackend(TestCaseGraal):
         commits = [commit for commit in cq.fetch(
             category=CATEGORY_COQUA_FLAKE8)]
 
-        self.assertEqual(len(commits), 3)
+        self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(cq.worktreepath))
 
         commit = commits[0]

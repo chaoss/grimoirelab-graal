@@ -247,7 +247,7 @@ class TestGraalBackend(TestCaseGraal):
         graal = Graal('http://example.com', self.git_path, self.worktree_path)
         commits = [commit for commit in graal.fetch()]
 
-        self.assertEqual(len(commits), 3)
+        self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(graal.worktreepath))
 
         for commit in commits:
@@ -261,7 +261,7 @@ class TestGraalBackend(TestCaseGraal):
         mocked = MockedGraal('http://example.com', self.git_path, self.worktree_path)
         commits = [commit for commit in mocked.fetch()]
 
-        self.assertEqual(len(commits), 3)
+        self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(mocked.worktreepath))
 
         commit = commits[0]
@@ -762,7 +762,7 @@ class TestFetch(unittest.TestCase):
         items = graal.graal.fetch(CommandBackend, args, CATEGORY_MOCKED)
         items = [item for item in items]
 
-        self.assertEqual(len(items), 3)
+        self.assertEqual(len(items), 6)
         for i in items:
             self.assertEqual(i['category'], CATEGORY_MOCKED)
 
@@ -778,7 +778,7 @@ class TestFetch(unittest.TestCase):
         items = graal.graal.fetch(CommandBackend, args, None)
         items = [item for item in items]
 
-        self.assertEqual(len(items), 3)
+        self.assertEqual(len(items), 6)
         for i in items:
             self.assertEqual(i['category'], CATEGORY_MOCKED)
 

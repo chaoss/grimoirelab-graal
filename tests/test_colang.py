@@ -91,7 +91,7 @@ class TestCoLangBackend(TestCaseGraal):
         cl = CoLang('http://example.com', self.git_path, tag="test")
         commits = [commit for commit in cl.fetch()]
 
-        self.assertEqual(len(commits), 3)
+        self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(cl.worktreepath))
 
         commit = commits[0]
@@ -106,7 +106,7 @@ class TestCoLangBackend(TestCaseGraal):
         cl = CoLang('http://example.com', self.git_path, tag="test")
         commits = [commit for commit in cl.fetch(category=CATEGORY_COLANG_CLOC)]
 
-        self.assertEqual(len(commits), 3)
+        self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(cl.worktreepath))
 
         commit = commits[0]
