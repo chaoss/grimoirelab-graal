@@ -497,6 +497,9 @@ class GraalCommand(GitCommand):
         group.add_argument('--details', dest='details',
                            action='store_true', default=False,
                            help="include details")
+        group.add_argument('--repository-level', dest='repository_level',
+                           action='store_true', default=False,
+                           help="Perform analysis at repository level")
 
         # Required arguments
         parser.parser.add_argument('uri',

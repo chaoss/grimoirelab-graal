@@ -70,7 +70,7 @@ class CoCom(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.4'
+    version = '0.2.5'
 
     CATEGORIES = [CATEGORY_COCOM]
 
@@ -80,9 +80,11 @@ class CoCom(Graal):
         super().__init__(uri, git_path, worktreepath,
                          entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
                          tag=tag, archive=archive)
+
+        self.history = dict()
         self.file_analyzer = FileAnalyzer(details)
 
-    def fetch(self, category=CATEGORY_COCOM, paths=None,
+    def fetch(self, category=CATEGORY_COCOM, paths=None, repository_level=False,
               from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
               branches=None, latest_items=False):
         """Fetch commits and add code complexity information."""
@@ -91,6 +93,7 @@ class CoCom(Graal):
                               from_date=from_date, to_date=to_date,
                               branches=branches, latest_items=latest_items)
 
+        self.repository_level = repository_level
         return items
 
     @staticmethod
@@ -155,8 +158,10 @@ class CoCom(Graal):
                 if committed_file.get("newfile", None):
                     file_path = committed_file["newfile"]
                     local_path = self.worktreepath + '/' + file_path
+                    self.history.pop(file_path, None)
                     analysis.append(file_info)
                 elif committed_file.get("action", None) == "D":
+                    self.history.pop(file_path, None)
                     analysis.append(file_info)
                     continue
                 else:
@@ -165,8 +170,28 @@ class CoCom(Graal):
             file_info = self.file_analyzer.analyze(local_path)
             file_info.update({'file_path': file_path})
             analysis.append(file_info)
+            self.history[file_path] = file_info
 
-        return analysis
+        if self.repository_level:
+            repository_level_analysis = {
+                'blanks': 0,
+                'comments': 0,
+                'loc': 0,
+                'ccn': 0,
+                'num_funs': 0,
+                'tokens': 0,
+            }
+            for file_path in self.history:
+                repository_level_analysis['blanks'] += self.history[file_path].get('blanks', 0)
+                repository_level_analysis['comments'] += self.history[file_path].get('comments', 0)
+                repository_level_analysis['loc'] += self.history[file_path].get('loc', 0)
+                repository_level_analysis['ccn'] += self.history[file_path].get('ccn', 0)
+                repository_level_analysis['num_funs'] += self.history[file_path].get('num_funs', 0)
+                repository_level_analysis['tokens'] += self.history[file_path].get('tokens', 0)
+
+            return repository_level_analysis
+        else:
+            return analysis
 
     def _post(self, commit):
         """Remove attributes of the Graal item obtained
