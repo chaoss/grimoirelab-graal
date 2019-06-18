@@ -70,7 +70,7 @@ class CoCom(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.3'
+    version = '0.2.4'
 
     CATEGORIES = [CATEGORY_COCOM]
 
@@ -137,7 +137,30 @@ class CoCom(Graal):
 
             local_path = self.worktreepath + '/' + file_path
             if not GraalRepository.exists(local_path):
-                continue
+                file_info = {
+                    'blanks': None,
+                    'comments': None,
+                    'loc': None,
+                    'ccn': None,
+                    'avg_ccn': None,
+                    'avg_loc': None,
+                    'avg_tokens': None,
+                    'num_funs': None,
+                    'tokens': None,
+                    'file_path': file_path,
+                }
+                if self.details:
+                    file_info['funs'] = []
+
+                if committed_file.get("newfile", None):
+                    file_path = committed_file["newfile"]
+                    local_path = self.worktreepath + '/' + file_path
+                    analysis.append(file_info)
+                elif committed_file.get("action", None) == "D":
+                    analysis.append(file_info)
+                    continue
+                else:
+                    continue
 
             file_info = self.file_analyzer.analyze(local_path)
             file_info.update({'file_path': file_path})
@@ -182,9 +205,9 @@ class FileAnalyzer:
           'avg_ccn': ..,
           'avg_loc': ..,
           'avg_tokens': ..,
-          'funs': ..,
+          'num_funs': ..,
           'tokens': ..,
-          'funs_data': [..]
+          'funs': [..]
         }
         """
         kwargs = {'file_path': file_path}
