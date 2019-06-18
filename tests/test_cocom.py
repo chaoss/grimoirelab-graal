@@ -27,12 +27,15 @@ import subprocess
 import tempfile
 import unittest.mock
 
+from graal.graal import GraalError
 from graal.graal import GraalCommandArgumentParser
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
-from graal.backends.core.cocom import (CATEGORY_COCOM,
+from graal.backends.core.cocom import (CATEGORY_COCOM_LIZARD_FILE,
+                                       CATEGORY_COCOM_LIZARD_REPOSITORY,
                                        CoCom,
                                        FileAnalyzer,
+                                       RepositoryAnalyzer,
                                        CoComCommand)
 from perceval.utils import DEFAULT_DATETIME
 from test_graal import TestCaseGraal
@@ -80,7 +83,6 @@ class TestCoComBackend(TestCaseGraal):
         self.assertEqual(cc.worktreepath, os.path.join(self.worktree_path, os.path.split(cc.gitpath)[1]))
         self.assertEqual(cc.origin, 'http://example.com')
         self.assertEqual(cc.tag, 'test')
-        self.assertEqual(cc.file_analyzer.details, False)
 
         cc = CoCom('http://example.com', self.git_path, self.worktree_path, details=True, tag='test')
         self.assertEqual(cc.uri, 'http://example.com')
@@ -88,7 +90,6 @@ class TestCoComBackend(TestCaseGraal):
         self.assertEqual(cc.worktreepath, os.path.join(self.worktree_path, os.path.split(cc.gitpath)[1]))
         self.assertEqual(cc.origin, 'http://example.com')
         self.assertEqual(cc.tag, 'test')
-        self.assertEqual(cc.file_analyzer.details, True)
 
         # When tag is empty or None it will be set to the value in uri
         cc = CoCom('http://example.com', self.git_path, self.worktree_path)
@@ -99,8 +100,8 @@ class TestCoComBackend(TestCaseGraal):
         self.assertEqual(cc.origin, 'http://example.com')
         self.assertEqual(cc.tag, 'http://example.com')
 
-    def test_fetch(self):
-        """Test whether commits are properly processed"""
+    def test_fetch_lizard_file(self):
+        """Test whether commits are properly processed via file level"""
 
         cc = CoCom('http://example.com', self.git_path, self.worktree_path, in_paths=['perceval/backends/core/github.py'])
         commits = [commit for commit in cc.fetch()]
@@ -110,7 +111,7 @@ class TestCoComBackend(TestCaseGraal):
 
         for commit in commits:
             self.assertEqual(commit['backend_name'], 'CoCom')
-            self.assertEqual(commit['category'], CATEGORY_COCOM)
+            self.assertEqual(commit['category'], CATEGORY_COCOM_LIZARD_FILE)
             self.assertEqual(commit['data']['analysis'][0]['file_path'],
                              'perceval/backends/core/github.py')
             self.assertTrue('Author' in commit['data'])
@@ -119,10 +120,36 @@ class TestCoComBackend(TestCaseGraal):
             self.assertFalse('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
+    def test_fetch_lizard_repository(self):
+        """Test whether commits are properly processed via repository level"""
+
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path)
+        commits = [commit for commit in cc.fetch(category="code_complexity_lizard_repository")]
+
+        self.assertEqual(len(commits), 6)
+        self.assertFalse(os.path.exists(cc.worktreepath))
+
+        for commit in commits:
+            self.assertEqual(commit['backend_name'], 'CoCom')
+            self.assertEqual(commit['category'], CATEGORY_COCOM_LIZARD_REPOSITORY)
+            self.assertTrue('Author' in commit['data'])
+            self.assertTrue('Commit' in commit['data'])
+            self.assertFalse('files' in commit['data'])
+            self.assertFalse('parents' in commit['data'])
+            self.assertFalse('refs' in commit['data'])
+
+    def test_fetch_unknown(self):
+        """Test whether commits are properly processed"""
+
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path)
+
+        with self.assertRaises(GraalError):
+            _ = cc.fetch(category="unknown")
+
     def test_fetch_analysis(self):
         """Test whether commits have properly set values"""
 
-        cc = CoCom('http://example.com', self.git_path, self.worktree_path)
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path, details=True)
         commits = [commit for commit in cc.fetch()]
 
         self.assertEqual(len(commits), 6)
@@ -141,6 +168,46 @@ class TestCoComBackend(TestCaseGraal):
         self.assertEqual(deleted_file_commit['data']['analysis'][0]['avg_tokens'], None)
         self.assertEqual(deleted_file_commit['data']['analysis'][0]['num_funs'], None)
         self.assertEqual(deleted_file_commit['data']['analysis'][0]['tokens'], None)
+        self.assertEqual(deleted_file_commit['data']['analysis'][0]['funs'], [])
+
+    def test_metadata_category(self):
+        """Test metadata_category"""
+        item = {
+            "Author": "Nishchith Shetty <inishchith@gmail.com>",
+            "AuthorDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "Commit": "Nishchith Shetty <inishchith@gmail.com>",
+            "CommitDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "analysis": [],
+            "analyzer": "lizard_file",
+            "commit": "5866a479587e8b548b0cb2d591f3a3f5dab04443",
+            "message": "[copyright] Update copyright dates"
+        }
+        self.assertEqual(CoCom.metadata_category(item), CATEGORY_COCOM_LIZARD_FILE)
+
+        item = {
+            "Author": "Nishchith Shetty <inishchith@gmail.com>",
+            "AuthorDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "Commit": "Nishchith Shetty <inishchith@gmail.com>",
+            "CommitDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "analysis": [],
+            "analyzer": "lizard_repository",
+            "commit": "5866a479587e8b548b0cb2d591f3a3f5dab04443",
+            "message": "[copyright] Update copyright dates"
+        }
+        self.assertEqual(CoCom.metadata_category(item), CATEGORY_COCOM_LIZARD_REPOSITORY)
+
+        item = {
+            "Author": "Nishchith Shetty <inishchith@gmail.com>",
+            "AuthorDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "Commit": "Nishchith Shetty <inishchith@gmail.com>",
+            "CommitDate": "Tue Feb 26 22:06:31 2019 +0530",
+            "analysis": [],
+            "analyzer": "unknown",
+            "commit": "5866a479587e8b548b0cb2d591f3a3f5dab04443",
+            "message": "[copyright] Update copyright dates"
+        }
+        with self.assertRaises(GraalError):
+            _ = CoCom.metadata_category(item)
 
 
 class TestFileAnalyzer(TestCaseAnalyzer):
@@ -204,6 +271,43 @@ class TestFileAnalyzer(TestCaseAnalyzer):
             self.assertIn('args', fd)
             self.assertIn('start', fd)
             self.assertIn('end', fd)
+
+
+class TestRepositoryAnalyzer(TestCaseAnalyzer):
+    """RepositoryAnalyzer tests"""
+
+    def test_init(self):
+        """Test initialization"""
+
+        repository_analyzer = RepositoryAnalyzer()
+
+        self.assertIsInstance(repository_analyzer, RepositoryAnalyzer)
+        self.assertIsInstance(repository_analyzer.lizard, Lizard)
+        self.assertFalse(repository_analyzer.details)
+
+        repository_analyzer = RepositoryAnalyzer(details=True)
+
+        self.assertIsInstance(repository_analyzer, RepositoryAnalyzer)
+        self.assertIsInstance(repository_analyzer.lizard, Lizard)
+        self.assertTrue(repository_analyzer.details)
+
+    def test_analyze(self):
+        """Test whether the analyze method works"""
+
+        repository_path = self.tmp_data_path
+        repository_analyzer = RepositoryAnalyzer()
+        analysis = repository_analyzer.analyze(repository_path, files_affected=[])
+
+        file_analysis = analysis[0]
+
+        self.assertIn('num_funs', file_analysis)
+        self.assertIn('ccn', file_analysis)
+        self.assertIn('loc', file_analysis)
+        self.assertIn('tokens', file_analysis)
+        self.assertIn('file_path', file_analysis)
+        self.assertIn('in_commit', file_analysis)
+        self.assertIn('blanks', file_analysis)
+        self.assertIn('comments', file_analysis)
 
 
 class TestCoComCommand(unittest.TestCase):
