@@ -18,12 +18,11 @@
 #
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
+#     Nishchith Shetty <inishchith@gmail.com>
 #
 
-import warnings
-
 import lizard
-
+from graal.backends.core.analyzers.cloc import Cloc
 from .analyzer import Analyzer
 
 
@@ -45,10 +44,10 @@ class Lizard(Analyzer):
         Golang
         Lua
     """
-    version = '0.2.1'
+    version = '0.3.0'
 
-    def analyze(self, **kwargs):
-        """Add code complexity information using Lizard.
+    def __analyze_file(self, file_path, details):
+        """Add code complexity information for a file using Lizard.
 
         Current information includes cyclomatic complexity (ccn),
         avg lines of code and tokens, number of functions and tokens.
@@ -61,12 +60,7 @@ class Lizard(Analyzer):
         :returns  result: dict of the results of the analysis
         """
         result = {}
-        file_path = kwargs['file_path']
-        details = kwargs['details']
-
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', DeprecationWarning)
-            analysis = lizard.analyze_file(file_path)
+        analysis = lizard.analyze_file(file_path)
 
         result['ccn'] = analysis.CCN
         result['avg_ccn'] = analysis.average_cyclomatic_complexity
@@ -93,4 +87,66 @@ class Lizard(Analyzer):
             funs_data.append(fun_data)
 
         result['funs'] = funs_data
+        return result
+
+    def __analyze_repository(self, repository_path, files_affected, details):
+        """Add code complexity information for a given repository
+        using Lizard and CLOC.
+
+        Current information includes cyclomatic complexity (ccn),
+        lines of code, number of functions, tokens, blanks and comments.
+
+        :param repository_path: repository path
+        :param details: if True, it returns fine-grained results
+
+        :returns  result: list of the results of the analysis
+        """
+        analysis_result = []
+
+        repository_analysis = lizard.analyze(
+            paths=[repository_path],
+            threads=1,
+            exts=lizard.get_extensions([]),
+        )
+        cloc = Cloc()
+
+        for analysis in repository_analysis:
+            cloc_analysis = cloc.analyze(file_path=analysis.filename)
+            file_path = analysis.filename.replace(repository_path + "/", '')
+            in_commit = True if file_path in files_affected else False
+
+            result = {
+                'loc': analysis.nloc,
+                'ccn': analysis.CCN,
+                'tokens': analysis.token_count,
+                'num_funs': len(analysis.function_list),
+                'file_path': file_path,
+                'in_commit': in_commit,
+                'blanks': cloc_analysis['blanks'],
+                'comments': cloc_analysis['comments']
+            }
+            analysis_result.append(result)
+
+        # TODO: implement details option
+
+        return analysis_result
+
+    def analyze(self, **kwargs):
+        """Add code complexity information using Lizard.
+
+        :param file_path: file path
+        :param repository_path: repository path
+        :param details: if True, it returns detailed information about an analysis
+
+        :returns  result: the results of the analysis
+        """
+
+        details = kwargs['details']
+
+        if kwargs.get('repository_level', False):
+            files_affected = kwargs['files_affected']
+            result = self.__analyze_repository(kwargs["repository_path"], files_affected, details)
+        else:
+            result = self.__analyze_file(kwargs['file_path'], details)
+
         return result

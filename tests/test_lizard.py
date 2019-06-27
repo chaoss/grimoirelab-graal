@@ -33,8 +33,8 @@ from graal.backends.core.analyzers.lizard import Lizard
 class TestLizard(TestCaseAnalyzer):
     """Lizard tests"""
 
-    def test_analyze_no_details(self):
-        """Test whether lizard returns the expected fields data"""
+    def test_analyze_file_no_details(self):
+        """Test whether lizard returns the expected fields data for files"""
 
         lizard = Lizard()
         kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE),
@@ -57,8 +57,8 @@ class TestLizard(TestCaseAnalyzer):
         self.assertIn('tokens', result)
         self.assertTrue(type(result['tokens']), int)
 
-    def test_analyze_details(self):
-        """Test whether lizard returns the expected fields data"""
+    def test_analyze_file_details(self):
+        """Test whether lizard returns the expected fields data for files"""
 
         lizard = Lizard()
         kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE),
@@ -99,6 +99,32 @@ class TestLizard(TestCaseAnalyzer):
             self.assertTrue(type(fd['start']), int)
             self.assertIn('end', fd)
             self.assertTrue(type(fd['end']), int)
+
+    def test_analyze_repository(self):
+        """Test whether lizard returns the expected fields data for repository"""
+
+        lizard = Lizard()
+        kwargs = {'repository_path': self.tmp_data_path,
+                  'repository_level': True,
+                  'files_affected': [],
+                  'details': False}
+        result = lizard.analyze(**kwargs)
+        result = result[0]
+
+        self.assertIn('ccn', result)
+        self.assertTrue(type(result['ccn']), int)
+        self.assertIn('num_funs', result)
+        self.assertTrue(type(result['num_funs']), int)
+        self.assertIn('loc', result)
+        self.assertTrue(type(result['loc']), int)
+        self.assertIn('tokens', result)
+        self.assertTrue(type(result['tokens']), int)
+        self.assertIn('in_commit', result)
+        self.assertTrue(type(result['in_commit']), bool)
+        self.assertIn('blanks', result)
+        self.assertTrue(type(result['blanks']), int)
+        self.assertIn('comments', result)
+        self.assertTrue(type(result['comments']), int)
 
 
 if __name__ == "__main__":
