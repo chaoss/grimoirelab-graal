@@ -169,8 +169,8 @@ class CoLic(Graal):
         if files_to_process:
             local_paths = [path[1] for path in files_to_process]
             analysis = self.analyzer.analyze(local_paths)
-            for i in range(len(analysis['files'])):
-                analysis['files'][i]['file_path'] = files_to_process[i][0]
+            for i in range(len(analysis)):
+                analysis[i]['file_path'] = files_to_process[i][0]
 
         return analysis
 

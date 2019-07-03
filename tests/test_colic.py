@@ -174,7 +174,7 @@ class TestCoLicBackend(TestCaseGraal):
         for commit in commits:
             self.assertEqual(commit['backend_name'], 'CoLic')
             self.assertEqual(commit['category'], CATEGORY_COLIC_SCANCODE_CLI)
-            self.assertEqual(commit['data']['analysis']['files'][0]['file_path'],
+            self.assertEqual(commit['data']['analysis'][0]['file_path'],
                              'perceval/backends/core/github.py')
             self.assertTrue('Author' in commit['data'])
             self.assertTrue('Commit' in commit['data'])
@@ -288,7 +288,7 @@ class TestLicenseAnalyzer(TestCaseAnalyzer):
         license_analyzer = LicenseAnalyzer(SCANCODE_CLI_PATH, kind=SCANCODE_CLI)
         analysis = license_analyzer.analyze(file_paths)
 
-        self.assertIn('licenses', analysis['files'][0])
+        self.assertIn('licenses', analysis[0])
 
 
 class TestCoLicCommand(unittest.TestCase):

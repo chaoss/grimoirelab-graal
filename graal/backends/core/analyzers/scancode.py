@@ -76,9 +76,9 @@ class ScanCode(Analyzer):
         """Add information about license using scancode-cli
 
         :param file_paths: file paths (in case of scancode_cli for concurrent execution on files)
-        :returns result: dict of the results of the analysis
+        :returns result: list of the results of the analysis
         """
-        result = {'files': []}
+        result = []
 
         try:
             cmd_scancli = ['python3', self.exec_path]
@@ -107,7 +107,7 @@ class ScanCode(Analyzer):
 
         for output_json in outputs_json:
             file_info = output_json[0]['files'][0]
-            result['files'].append(file_info)
+            result.append(file_info)
 
         return result
 
@@ -117,7 +117,7 @@ class ScanCode(Analyzer):
         :param file_path: file path (in case of scancode)
         :param file_paths: file paths ( in case of scancode_cli for concurrent execution on files )
 
-        :returns result: dict of the results of the analysis
+        :returns result: the results of the analysis
         """
         if self.cli:
             result = self.__analyze_scancode_cli(kwargs['file_paths'])
