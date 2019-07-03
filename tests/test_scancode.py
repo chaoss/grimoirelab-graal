@@ -86,7 +86,7 @@ class TestScanCodeCli(TestCaseAnalyzer):
         kwargs = {'file_paths': [os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)]}
         result = scancode_cli.analyze(**kwargs)
 
-        self.assertIn('licenses', result['files'][0])
+        self.assertIn('licenses', result[0])
 
     def test_analyze_error(self):
         """Test whether an exception is thrown in case of error"""
