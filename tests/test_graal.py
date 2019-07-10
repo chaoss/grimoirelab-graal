@@ -344,7 +344,10 @@ class TestGraalRepository(TestCaseGraal):
         expected = {
             'LANG': 'C',
             'PAGER': '',
-            'HOME': ''
+            'HOME': '',
+            'HTTPS_PROXY': '',
+            'HTTP_PROXY': '',
+            'NO_PROXY': ''
         }
         self.assertDictEqual(repo.gitenv, expected)
 
