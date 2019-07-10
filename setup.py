@@ -33,18 +33,9 @@ here = os.path.abspath(os.path.dirname(__file__))
 readme_md = os.path.join(here, 'README.md')
 version_py = os.path.join(here, 'graal', '_version.py')
 
-# Pypi wants the description to be in reStrcuturedText, but
-# we have it in Markdown. So, let's convert formats.
-# Set up thinkgs so that if pypandoc is not installed, it
-# just issues a warning.
-try:
-    import pypandoc
-    long_description = pypandoc.convert(readme_md, 'rst')
-except (IOError, ImportError):
-    print("Warning: pypandoc module not found, or pandoc not installed. " + "Using md instead of rst")
-    with codecs.open(readme_md, encoding='utf-8') as f:
-        long_description = f.read()
-
+# Get the package description from the README.md file
+with codecs.open(readme_md, encoding='utf-8') as f:
+    long_description = f.read()
 
 with codecs.open(version_py, 'r', encoding='utf-8') as fd:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
@@ -77,6 +68,7 @@ setup(name="graal",
       long_description="Graal extends the Git backend of Perceval to enable source code analysis. Thus, "
                        "it fetches the commits from a Git repository and provides a mechanism to plug third party "
                        "tools/libraries focused on source code analysis",
+      long_description_content_type='text/markdown',
       url="https://github.com/chaoss/grimoirelab-graal",
       version=version,
       author="Bitergia",
