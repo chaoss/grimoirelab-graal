@@ -32,7 +32,7 @@ class Cloc(Analyzer):
     This class allows to call Cloc over a file, parses
     the result of the analysis and returns it as a dict.
     """
-    version = '0.2.0'
+    version = '0.2.1'
 
     def __analyze_file(self, message):
         """Add information about LOC, blank and commented lines using CLOC for a given file
@@ -52,11 +52,8 @@ class Cloc(Analyzer):
         for line in message.strip().split("\n"):
             if flag:
                 if not line.startswith("-----"):
-                    digested = " ".join(line.split())
-                    info_file = digested.split(" ")
-                    blank_lines = int(info_file[2])
-                    commented_lines = int(info_file[3])
-                    loc = int(info_file[4])
+                    file_info = line.split()[-3:]
+                    blank_lines, commented_lines, loc = map(int, file_info)
                     results["blanks"] = blank_lines
                     results["comments"] = commented_lines
                     results["loc"] = loc
@@ -83,14 +80,12 @@ class Cloc(Analyzer):
                 if line.lower().startswith("sum"):
                     break
                 elif not line.startswith("-----"):
-                    digested = " ".join(line.split())
-                    info_file = digested.split(" ")
-                    blank_lines = int(info_file[2])
-                    commented_lines = int(info_file[3])
-                    loc = int(info_file[4])
-                    language = info_file[0]
+                    digested_split = line.split()
+                    langauge, files_info = digested_split[:-4], digested_split[-4:]
+                    language = " ".join(langauge)
+                    total_files, blank_lines, commented_lines, loc = map(int, files_info)
                     language_result = {
-                        "total_files": int(info_file[1]),
+                        "total_files": total_files,
                         "blanks": blank_lines,
                         "comments": commented_lines,
                         "loc": loc
