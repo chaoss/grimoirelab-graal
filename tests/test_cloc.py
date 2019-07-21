@@ -67,10 +67,13 @@ class TestCloc(TestCaseAnalyzer):
 
         self.assertIn('blanks', result)
         self.assertTrue(type(result['blanks']), int)
+        self.assertTrue(result['blanks'], 27)
         self.assertIn('comments', result)
         self.assertTrue(type(result['comments']), int)
+        self.assertTrue(result['comments'], 31)
         self.assertIn('loc', result)
         self.assertTrue(type(result['loc']), int)
+        self.assertTrue(result['loc'], 67)
 
     def test_analyze_repository_level(self):
         """Test whether cloc returns the expected fields data for repository level"""
