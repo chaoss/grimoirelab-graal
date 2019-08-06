@@ -53,6 +53,7 @@ class TestScanCode(TestCaseAnalyzer):
         result = scancode.analyze(**kwargs)
 
         self.assertIn('licenses', result)
+        self.assertIn('copyrights', result)
 
     @unittest.mock.patch('subprocess.check_output')
     def test_analyze_error(self, check_output_mock):
@@ -86,6 +87,7 @@ class TestScanCodeCli(TestCaseAnalyzer):
         result = scancode_cli.analyze(**kwargs)
 
         self.assertIn('licenses', result[0])
+        self.assertIn('copyrights', result[0])
 
     def test_analyze_error(self):
         """Test whether an exception is thrown in case of error"""

@@ -209,7 +209,8 @@ class LicenseAnalyzer:
 
         :returns a dict containing the results of the analysis, like the one below
         {
-          'licenses': [..]
+          'licenses': [..],
+          'copyrights': [..]
         }
         """
         if self.kind == SCANCODE_CLI:
