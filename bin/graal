@@ -37,7 +37,7 @@ Repositories are reached using specific backends, which are:
     cocom            Fetch code complexity for many programming languages
     codep            Fetch package and class dependencies of Python modules
     colang           Fetch code language distribution
-    colic            Fetch license information
+    colic            Fetch license & copyright information
     coqua            Fetch code quality data of Python code
     covuln           Fetch security vulnerabilities in Python code
 

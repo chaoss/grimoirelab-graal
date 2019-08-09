@@ -53,21 +53,26 @@ class ScanCode(Analyzer):
             _ = subprocess.check_output([exec_path]).decode("utf-8")
 
     def __analyze_scancode(self, file_path):
-        """Add information about license using scancode
+        """Add information about license and copyright using scancode
 
         :param file_path: file path (in case of scancode)
         """
-        result = {'licenses': []}
+        result = {
+            'licenses': [],
+            'copyrights': [],
+        }
         try:
-            msg = subprocess.check_output([self.exec_path, '--json-pp', '-', '--license', file_path]).decode("utf-8")
+            msg = subprocess.check_output(
+                [self.exec_path, '--json-pp', '-', '--license', '--copyright', file_path]).decode("utf-8")
         except subprocess.CalledProcessError as e:
             raise GraalError(cause="Scancode failed at %s, %s" % (file_path, e.output.decode("utf-8")))
         finally:
             subprocess._cleanup()
 
-        licenses_raw = json.loads(msg)
-        if 'files' in licenses_raw:
-            result['licenses'] = licenses_raw['files'][0]['licenses']
+        scancode_raw = json.loads(msg)
+        if 'files' in scancode_raw:
+            result['licenses'] = scancode_raw['files'][0]['licenses']
+            result['copyrights'] = scancode_raw['files'][0]['copyrights']
 
         return result
 

@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 class CoLic(Graal):
     """CoLic backend.
 
-    This class extends the Graal backend. It gathers license information
+    This class extends the Graal backend. It gathers license & copyright information
     using Nomos, Scancode or Scancode-cli
 
     :param uri: URI of the Git repository
@@ -209,7 +209,8 @@ class LicenseAnalyzer:
 
         :returns a dict containing the results of the analysis, like the one below
         {
-          'licenses': [..]
+          'licenses': [..],
+          'copyrights': [..]
         }
         """
         if self.kind == SCANCODE_CLI:

@@ -282,12 +282,14 @@ class TestLicenseAnalyzer(TestCaseAnalyzer):
         analysis = license_analyzer.analyze(file_path)
 
         self.assertIn('licenses', analysis)
+        self.assertIn('copyrights', analysis)
 
         file_paths = [os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)]
         license_analyzer = LicenseAnalyzer(SCANCODE_CLI_PATH, kind=SCANCODE_CLI)
         analysis = license_analyzer.analyze(file_paths)
 
         self.assertIn('licenses', analysis[0])
+        self.assertIn('copyrights', analysis[0])
 
 
 class TestCoLicCommand(unittest.TestCase):
