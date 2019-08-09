@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 class CoLic(Graal):
     """CoLic backend.
 
-    This class extends the Graal backend. It gathers license information
+    This class extends the Graal backend. It gathers license & copyright information
     using Nomos, Scancode or Scancode-cli
 
     :param uri: URI of the Git repository
