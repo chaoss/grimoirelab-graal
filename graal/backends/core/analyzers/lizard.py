@@ -20,6 +20,8 @@
 #     Nishchith Shetty <inishchith@gmail.com>
 #
 
+import warnings
+
 import lizard
 from graal.backends.core.analyzers.cloc import Cloc
 from .analyzer import Analyzer
@@ -43,7 +45,7 @@ class Lizard(Analyzer):
         Golang
         Lua
     """
-    version = '0.3.0'
+    version = '0.3.1'
 
     def __analyze_file(self, file_path, details):
         """Add code complexity information for a file using Lizard.
@@ -59,7 +61,11 @@ class Lizard(Analyzer):
         :returns  result: dict of the results of the analysis
         """
         result = {}
-        analysis = lizard.analyze_file(file_path)
+
+        # Filter DeprecationWarning from lizard_ext/auto_open.py line 26
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=DeprecationWarning)
+            analysis = lizard.analyze_file(file_path)
 
         result['ccn'] = analysis.CCN
         result['avg_ccn'] = analysis.average_cyclomatic_complexity
