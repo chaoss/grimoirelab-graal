@@ -30,7 +30,8 @@ import unittest.mock
 from base_analyzer import (TestCaseAnalyzer,
                            ANALYZER_TEST_FILE)
 
-from graal.backends.core.analyzers.cloc import Cloc
+from graal.backends.core.analyzers.cloc import (Cloc,
+                                                DEFAULT_DIFF_TIMEOUT)
 from graal.graal import GraalError
 
 
@@ -57,6 +58,15 @@ class TestCloc(TestCaseAnalyzer):
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls.tmp_path)
+
+    def test_initialization(self):
+        """Test whether attributes are initializated"""
+
+        c = Cloc()
+        self.assertEqual(c.diff_timeout, DEFAULT_DIFF_TIMEOUT)
+
+        c = Cloc(diff_timeout=50)
+        self.assertEqual(c.diff_timeout, 50)
 
     def test_analyze(self):
         """Test whether cloc returns the expected fields data"""

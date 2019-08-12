@@ -25,14 +25,21 @@ from graal.graal import (GraalError,
                          GraalRepository)
 from .analyzer import Analyzer
 
+DEFAULT_DIFF_TIMEOUT = 60
+
 
 class Cloc(Analyzer):
     """A wrapper for Cloc.
 
     This class allows to call Cloc over a file, parses
     the result of the analysis and returns it as a dict.
+
+    :param diff_timeout: max time to compute diffs of a given file
     """
-    version = '0.2.1'
+    version = '0.3.0'
+
+    def __init__(self, diff_timeout=DEFAULT_DIFF_TIMEOUT):
+        self.diff_timeout = diff_timeout
 
     def __analyze_file(self, message):
         """Add information about LOC, blank and commented lines using CLOC for a given file
@@ -110,7 +117,8 @@ class Cloc(Analyzer):
         repository_level = kwargs.get('repository_level', False)
 
         try:
-            message = subprocess.check_output(['cloc', file_path]).decode("utf-8")
+            cloc_command = ['cloc', file_path, '--diff-timeout', str(self.diff_timeout)]
+            message = subprocess.check_output(cloc_command).decode("utf-8")
         except subprocess.CalledProcessError as e:
             raise GraalError(cause="Cloc failed at %s, %s" % (file_path, e.output.decode("utf-8")))
         finally:
