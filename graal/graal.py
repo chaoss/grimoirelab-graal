@@ -87,7 +87,7 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.4.0'
+    version = '0.4.1'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
@@ -318,7 +318,7 @@ class GraalRepository(GitRepository):
 
         :param hash: the hash of a commit
         """
-        cmd_checkout = ['git', 'checkout', hash]
+        cmd_checkout = ['git', 'checkout', '-f', hash]
         try:
             self._exec(cmd_checkout, cwd=self.worktreepath, env=self.gitenv)
             logger.debug("Git repository %s checked out!" % self.dirpath)
