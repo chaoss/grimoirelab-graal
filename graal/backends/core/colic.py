@@ -61,7 +61,7 @@ class CoLic(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.1'
+    version = '0.5.2'
 
     CATEGORIES = [CATEGORY_COLIC_NOMOS,
                   CATEGORY_COLIC_SCANCODE,
@@ -156,7 +156,8 @@ class CoLic(Graal):
                 if not found:
                     continue
 
-            if not GraalRepository.exists(local_path) or os.path.isdir(local_path):
+            # Skip files that don't exist, directories and soft links
+            if not GraalRepository.exists(local_path) or os.path.isdir(local_path) or os.path.islink(local_path):
                 continue
 
             if self.analyzer_kind == NOMOS or self.analyzer_kind == SCANCODE:
