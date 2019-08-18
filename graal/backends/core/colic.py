@@ -20,6 +20,7 @@
 #
 
 import logging
+import os
 
 from graal.graal import (Graal,
                          GraalError,
@@ -60,7 +61,7 @@ class CoLic(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.0'
+    version = '0.5.2'
 
     CATEGORIES = [CATEGORY_COLIC_NOMOS,
                   CATEGORY_COLIC_SCANCODE,
@@ -147,15 +148,16 @@ class CoLic(Graal):
         files_to_process = []
 
         for committed_file in commit['files']:
-
             file_path = committed_file['file']
+            local_path = self.worktreepath + '/' + file_path
+
             if self.in_paths:
                 found = [p for p in self.in_paths if file_path.endswith(p)]
                 if not found:
                     continue
 
-            local_path = self.worktreepath + '/' + file_path
-            if not GraalRepository.exists(local_path):
+            # Skip files that don't exist, directories and soft links
+            if not GraalRepository.exists(local_path) or os.path.isdir(local_path) or os.path.islink(local_path):
                 continue
 
             if self.analyzer_kind == NOMOS or self.analyzer_kind == SCANCODE:
