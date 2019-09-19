@@ -87,7 +87,7 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.4.1'
+    version = '0.5.0'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
@@ -204,7 +204,9 @@ class Graal(Git):
             'origin': self.origin,
             'uuid': uuid(self.origin, self.metadata_id(item)),
             'updated_on': self.metadata_updated_on(item),
+            'classified_fields_filtered': self.classified_fields if filter_classified else None,
             'category': self.metadata_category(item),
+            'search_fields': self.search_fields(item),
             'tag': self.tag,
             'data': item,
         }
