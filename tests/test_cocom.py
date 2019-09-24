@@ -322,7 +322,7 @@ class TestCoComCommand(unittest.TestCase):
 
         parser = CoComCommand.setup_cmd_parser()
         self.assertIsInstance(parser, GraalCommandArgumentParser)
-        self.assertEqual(parser._categories, CoCom.CATEGORIES)
+        self.assertEqual(parser._backend, CoCom)
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath',

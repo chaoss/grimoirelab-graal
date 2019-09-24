@@ -468,10 +468,10 @@ class GraalCommand(GitCommand):
         setattr(self.parsed_args, 'git_path', git_path)
 
     @staticmethod
-    def setup_cmd_parser(categories, exec_path=False):
+    def setup_cmd_parser(backend, exec_path=False):
         """Returns the Graal argument parser."""
 
-        parser = GraalCommandArgumentParser(categories=categories, from_date=True, to_date=True, exec_path=exec_path)
+        parser = GraalCommandArgumentParser(backend=backend, from_date=True, to_date=True, exec_path=exec_path)
 
         # Optional arguments
         group = parser.parser.add_argument_group('Git arguments')
@@ -514,13 +514,13 @@ class GraalCommandArgumentParser:
     of the executable can be set during the initialization
     of the instance.
 
-    :param categories: set category argument
+    :param backend: set backend argument
     :param from_date: set from_date argument
     :param to_date: set to_date argument
     :param exec_path: set the path of the analysis tool executable
     """
-    def __init__(self, categories, from_date=False, to_date=False, exec_path=False):
-        self._categories = categories
+    def __init__(self, backend, from_date=False, to_date=False, exec_path=False):
+        self._backend = backend
         self._from_date = from_date
         self._to_date = to_date
         self._exec_path = exec_path
@@ -529,7 +529,7 @@ class GraalCommandArgumentParser:
 
         group = self.parser.add_argument_group('general arguments')
         group.add_argument('--category', dest='category',
-                           help="type of the items to fetch (%s)" % ','.join(self._categories))
+                           help="type of the items to fetch (%s)" % ','.join(self._backend.CATEGORIES))
         group.add_argument('--tag', dest='tag',
                            help="tag the items generated during the fetching process")
 

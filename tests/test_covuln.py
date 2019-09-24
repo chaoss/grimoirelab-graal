@@ -202,7 +202,7 @@ class TestCoVulnCommand(unittest.TestCase):
         parser = CoVulnCommand.setup_cmd_parser()
 
         self.assertIsInstance(parser, GraalCommandArgumentParser)
-        self.assertEqual(parser._categories, CoVuln.CATEGORIES)
+        self.assertEqual(parser._backend, CoVuln)
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath',

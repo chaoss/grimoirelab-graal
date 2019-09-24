@@ -197,6 +197,6 @@ class CoQuaCommand(GraalCommand):
     def setup_cmd_parser(cls):
         """Returns the CoQua argument parser."""
 
-        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES)
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND)
 
         return parser

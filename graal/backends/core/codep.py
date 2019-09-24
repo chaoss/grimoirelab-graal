@@ -162,6 +162,6 @@ class CoDepCommand(GraalCommand):
     def setup_cmd_parser(cls):
         """Returns the CoDep argument parser."""
 
-        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES)
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND)
 
         return parser

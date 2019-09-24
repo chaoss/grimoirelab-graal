@@ -184,6 +184,6 @@ class CoLangCommand(GraalCommand):
     def setup_cmd_parser(cls):
         """Returns the CoLang argument parser."""
 
-        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES)
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND)
 
         return parser
