@@ -243,7 +243,7 @@ class TestCoLangCommand(unittest.TestCase):
 
         parser = CoLangCommand.setup_cmd_parser()
         self.assertIsInstance(parser, GraalCommandArgumentParser)
-        self.assertEqual(parser._categories, CoLang.CATEGORIES)
+        self.assertEqual(parser._backend, CoLang)
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath',

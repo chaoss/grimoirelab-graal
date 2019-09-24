@@ -234,6 +234,6 @@ class CoLicCommand(GraalCommand):
     def setup_cmd_parser(cls):
         """Returns the CoLic argument parser."""
 
-        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES, exec_path=True)
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND, exec_path=True)
 
         return parser

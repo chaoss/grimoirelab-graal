@@ -146,7 +146,7 @@ class MockedGraalCommand(GraalCommand):
     @classmethod
     def setup_cmd_parser(cls):
 
-        parser = GraalCommand.setup_cmd_parser(cls.BACKEND.CATEGORIES)
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND)
 
         return parser
 
@@ -638,7 +638,7 @@ class TestGraalCommand(unittest.TestCase):
     def test_setup_cmd_parser(self):
         """Test if it parser object is correctly initialized"""
 
-        parser = GraalCommand.setup_cmd_parser(CATEGORY_MOCKED)
+        parser = GraalCommand.setup_cmd_parser(Graal)
         self.assertIsInstance(parser, GraalCommandArgumentParser)
 
         args = ['http://example.com/',
@@ -658,7 +658,7 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.out_paths, None)
         self.assertEqual(parsed_args.entrypoint, None)
         self.assertFalse(parsed_args.details)
-        self.assertEqual(parser._categories, CATEGORY_MOCKED)
+        self.assertEqual(parser._backend, Graal)
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath',
@@ -687,7 +687,7 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.entrypoint, 'module')
         self.assertTrue(parsed_args.details)
 
-        parser = GraalCommand.setup_cmd_parser(CATEGORY_MOCKED, exec_path=True)
+        parser = GraalCommand.setup_cmd_parser(Graal, exec_path=True)
         self.assertIsInstance(parser, GraalCommandArgumentParser)
 
         args = ['http://example.com/',
@@ -709,7 +709,7 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.out_paths, None)
         self.assertEqual(parsed_args.entrypoint, None)
         self.assertFalse(parsed_args.details)
-        self.assertEqual(parser._categories, CATEGORY_MOCKED)
+        self.assertEqual(parser._backend, Graal)
 
 
 class TesGraalFunctions(unittest.TestCase):

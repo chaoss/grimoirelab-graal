@@ -306,7 +306,7 @@ class TestCoLicCommand(unittest.TestCase):
         parser = CoLicCommand.setup_cmd_parser()
 
         self.assertIsInstance(parser, GraalCommandArgumentParser)
-        self.assertEqual(parser._categories, CoLic.CATEGORIES)
+        self.assertEqual(parser._backend, CoLic)
 
         args = ['http://example.com/',
                 '--git-path', '/tmp/gitpath',
