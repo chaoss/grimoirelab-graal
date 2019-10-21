@@ -81,7 +81,7 @@ class CoCom(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.5'
+    version = '0.3.0'
 
     CATEGORIES = [CATEGORY_COCOM_LIZARD_FILE,
                   CATEGORY_COCOM_LIZARD_REPOSITORY,
@@ -134,7 +134,6 @@ class CoCom(Graal):
         - 'code_complexity_scc_file'
         - 'code_complexity_scc_repository'
         """
-
         if item['analyzer'] == LIZARD_FILE:
             return CATEGORY_COCOM_LIZARD_FILE
         elif item['analyzer'] == LIZARD_REPOSITORY:
@@ -171,7 +170,7 @@ class CoCom(Graal):
         """
         analysis = []
 
-        if self.analyzer_kind == LIZARD_FILE or self.analyzer_kind == SCC_FILE:
+        if self.analyzer_kind in [LIZARD_FILE, SCC_FILE]:
             for committed_file in commit['files']:
 
                 file_path = committed_file['file']
@@ -296,9 +295,9 @@ class RepositoryAnalyzer:
         self.kind = kind
 
         if kind == LIZARD_REPOSITORY:
-            self.repository_analyzer = Lizard()
+            self.analyzer = Lizard()
         else:
-            self.repository_analyzer = SCC()
+            self.analyzer = SCC()
 
     def analyze(self, repository_path, files_affected):
         """Analyze the content of a repository using SCC or Lizard.
@@ -326,7 +325,7 @@ class RepositoryAnalyzer:
             'details': self.details
         }
 
-        repository_analysis = self.repository_analyzer.analyze(**kwargs)
+        repository_analysis = self.analyzer.analyze(**kwargs)
 
         return repository_analysis
 

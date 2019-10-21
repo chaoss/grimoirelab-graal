@@ -21,8 +21,7 @@
 
 import subprocess
 
-from graal.graal import (GraalError,
-                         GraalRepository)
+from graal.graal import GraalRepository
 from .analyzer import Analyzer
 
 
@@ -41,10 +40,8 @@ class SCC(Analyzer):
         """Add information about LOC, blank and commented lines using SCC for a given file
 
         :param message: message from standard output after execution of SCC
-
         :returns result: dict of the results of the analysis over a file
         """
-
         flag = False
         results = {
             "blanks": 0,
@@ -55,8 +52,6 @@ class SCC(Analyzer):
 
         for line in message.strip().split("\n"):
             if flag:
-                if line.lower().startswith("Total"):
-                    break
                 if not line.startswith("────────"):
                     file_info = line.split()[-4:]
                     blank_lines, commented_lines, loc, complexity = map(int, file_info)
@@ -76,10 +71,8 @@ class SCC(Analyzer):
            the entire repository
 
         :param message: message from standard output after execution of SCC
-
         :returns result: dict of the results of the analysis over a repository
         """
-
         results = {}
         flag = False
 
@@ -111,10 +104,8 @@ class SCC(Analyzer):
 
         :param file_path: file path
         :param repository_level: set to True if analysis has to be performed on a repository
-
         :returns result: dict of the results of the analysis
         """
-
         repository_level = kwargs.get('repository_level', False)
 
         if repository_level:
@@ -126,7 +117,7 @@ class SCC(Analyzer):
             scc_command = ['scc', file_path]
             message = subprocess.check_output(scc_command).decode("utf-8")
         except subprocess.CalledProcessError as e:
-            raise GraalError(cause="scc failed at %s, %s" % (file_path, e.output.decode("utf-8")))
+            message = e.output.decode("utf-8")
         finally:
             subprocess._cleanup()
 

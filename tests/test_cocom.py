@@ -32,6 +32,8 @@ from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
 from graal.backends.core.cocom import (CATEGORY_COCOM_LIZARD_FILE,
                                        CATEGORY_COCOM_LIZARD_REPOSITORY,
+                                       CATEGORY_COCOM_SCC_FILE,
+                                       CATEGORY_COCOM_SCC_REPOSITORY,
                                        CoCom,
                                        FileAnalyzer,
                                        RepositoryAnalyzer,
@@ -119,6 +121,26 @@ class TestCoComBackend(TestCaseGraal):
             self.assertFalse('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
+    def test_fetch_scc_file(self):
+        """Test whether commits are properly processed via file level"""
+
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path, in_paths=['perceval/backends/core/github.py'])
+        commits = [commit for commit in cc.fetch(category="code_complexity_scc_file")]
+
+        self.assertEqual(len(commits), 1)
+        self.assertFalse(os.path.exists(cc.worktreepath))
+
+        for commit in commits:
+            self.assertEqual(commit['backend_name'], 'CoCom')
+            self.assertEqual(commit['category'], CATEGORY_COCOM_SCC_FILE)
+            self.assertEqual(commit['data']['analysis'][0]['file_path'],
+                             'perceval/backends/core/github.py')
+            self.assertTrue('Author' in commit['data'])
+            self.assertTrue('Commit' in commit['data'])
+            self.assertFalse('files' in commit['data'])
+            self.assertFalse('parents' in commit['data'])
+            self.assertFalse('refs' in commit['data'])
+
     def test_fetch_lizard_repository(self):
         """Test whether commits are properly processed via repository level"""
 
@@ -131,6 +153,24 @@ class TestCoComBackend(TestCaseGraal):
         for commit in commits:
             self.assertEqual(commit['backend_name'], 'CoCom')
             self.assertEqual(commit['category'], CATEGORY_COCOM_LIZARD_REPOSITORY)
+            self.assertTrue('Author' in commit['data'])
+            self.assertTrue('Commit' in commit['data'])
+            self.assertFalse('files' in commit['data'])
+            self.assertFalse('parents' in commit['data'])
+            self.assertFalse('refs' in commit['data'])
+
+    def test_fetch_scc_repository(self):
+        """Test whether commits are properly processed via repository level"""
+
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path)
+        commits = [commit for commit in cc.fetch(category="code_complexity_scc_repository")]
+
+        self.assertEqual(len(commits), 6)
+        self.assertFalse(os.path.exists(cc.worktreepath))
+
+        for commit in commits:
+            self.assertEqual(commit['backend_name'], 'CoCom')
+            self.assertEqual(commit['category'], CATEGORY_COCOM_SCC_REPOSITORY)
             self.assertTrue('Author' in commit['data'])
             self.assertTrue('Commit' in commit['data'])
             self.assertFalse('files' in commit['data'])
@@ -281,13 +321,13 @@ class TestRepositoryAnalyzer(TestCaseAnalyzer):
         repository_analyzer = RepositoryAnalyzer()
 
         self.assertIsInstance(repository_analyzer, RepositoryAnalyzer)
-        self.assertIsInstance(repository_analyzer.lizard, Lizard)
+        self.assertIsInstance(repository_analyzer.analyzer, Lizard)
         self.assertFalse(repository_analyzer.details)
 
         repository_analyzer = RepositoryAnalyzer(details=True)
 
         self.assertIsInstance(repository_analyzer, RepositoryAnalyzer)
-        self.assertIsInstance(repository_analyzer.lizard, Lizard)
+        self.assertIsInstance(repository_analyzer.analyzer, Lizard)
         self.assertTrue(repository_analyzer.details)
 
     def test_analyze(self):
