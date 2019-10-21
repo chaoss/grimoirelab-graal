@@ -22,6 +22,7 @@ install:
 before_script:
   - mkdir exec
   - cd exec
+  - go get -u github.com/boyter/scc/
   - git clone https://github.com/fossology/fossology
   - cd fossology/src/nomos/agent/
   - sudo apt-get install libjson-c-dev
