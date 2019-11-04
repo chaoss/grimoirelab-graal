@@ -88,7 +88,7 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.1'
+    version = '0.5.2'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
@@ -179,7 +179,7 @@ class Graal(Git):
                 yield commit
                 icommits += 1
             except Exception as e:
-                logger.error("Analysis failed at %s" % commit['commit'])
+                logger.error("Analysis failed at %s, %s" % (commit['commit'], str(e)))
                 raise e
 
         self.graalRepo.prune()
@@ -290,16 +290,11 @@ class GraalRepository(GitRepository):
         try:
             self._exec(cmd_worktree, cwd=self.dirpath, env=self.gitenv)
             logger.debug("Git worktree %s created!" % self.worktreepath)
-            return
-        except Exception:
-            pass
-
-        try:
-            self.prune()
-            self.worktree(worktreepath, branch)
-        except RepositoryError:
-            cause = "Impossible to create the worktree %s" % (self.worktreepath)
-            raise RepositoryError(cause=cause)
+        except RepositoryError as e:
+            if 'already' in e.msg:
+                logger.debug("Git worktree %s not created. %s" % (self.worktreepath, e.msg))
+            else:
+                raise e
 
     def prune(self):
         """Delete a working tree from disk
@@ -324,8 +319,8 @@ class GraalRepository(GitRepository):
         try:
             self._exec(cmd_checkout, cwd=self.worktreepath, env=self.gitenv)
             logger.debug("Git repository %s checked out!" % self.dirpath)
-        except Exception:
-            cause = "Impossible to checkout the worktree %s at %s" % (self.worktreepath, hash)
+        except Exception as e:
+            cause = "Impossible to checkout the worktree %s at %s. %s" % (self.worktreepath, hash, str(e))
             raise RepositoryError(cause=cause)
 
     def archive(self, hash):
