@@ -44,6 +44,7 @@ from ._version import __version__
 
 CATEGORY_GRAAL = 'graal'
 DEFAULT_WORKTREE_PATH = '/tmp/worktrees/'
+GIT_EXEC_PATH = '/usr/bin/git'
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +88,7 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.0'
+    version = '0.5.1'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
@@ -278,14 +279,13 @@ class GraalRepository(GitRepository):
         set to `branch`
 
         :param worktreepath: the path where the working tree will be located
-        :param branch: the name of the branch. If None, the branch is set to `master`
+        :param branch: the name of the branch. If None, the branch is set to the default branch
         """
         self.worktreepath = worktreepath
 
-        if not branch:
-            branch = 'master'
-
-        cmd_worktree = ['git', 'worktree', 'add', self.worktreepath, branch]
+        cmd_worktree = [GIT_EXEC_PATH, 'worktree', 'add', self.worktreepath]
+        if branch:
+            cmd_worktree.append(branch)
 
         try:
             self._exec(cmd_worktree, cwd=self.dirpath, env=self.gitenv)
@@ -307,7 +307,7 @@ class GraalRepository(GitRepository):
         :param worktreepath: directory where the working tree is located
         """
         GraalRepository.delete(self.worktreepath)
-        cmd_worktree = ['git', 'worktree', 'prune']
+        cmd_worktree = [GIT_EXEC_PATH, 'worktree', 'prune']
         try:
             self._exec(cmd_worktree, cwd=self.dirpath, env=self.gitenv)
             logger.debug("Git worktree %s deleted!" % self.worktreepath)
@@ -320,7 +320,7 @@ class GraalRepository(GitRepository):
 
         :param hash: the hash of a commit
         """
-        cmd_checkout = ['git', 'checkout', '-f', hash]
+        cmd_checkout = [GIT_EXEC_PATH, 'checkout', '-f', hash]
         try:
             self._exec(cmd_checkout, cwd=self.worktreepath, env=self.gitenv)
             logger.debug("Git repository %s checked out!" % self.dirpath)
@@ -335,7 +335,7 @@ class GraalRepository(GitRepository):
 
         :returns: a BytesIO object
         """
-        cmd_archive = ['git', 'archive', '--format=tar', hash]
+        cmd_archive = [GIT_EXEC_PATH, 'archive', '--format=tar', hash]
 
         try:
             outs = self._exec(cmd_archive, cwd=self.dirpath, env=self.gitenv)
