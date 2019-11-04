@@ -39,7 +39,8 @@ from graal.graal import (DEFAULT_WORKTREE_PATH,
                          Graal,
                          GraalCommand,
                          GraalRepository,
-                         GraalCommandArgumentParser)
+                         GraalCommandArgumentParser,
+                         logger)
 from base_repo import TestCaseRepo
 
 
@@ -63,7 +64,7 @@ class MockedGraalRepository(GraalRepository):
             if cmd[:2] == [GIT_EXEC_PATH, "archive"]:
                 raise OSError
 
-            raise Exception
+            raise RepositoryError(cause='oops!')
 
         super()._exec(cmd, cwd=cwd, env=env, ignored_error_codes=ignored_error_codes,
                       encoding=encoding)
@@ -303,6 +304,37 @@ class TestGraalRepository(TestCaseRepo):
         repo.worktree(new_path)
         self.assertEqual(repo.worktreepath, new_path)
         self.assertTrue(os.path.exists(repo.worktreepath))
+
+        repo.prune()
+        self.assertFalse(os.path.exists(repo.worktreepath))
+
+    def test_worktree_from_branch(self):
+        """Test whether a working tree is created from a target branch"""
+
+        new_path = os.path.join(self.tmp_path, 'testworktree')
+
+        repo = GraalRepository('http://example.git', self.git_path)
+
+        self.assertIsNone(repo.worktreepath)
+        repo.worktree(new_path, branch='master')
+        self.assertEqual(repo.worktreepath, new_path)
+        self.assertTrue(os.path.exists(repo.worktreepath))
+
+        repo.prune()
+        self.assertFalse(os.path.exists(repo.worktreepath))
+
+    def test_worktree_already_exists(self):
+        """Test whether a debug info is logged when the worktree already exists"""
+
+        new_path = os.path.join(self.tmp_path, 'testworktree')
+
+        repo = GraalRepository('http://example.git', self.git_path)
+        self.assertIsNone(repo.worktreepath)
+        repo.worktree(new_path, branch='master')
+
+        with self.assertLogs(logger, level='DEBUG') as cm:
+            repo.worktree(new_path, branch='master')
+            self.assertRegex(cm.output[0], 'DEBUG:graal.graal:Git worktree.*not created.*already exists.*')
 
         repo.prune()
         self.assertFalse(os.path.exists(repo.worktreepath))
