@@ -88,7 +88,7 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.2'
+    version = '0.5.3'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
@@ -163,8 +163,17 @@ class Graal(Git):
         :returns: a generator of items
         """
         icommits = 0
+        branch = None
 
-        self.graalRepo = self.__create_graal_repository()
+        # the worktree is created from the default branch or from the first branch in `branches`. This
+        # is needed since currently Graal doesn't support multiple worktrees
+        branches = kwargs.get('branches', [])
+        if branches and len(branches) > 1:
+            logger.warning("Only the branch %s will be analyzed" % branches[0])
+            branch = branches[0]
+            kwargs['branches'] = [branch]
+
+        self.graalRepo = self.__create_graal_repository(branch)
 
         commits = super().fetch_items(category, **kwargs)
         for commit in commits:
@@ -247,7 +256,7 @@ class Graal(Git):
         """
         return commit
 
-    def __create_graal_repository(self):
+    def __create_graal_repository(self, branch=None):
         if not GraalRepository.exists(self.gitpath):
             repo = GraalRepository.clone(self.uri, self.gitpath)
         elif os.path.isdir(self.gitpath):
@@ -256,7 +265,7 @@ class Graal(Git):
         if GraalRepository.exists(self.worktreepath):
             shutil.rmtree(self.worktreepath)
 
-        repo.worktree(self.worktreepath)
+        repo.worktree(self.worktreepath, branch)
         return repo
 
 

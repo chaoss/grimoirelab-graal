@@ -36,10 +36,12 @@ from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 import graal
 from graal.graal import (DEFAULT_WORKTREE_PATH,
                          CATEGORY_GRAAL,
+                         GIT_EXEC_PATH,
                          Graal,
                          GraalCommand,
                          GraalRepository,
-                         GraalCommandArgumentParser)
+                         GraalCommandArgumentParser,
+                         logger)
 
 
 CATEGORY_MOCKED = 'mocked'
@@ -59,10 +61,10 @@ class MockedGraalRepository(GraalRepository):
               encoding='utf-8'):
 
         if MockedGraalRepository.RAISE_EXCEPTION:
-            if cmd[:2] == ["git", "archive"]:
+            if cmd[:2] == [GIT_EXEC_PATH, "archive"]:
                 raise OSError
 
-            raise Exception
+            raise RepositoryError(cause="oops!")
 
         super()._exec(cmd, cwd=cwd, env=env, ignored_error_codes=ignored_error_codes,
                       encoding=encoding)
@@ -330,6 +332,14 @@ class TestGraalRepository(TestCaseGraal):
     def tearDownClass(cls):
         shutil.rmtree(cls.tmp_path)
 
+    def tearDown(self):
+        repo = GraalRepository('http://example.git', self.git_path)
+        try:
+            repo._exec(['git', 'branch', '-D', 'testworktree'], cwd=repo.dirpath, env=repo.gitenv)
+            repo._exec(['git', 'branch', '-D', 'graaltest'], cwd=repo.dirpath, env=repo.gitenv)
+        except RepositoryError:
+            pass
+
     def test_init(self):
         """Test initialization"""
 
@@ -360,6 +370,36 @@ class TestGraalRepository(TestCaseGraal):
         repo.worktree(new_path)
         self.assertEqual(repo.worktreepath, new_path)
         self.assertTrue(os.path.exists(repo.worktreepath))
+
+        repo.prune()
+        self.assertFalse(os.path.exists(repo.worktreepath))
+
+    def test_worktree_from_branch(self):
+        """Test whether a working tree is created from a target branch"""
+
+        new_path = os.path.join(self.tmp_path, 'testworktree')
+
+        repo = GraalRepository('http://example.git', self.git_path)
+        self.assertIsNone(repo.worktreepath)
+        repo.worktree(new_path, branch='master')
+        self.assertEqual(repo.worktreepath, new_path)
+        self.assertTrue(os.path.exists(repo.worktreepath))
+
+        repo.prune()
+        self.assertFalse(os.path.exists(repo.worktreepath))
+
+    def test_worktree_already_exists(self):
+        """Test whether a debug info is logged when the worktree already exists"""
+
+        new_path = os.path.join(self.tmp_path, 'testworktree')
+
+        repo = GraalRepository('http://example.git', self.git_path)
+        self.assertIsNone(repo.worktreepath)
+        repo.worktree(new_path, branch='master')
+
+        with self.assertLogs(logger, level='DEBUG') as cm:
+            repo.worktree(new_path, branch='master')
+            self.assertRegex(cm.output[0], 'DEBUG:graal.graal:Git worktree.*not created.*already exists.*')
 
         repo.prune()
         self.assertFalse(os.path.exists(repo.worktreepath))
@@ -763,6 +803,25 @@ class TestFetch(unittest.TestCase):
 
         items = graal.graal.fetch(CommandBackend, args, CATEGORY_MOCKED)
         items = [item for item in items]
+
+        self.assertEqual(len(items), 6)
+        for i in items:
+            self.assertEqual(i['category'], CATEGORY_MOCKED)
+
+    def test_items_multiple_branches(self):
+        """Test whether the working tree is created from the first branch in `branches`"""
+
+        args = {
+            'uri': 'http://example.com/',
+            'gitpath': self.git_path,
+            'tag': 'test',
+            'branches': ['master', 'v1', 'v2']
+        }
+
+        with self.assertLogs(logger, level='WARNING') as cm:
+            items = graal.graal.fetch(CommandBackend, args, CATEGORY_MOCKED)
+            items = [item for item in items]
+            self.assertEqual(cm.output[0], 'WARNING:graal.graal:Only the branch master will be analyzed')
 
         self.assertEqual(len(items), 6)
         for i in items:
