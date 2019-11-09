@@ -28,13 +28,20 @@ from graal.graal import (Graal,
                          DEFAULT_WORKTREE_PATH)
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
+from graal.backends.core.analyzers.scc import SCC
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
+
+SCC_FILE = 'scc_file'
+SCC_REPOSITORY = 'scc_repository'
 
 LIZARD_FILE = 'lizard_file'
 LIZARD_REPOSITORY = 'lizard_repository'
 
 CATEGORY_COCOM_LIZARD_FILE = 'code_complexity_' + LIZARD_FILE
 CATEGORY_COCOM_LIZARD_REPOSITORY = 'code_complexity_' + LIZARD_REPOSITORY
+
+CATEGORY_COCOM_SCC_FILE = 'code_complexity_' + SCC_FILE
+CATEGORY_COCOM_SCC_REPOSITORY = 'code_complexity_' + SCC_REPOSITORY
 
 logger = logging.getLogger(__name__)
 
@@ -74,10 +81,12 @@ class CoCom(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.2.5'
+    version = '0.3.0'
 
     CATEGORIES = [CATEGORY_COCOM_LIZARD_FILE,
-                  CATEGORY_COCOM_LIZARD_REPOSITORY]
+                  CATEGORY_COCOM_LIZARD_REPOSITORY,
+                  CATEGORY_COCOM_SCC_FILE,
+                  CATEGORY_COCOM_SCC_REPOSITORY]
 
     def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH,
                  entrypoint=None, in_paths=None, out_paths=None, details=False,
@@ -99,12 +108,19 @@ class CoCom(Graal):
                               branches=branches, latest_items=latest_items)
         if category == CATEGORY_COCOM_LIZARD_FILE:
             self.analyzer_kind = LIZARD_FILE
-            self.analyzer = FileAnalyzer(self.details)
         elif category == CATEGORY_COCOM_LIZARD_REPOSITORY:
             self.analyzer_kind = LIZARD_REPOSITORY
-            self.analyzer = RepositoryAnalyzer(self.details)
+        elif category == CATEGORY_COCOM_SCC_FILE:
+            self.analyzer_kind = SCC_FILE
+        elif category == CATEGORY_COCOM_SCC_REPOSITORY:
+            self.analyzer_kind = SCC_REPOSITORY
         else:
             raise GraalError(cause="Unknown category %s" % category)
+
+        if "_file" in category:
+            self.analyzer = FileAnalyzer(self.details, self.analyzer_kind)
+        else:
+            self.analyzer = RepositoryAnalyzer(self.details, self.analyzer_kind)
 
         return items
 
@@ -113,14 +129,19 @@ class CoCom(Graal):
         """Extracts the category from a Code item.
 
         This backend generates the following types of item:
-        - 'code_complexity_lizard_file'.
+        - 'code_complexity_lizard_file'
         - 'code_complexity_lizard_repository'
+        - 'code_complexity_scc_file'
+        - 'code_complexity_scc_repository'
         """
-
         if item['analyzer'] == LIZARD_FILE:
             return CATEGORY_COCOM_LIZARD_FILE
         elif item['analyzer'] == LIZARD_REPOSITORY:
             return CATEGORY_COCOM_LIZARD_REPOSITORY
+        elif item['analyzer'] == SCC_FILE:
+            return CATEGORY_COCOM_SCC_FILE
+        elif item['analyzer'] == SCC_REPOSITORY:
+            return CATEGORY_COCOM_SCC_REPOSITORY
         else:
             raise GraalError(cause="Unknown analyzer %s" % item['analyzer'])
 
@@ -149,7 +170,7 @@ class CoCom(Graal):
         """
         analysis = []
 
-        if self.analyzer_kind == LIZARD_FILE:
+        if self.analyzer_kind in [LIZARD_FILE, SCC_FILE]:
             for committed_file in commit['files']:
 
                 file_path = committed_file['file']
@@ -213,13 +234,18 @@ class FileAnalyzer:
     FORBIDDEN_EXTENSIONS = ['tar', 'bz2', "gz", "lz", "apk", "tbz2",
                             "lzma", "tlz", "war", "xar", "zip", "zipx"]
 
-    def __init__(self, details=False):
+    def __init__(self, details=False, kind=LIZARD_FILE):
         self.details = details
-        self.cloc = Cloc()
-        self.lizard = Lizard()
+        self.kind = kind
+
+        if self.kind == LIZARD_FILE:
+            self.cloc = Cloc()
+            self.lizard = Lizard()
+        else:
+            self.scc = SCC()
 
     def analyze(self, file_path):
-        """Analyze the content of a file using CLOC and Lizard.
+        """Analyze the content of a file using CLOC, Lizard and SCC
 
         :param file_path: file path
 
@@ -238,31 +264,43 @@ class FileAnalyzer:
         }
         """
         kwargs = {'file_path': file_path}
-        cloc_analysis = self.cloc.analyze(**kwargs)
 
-        if GraalRepository.extension(file_path) not in self.ALLOWED_EXTENSIONS:
-            return cloc_analysis
+        if self.kind == LIZARD_FILE:
+            cloc_analysis = self.cloc.analyze(**kwargs)
 
-        kwargs['details'] = self.details
-        lizard_analysis = self.lizard.analyze(**kwargs)
-        # the LOC returned by CLOC is replaced by the one obtained with Lizard
-        # for consistency purposes
+            if GraalRepository.extension(file_path) not in self.ALLOWED_EXTENSIONS:
+                return cloc_analysis
 
-        lizard_analysis['blanks'] = cloc_analysis['blanks']
-        lizard_analysis['comments'] = cloc_analysis['comments']
+            kwargs['details'] = self.details
+            file_analysis = self.lizard.analyze(**kwargs)
+            # the LOC returned by CLOC is replaced by the one obtained with Lizard
+            # for consistency purposes
 
-        return lizard_analysis
+            file_analysis['blanks'] = cloc_analysis['blanks']
+            file_analysis['comments'] = cloc_analysis['comments']
+        else:
+            file_analysis = self.scc.analyze(**kwargs)
+
+        return file_analysis
 
 
 class RepositoryAnalyzer:
-    """Class to analyse the content of a repository"""
+    """Class to analyse the content of a repository
 
-    def __init__(self, details=False):
+    param kind: the analyzer kind (e.g., Lizard, SCC)
+    """
+
+    def __init__(self, details=False, kind=LIZARD_REPOSITORY):
         self.details = details
-        self.lizard = Lizard()
+        self.kind = kind
+
+        if kind == LIZARD_REPOSITORY:
+            self.analyzer = Lizard()
+        else:
+            self.analyzer = SCC()
 
     def analyze(self, repository_path, files_affected):
-        """Analyze the content of a repository using CLOC and Lizard.
+        """Analyze the content of a repository using SCC or Lizard.
 
         :param repository_path: repository path
 
@@ -286,9 +324,10 @@ class RepositoryAnalyzer:
             'files_affected': files_affected,
             'details': self.details
         }
-        lizard_analysis = self.lizard.analyze(**kwargs)
 
-        return lizard_analysis
+        repository_analysis = self.analyzer.analyze(**kwargs)
+
+        return repository_analysis
 
 
 class CoComCommand(GraalCommand):
