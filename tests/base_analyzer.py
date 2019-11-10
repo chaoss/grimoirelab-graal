@@ -21,6 +21,7 @@
 
 import os
 import shutil
+import subprocess
 import tempfile
 import unittest
 
@@ -37,12 +38,24 @@ class TestCaseAnalyzer(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.tmp_path = tempfile.mkdtemp(prefix='analyzers_')
-        cls.tmp_data_path = os.path.join(cls.tmp_path, 'data')
-        os.mkdir(cls.tmp_data_path)
+        cls.tmp_path = tempfile.mkdtemp(prefix='graal_')
 
+        data_path = os.path.dirname(os.path.abspath(__file__))
+        cls.tmp_data_path = os.path.join(data_path, 'data')
+
+        repo_name = 'graaltest'
+        cls.repo_path = os.path.join(cls.tmp_path, repo_name)
+
+        fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
+
+        zip_path = os.path.join(cls.tmp_data_path, repo_name + '.zip')
+        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_path])
+
+        cls.origin_path = os.path.join(cls.tmp_path, repo_name)
+
+        # copy file to tmp_path
         test_analyzer = get_file_path(ANALYZER_TEST_FOLDER + ANALYZER_TEST_FILE)
-        shutil.copy2(test_analyzer, cls.tmp_data_path)
+        shutil.copy2(test_analyzer, cls.tmp_path)
 
     @classmethod
     def tearDownClass(cls):
