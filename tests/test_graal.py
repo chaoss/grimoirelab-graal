@@ -23,7 +23,6 @@
 import io
 import os
 import shutil
-import subprocess
 import tarfile
 import tempfile
 import unittest
@@ -42,6 +41,7 @@ from graal.graal import (DEFAULT_WORKTREE_PATH,
                          GraalRepository,
                          GraalCommandArgumentParser,
                          logger)
+from base_repo import TestCaseRepo
 
 
 CATEGORY_MOCKED = 'mocked'
@@ -170,46 +170,8 @@ class ErrorCommandBackend(CommandBackend):
             raise Exception
 
 
-class TestCaseGraal(unittest.TestCase):
-    """Base case for Graal tests"""
-
-    def setUp(self):
-        patcher = unittest.mock.patch('os.getenv')
-        self.addCleanup(patcher.stop)
-        self.mock_getenv = patcher.start()
-        self.mock_getenv.return_value = ''
-
-
-class TestGraalBackend(TestCaseGraal):
+class TestGraalBackend(TestCaseRepo):
     """Graal backend tests"""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp_path = tempfile.mkdtemp(prefix='graal_')
-        cls.tmp_repo_path = os.path.join(cls.tmp_path, 'repos')
-        os.mkdir(cls.tmp_repo_path)
-
-        cls.git_path = os.path.join(cls.tmp_path, 'graaltest')
-        cls.worktree_path = os.path.join(cls.tmp_path, 'graal_worktrees')
-
-        data_path = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(data_path, 'data')
-
-        repo_name = 'graaltest'
-        repo_path = cls.git_path
-
-        fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
-
-        zip_path = os.path.join(data_path, repo_name + '.zip')
-        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_repo_path])
-
-        origin_path = os.path.join(cls.tmp_repo_path, repo_name)
-        subprocess.check_call(['git', 'clone', '-q', '--bare', origin_path, repo_path],
-                              stderr=fdout)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.tmp_path)
 
     def test_initialization(self):
         """Test whether attributes are initializated"""
@@ -301,44 +263,16 @@ class TestGraalBackend(TestCaseGraal):
             _ = [commit for commit in mocked.fetch()]
 
 
-class TestGraalRepository(TestCaseGraal):
+class TestGraalRepository(TestCaseRepo):
     """GraalRepository tests"""
 
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp_path = tempfile.mkdtemp(prefix='graal_')
-        cls.tmp_repo_path = os.path.join(cls.tmp_path, 'repos')
-        os.mkdir(cls.tmp_repo_path)
+    def setUp(self):
+        super().setUp()
 
-        cls.git_path = os.path.join(cls.tmp_path, 'graaltest')
-        cls.worktree_path = os.path.join(cls.tmp_path, 'graal_worktrees')
-
-        data_path = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(data_path, 'data')
-
-        repo_name = 'graaltest'
-        repo_path = cls.git_path
-
-        fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
-
-        zip_path = os.path.join(data_path, repo_name + '.zip')
-        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_repo_path])
-
-        origin_path = os.path.join(cls.tmp_repo_path, repo_name)
-        subprocess.check_call(['git', 'clone', '-q', '--bare', origin_path, repo_path],
-                              stderr=fdout)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.tmp_path)
-
-    def tearDown(self):
-        repo = GraalRepository('http://example.git', self.git_path)
-        try:
-            repo._exec(['git', 'branch', '-D', 'testworktree'], cwd=repo.dirpath, env=repo.gitenv)
-            repo._exec(['git', 'branch', '-D', 'graaltest'], cwd=repo.dirpath, env=repo.gitenv)
-        except RepositoryError:
-            pass
+        patcher = unittest.mock.patch('os.getenv')
+        self.addCleanup(patcher.stop)
+        self.mock_getenv = patcher.start()
+        self.mock_getenv.return_value = ''
 
     def test_init(self):
         """Test initialization"""
@@ -761,36 +695,8 @@ class TesGraalFunctions(unittest.TestCase):
             self.assertTrue(issubclass(backends.get(b), Graal))
 
 
-class TestFetch(unittest.TestCase):
+class TestFetch(TestCaseRepo):
     """Unit tests for fetch function"""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp_path = tempfile.mkdtemp(prefix='graal_')
-        cls.tmp_repo_path = os.path.join(cls.tmp_path, 'repos')
-        os.mkdir(cls.tmp_repo_path)
-
-        cls.git_path = os.path.join(cls.tmp_path, 'graaltest')
-        cls.worktree_path = os.path.join(cls.tmp_path, 'graal_worktrees')
-
-        data_path = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(data_path, 'data')
-
-        repo_name = 'graaltest'
-        repo_path = cls.git_path
-
-        fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
-
-        zip_path = os.path.join(data_path, repo_name + '.zip')
-        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_repo_path])
-
-        origin_path = os.path.join(cls.tmp_repo_path, repo_name)
-        subprocess.check_call(['git', 'clone', '-q', '--bare', origin_path, repo_path],
-                              stderr=fdout)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.tmp_path)
 
     def test_items(self):
         """Test whether a set of items is returned"""
