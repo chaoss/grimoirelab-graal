@@ -21,9 +21,6 @@
 #
 
 import os
-import shutil
-import subprocess
-import tempfile
 import unittest.mock
 
 from graal.graal import (GraalCommandArgumentParser,
@@ -40,42 +37,14 @@ from graal.backends.core.colic import (CATEGORY_COLIC_NOMOS,
                                        LicenseAnalyzer,
                                        CoLicCommand)
 from perceval.utils import DEFAULT_DATETIME
-from test_graal import TestCaseGraal
 from base_analyzer import (ANALYZER_TEST_FILE,
                            TestCaseAnalyzer)
+from base_repo import TestCaseRepo
 from utils import NOMOS_PATH, SCANCODE_PATH, SCANCODE_CLI_PATH
 
 
-class TestCoLicBackend(TestCaseGraal):
+class TestCoLicBackend(TestCaseRepo):
     """CoLic backend tests"""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp_path = tempfile.mkdtemp(prefix='colic_')
-        cls.tmp_repo_path = os.path.join(cls.tmp_path, 'repos')
-        os.mkdir(cls.tmp_repo_path)
-
-        cls.git_path = os.path.join(cls.tmp_path, 'graaltest')
-        cls.worktree_path = os.path.join(cls.tmp_path, 'colic_worktrees')
-
-        data_path = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(data_path, 'data')
-
-        repo_name = 'graaltest'
-        repo_path = cls.git_path
-
-        fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
-
-        zip_path = os.path.join(data_path, repo_name + '.zip')
-        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_repo_path])
-
-        origin_path = os.path.join(cls.tmp_repo_path, repo_name)
-        subprocess.check_call(['git', 'clone', '-q', '--bare', origin_path, repo_path],
-                              stderr=fdout)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.tmp_path)
 
     def test_initialization(self):
         """Test whether attributes are initializated"""
