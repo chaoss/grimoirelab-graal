@@ -31,7 +31,8 @@ from graal.backends.core.analyzers.reverse import Reverse
 from graal.backends.core.codep import (CATEGORY_CODEP,
                                        CoDep,
                                        DependencyAnalyzer,
-                                       CoDepCommand)
+                                       CoDepCommand,
+                                       logger)
 from graal.graal import GraalError
 from perceval.utils import DEFAULT_DATETIME
 from base_analyzer import TestCaseAnalyzer
@@ -79,6 +80,16 @@ class TestCoDepBackend(TestCaseRepo):
         self.assertTrue(type(result['packages']['nodes']), list)
         self.assertIn('links', result['packages'])
         self.assertTrue(type(result['packages']['links']), list)
+
+    def test_fetch_not_existing_module(self):
+        """Test whether warning messages are logged when a module is not found"""
+
+        cd = CoDep('http://example.com', self.git_path, self.worktree_path, entrypoint="unknown")
+
+        with self.assertLogs(logger, level='WARNING') as cm:
+            for commit in cd.fetch():
+                self.assertRegex(cm.output[-1], 'module path .* does not exist .* analysis will be skipped')
+                self.assertEqual(commit['data']['analysis'], {})
 
 
 class TestDependencyAnalyzer(TestCaseAnalyzer):
