@@ -97,16 +97,16 @@ class TestCoLicBackend(TestCaseRepo):
         self.assertEqual(len(commits), 1)
         self.assertFalse(os.path.exists(cl.worktreepath))
 
-        for commit in commits:
-            self.assertEqual(commit['backend_name'], 'CoLic')
-            self.assertEqual(commit['category'], CATEGORY_COLIC_NOMOS)
-            self.assertEqual(commit['data']['analysis'][0]['file_path'],
-                             'perceval/backends/core/github.py')
-            self.assertTrue('Author' in commit['data'])
-            self.assertTrue('Commit' in commit['data'])
-            self.assertFalse('files' in commit['data'])
-            self.assertFalse('parents' in commit['data'])
-            self.assertFalse('refs' in commit['data'])
+        commit = commits[0]
+        self.assertEqual(commit['backend_name'], 'CoLic')
+        self.assertEqual(commit['category'], CATEGORY_COLIC_NOMOS)
+        self.assertEqual(commit['data']['analysis'][0]['file_path'],
+                         'perceval/backends/core/github.py')
+        self.assertTrue('Author' in commit['data'])
+        self.assertTrue('Commit' in commit['data'])
+        self.assertFalse('files' in commit['data'])
+        self.assertFalse('parents' in commit['data'])
+        self.assertFalse('refs' in commit['data'])
 
     def test_fetch_scancode(self):
         """Test whether commits are properly processed"""
@@ -118,16 +118,16 @@ class TestCoLicBackend(TestCaseRepo):
         self.assertEqual(len(commits), 1)
         self.assertFalse(os.path.exists(cl.worktreepath))
 
-        for commit in commits:
-            self.assertEqual(commit['backend_name'], 'CoLic')
-            self.assertEqual(commit['category'], CATEGORY_COLIC_SCANCODE)
-            self.assertEqual(commit['data']['analysis'][0]['file_path'],
-                             'perceval/backends/core/github.py')
-            self.assertTrue('Author' in commit['data'])
-            self.assertTrue('Commit' in commit['data'])
-            self.assertFalse('files' in commit['data'])
-            self.assertFalse('parents' in commit['data'])
-            self.assertFalse('refs' in commit['data'])
+        commit = commits[0]
+        self.assertEqual(commit['backend_name'], 'CoLic')
+        self.assertEqual(commit['category'], CATEGORY_COLIC_SCANCODE)
+        self.assertEqual(commit['data']['analysis'][0]['file_path'],
+                         'perceval/backends/core/github.py')
+        self.assertTrue('Author' in commit['data'])
+        self.assertTrue('Commit' in commit['data'])
+        self.assertFalse('files' in commit['data'])
+        self.assertFalse('parents' in commit['data'])
+        self.assertFalse('refs' in commit['data'])
 
     def test_fetch_scancode_cli(self):
         """Test whether commits are properly processed"""
@@ -139,16 +139,16 @@ class TestCoLicBackend(TestCaseRepo):
         self.assertEqual(len(commits), 1)
         self.assertFalse(os.path.exists(cl.worktreepath))
 
-        for commit in commits:
-            self.assertEqual(commit['backend_name'], 'CoLic')
-            self.assertEqual(commit['category'], CATEGORY_COLIC_SCANCODE_CLI)
-            self.assertEqual(commit['data']['analysis'][0]['file_path'],
-                             'perceval/backends/core/github.py')
-            self.assertTrue('Author' in commit['data'])
-            self.assertTrue('Commit' in commit['data'])
-            self.assertFalse('files' in commit['data'])
-            self.assertFalse('parents' in commit['data'])
-            self.assertFalse('refs' in commit['data'])
+        commit = commits[0]
+        self.assertEqual(commit['backend_name'], 'CoLic')
+        self.assertEqual(commit['category'], CATEGORY_COLIC_SCANCODE_CLI)
+        self.assertEqual(commit['data']['analysis'][0]['file_path'],
+                         'perceval/backends/core/github.py')
+        self.assertTrue('Author' in commit['data'])
+        self.assertTrue('Commit' in commit['data'])
+        self.assertFalse('files' in commit['data'])
+        self.assertFalse('parents' in commit['data'])
+        self.assertFalse('refs' in commit['data'])
 
     def test_fetch_unknown(self):
         """Test whether commits are properly processed"""
@@ -158,6 +158,23 @@ class TestCoLicBackend(TestCaseRepo):
 
         with self.assertRaises(GraalError):
             _ = cl.fetch(category="unknown")
+
+    def test_fetch_empty_in_paths(self):
+        """Test whether all commits are processed when the no `in_paths` are provided"""
+
+        cl = CoLic('http://example.com', self.git_path, NOMOS_PATH, self.worktree_path, in_paths=[])
+        commits = [commit for commit in cl.fetch(category=CATEGORY_COLIC_NOMOS)]
+
+        self.assertEqual(len(commits), 6)
+        for commit in commits:
+            self.assertEqual(commit['backend_name'], 'CoLic')
+            self.assertEqual(commit['category'], CATEGORY_COLIC_NOMOS)
+            self.assertIn('analysis', commit['data'])
+            self.assertTrue('Author' in commit['data'])
+            self.assertTrue('Commit' in commit['data'])
+            self.assertFalse('files' in commit['data'])
+            self.assertFalse('parents' in commit['data'])
+            self.assertFalse('refs' in commit['data'])
 
     def test_metadata_category(self):
         """Test metadata_category"""
