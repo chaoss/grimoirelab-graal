@@ -36,6 +36,7 @@ from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 import graal
 from graal.graal import (DEFAULT_WORKTREE_PATH,
                          CATEGORY_GRAAL,
+                         GIT_EXEC_PATH,
                          Graal,
                          GraalCommand,
                          GraalRepository,
@@ -59,7 +60,7 @@ class MockedGraalRepository(GraalRepository):
               encoding='utf-8'):
 
         if MockedGraalRepository.RAISE_EXCEPTION:
-            if cmd[:2] == ["git", "archive"]:
+            if cmd[:2] == [GIT_EXEC_PATH, "archive"]:
                 raise OSError
 
             raise Exception
@@ -591,7 +592,7 @@ class TestGraalRepository(TestCaseGraal):
 
     @staticmethod
     def __git_show_hash(repo):
-        cmd_show = ['git', 'show']
+        cmd_show = [GIT_EXEC_PATH, 'show']
         try:
             outs = repo._exec(cmd_show, cwd=repo.worktreepath, env=repo.gitenv)
         except Exception:
