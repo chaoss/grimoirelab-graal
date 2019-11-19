@@ -21,8 +21,9 @@
 #
 
 import os
-import unittest
 import subprocess
+import unittest.mock
+import unittest
 
 from base_analyzer import (TestCaseAnalyzer,
                            ANALYZER_TEST_FILE)

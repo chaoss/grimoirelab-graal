@@ -20,11 +20,7 @@
 #     Nishchith Shetty <inishchith@gmail.com>
 #
 
-import os
-import shutil
 import subprocess
-import tempfile
-import unittest
 import unittest.mock
 
 from base_analyzer import TestCaseAnalyzer
@@ -34,25 +30,6 @@ from graal.backends.core.analyzers.linguist import Linguist
 
 class TestLinguist(TestCaseAnalyzer):
     """Linguist tests"""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp_path = tempfile.mkdtemp(prefix='graal_')
-
-        data_path = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(data_path, 'data')
-
-        repo_name = 'graaltest'
-        cls.repo_path = os.path.join(cls.tmp_path, repo_name)
-
-        fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
-
-        zip_path = os.path.join(data_path, repo_name + '.zip')
-        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_path])
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.tmp_path)
 
     def test_analyze_details(self):
         """Test whether linguist returns the expected fields data"""

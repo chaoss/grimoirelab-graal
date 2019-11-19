@@ -23,43 +23,41 @@ import os
 import shutil
 import subprocess
 import tempfile
-import unittest
-
-ANALYZER_TEST_FOLDER = "data/"
-ANALYZER_TEST_FILE = "sample_code.py"
+import unittest.mock
 
 
 def get_file_path(filename):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
 
 
-class TestCaseAnalyzer(unittest.TestCase):
-    """Base class to test Analyzers"""
+class TestCaseRepo(unittest.TestCase):
+    """Base class to test Graal on a Git repo"""
 
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp_path = tempfile.mkdtemp(prefix='graal_')
+    def setUp(self):
+        self.tmp_path = tempfile.mkdtemp(prefix='graal_')
+        self.tmp_repo_path = os.path.join(self.tmp_path, 'repos')
+        os.mkdir(self.tmp_repo_path)
+
+        self.git_path = os.path.join(self.tmp_path, 'graaltest')
+        self.worktree_path = os.path.join(self.tmp_path, 'graal_worktrees')
 
         data_path = os.path.dirname(os.path.abspath(__file__))
-        cls.tmp_data_path = os.path.join(data_path, 'data')
+        data_path = os.path.join(data_path, 'data')
 
         repo_name = 'graaltest'
-        cls.repo_path = os.path.join(cls.tmp_path, repo_name)
+        repo_path = self.git_path
 
-        fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
+        fdout, _ = tempfile.mkstemp(dir=self.tmp_path)
 
-        zip_path = os.path.join(cls.tmp_data_path, repo_name + '.zip')
-        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_path])
+        zip_path = os.path.join(data_path, repo_name + '.zip')
+        subprocess.check_call(['unzip', '-qq', zip_path, '-d', self.tmp_repo_path])
 
-        cls.origin_path = os.path.join(cls.tmp_path, repo_name)
+        origin_path = os.path.join(self.tmp_repo_path, repo_name)
+        subprocess.check_call(['git', 'clone', '-q', '--bare', origin_path, repo_path],
+                              stderr=fdout)
 
-        # copy file to tmp_path
-        test_analyzer = get_file_path(ANALYZER_TEST_FOLDER + ANALYZER_TEST_FILE)
-        shutil.copy2(test_analyzer, cls.tmp_path)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.tmp_path)
+    def tearDown(self):
+        shutil.rmtree(self.tmp_path)
 
 
 if __name__ == "__main__":
