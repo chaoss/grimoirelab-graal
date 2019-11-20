@@ -88,7 +88,7 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.1'
+    version = '0.5.2'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
@@ -279,28 +279,22 @@ class GraalRepository(GitRepository):
         set to `branch`
 
         :param worktreepath: the path where the working tree will be located
-        :param branch: the name of the branch. If None, the branch is set to `master`
+        :param branch: the name of the branch. If None, the branch is set to the default branch
         """
         self.worktreepath = worktreepath
 
-        if not branch:
-            branch = 'master'
-
-        cmd_worktree = [GIT_EXEC_PATH, 'worktree', 'add', self.worktreepath, branch]
+        cmd_worktree = [GIT_EXEC_PATH, 'worktree', 'add', self.worktreepath]
+        if branch:
+            cmd_worktree.append(branch)
 
         try:
             self._exec(cmd_worktree, cwd=self.dirpath, env=self.gitenv)
             logger.debug("Git worktree %s created!" % self.worktreepath)
-            return
-        except Exception:
-            pass
-
-        try:
-            self.prune()
-            self.worktree(worktreepath, branch)
-        except RepositoryError:
-            cause = "Impossible to create the worktree %s" % (self.worktreepath)
-            raise RepositoryError(cause=cause)
+        except RepositoryError as e:
+            if 'already' in e.msg:
+                logger.debug("Git worktree %s not created. %s" % (self.worktreepath, e.msg))
+            else:
+                raise e
 
     def prune(self):
         """Delete a working tree from disk
