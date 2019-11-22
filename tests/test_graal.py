@@ -274,6 +274,14 @@ class TestGraalRepository(TestCaseRepo):
         self.mock_getenv = patcher.start()
         self.mock_getenv.return_value = ''
 
+    def tearDown(self):
+        repo = GraalRepository('http://example.git', self.git_path)
+        try:
+            repo._exec(['git', 'branch', '-D', 'testworktree'], cwd=repo.dirpath, env=repo.gitenv)
+            repo._exec(['git', 'branch', '-D', 'graaltest'], cwd=repo.dirpath, env=repo.gitenv)
+        except RepositoryError:
+            pass
+
     def test_init(self):
         """Test initialization"""
 
@@ -710,6 +718,25 @@ class TestFetch(TestCaseRepo):
 
         items = graal.graal.fetch(CommandBackend, args, CATEGORY_MOCKED)
         items = [item for item in items]
+
+        self.assertEqual(len(items), 6)
+        for i in items:
+            self.assertEqual(i['category'], CATEGORY_MOCKED)
+
+    def test_items_multiple_branches(self):
+        """Test whether the working tree is created from the first branch in `branches`"""
+
+        args = {
+            'uri': 'http://example.com/',
+            'gitpath': self.git_path,
+            'tag': 'test',
+            'branches': ['master', 'v1', 'v2']
+        }
+
+        with self.assertLogs(logger, level='WARNING') as cm:
+            items = graal.graal.fetch(CommandBackend, args, CATEGORY_MOCKED)
+            items = [item for item in items]
+            self.assertEqual(cm.output[0], 'WARNING:graal.graal:Only the branch master will be analyzed')
 
         self.assertEqual(len(items), 6)
         for i in items:
