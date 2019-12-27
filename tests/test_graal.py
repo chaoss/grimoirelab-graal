@@ -186,15 +186,23 @@ class TestGraalBackend(TestCaseRepo):
         self.assertIsNone(graal.in_paths)
         self.assertIsNone(graal.out_paths)
         self.assertFalse(graal.details)
+        self.assertIsNone(graal.exec_path)
 
         # When tag is empty or None it will be set to the value in uri
         graal = Graal('http://example.com', self.git_path, self.worktree_path)
         self.assertEqual(graal.origin, 'http://example.com')
         self.assertEqual(graal.tag, 'http://example.com')
+        self.assertIsNone(graal.exec_path)
 
         graal = Graal('http://example.com', self.git_path, self.worktree_path)
         self.assertEqual(graal.origin, 'http://example.com')
         self.assertEqual(graal.tag, 'http://example.com')
+        self.assertIsNone(graal.exec_path)
+
+        graal = Graal('http://example.com', self.git_path, self.worktree_path, exec_path='/tmp/nomossa')
+        self.assertEqual(graal.origin, 'http://example.com')
+        self.assertEqual(graal.tag, 'http://example.com')
+        self.assertEqual(graal.exec_path, '/tmp/nomossa')
 
         graal = Graal('http://example.com', self.git_path,
                       entrypoint="entrypoint", in_paths=["x"], out_paths=["y"], details=True)
@@ -203,6 +211,7 @@ class TestGraalBackend(TestCaseRepo):
         self.assertEqual(graal.in_paths, ["x"])
         self.assertEqual(graal.out_paths, ["y"])
         self.assertTrue(graal.details)
+        self.assertIsNone(graal.exec_path)
 
     def test_fetch_no_analysis(self):
         """Test whether commits are inflated with the analysis attribute"""
@@ -670,7 +679,7 @@ class TestGraalCommand(unittest.TestCase):
         self.assertEqual(parsed_args.entrypoint, 'module')
         self.assertTrue(parsed_args.details)
 
-        parser = GraalCommand.setup_cmd_parser(Graal, exec_path=True)
+        parser = GraalCommand.setup_cmd_parser(Graal)
         self.assertIsInstance(parser, GraalCommandArgumentParser)
 
         args = ['http://example.com/',

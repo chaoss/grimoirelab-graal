@@ -50,8 +50,8 @@ class CoLic(Graal):
 
     :param uri: URI of the Git repository
     :param git_path: path to the repository or to the log file
-    :param exec_path: path of the executable
     :param worktreepath: the directory where to store the working tree
+    :param exec_path: path of the executable
     :param entrypoint: the entrypoint of the analysis
     :param in_paths: the target paths of the analysis
     :param out_paths: the paths to be excluded from the analysis
@@ -61,23 +61,22 @@ class CoLic(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.2'
+    version = '0.6.0'
 
     CATEGORIES = [CATEGORY_COLIC_NOMOS,
                   CATEGORY_COLIC_SCANCODE,
                   CATEGORY_COLIC_SCANCODE_CLI]
 
-    def __init__(self, uri, git_path, exec_path, worktreepath=DEFAULT_WORKTREE_PATH,
+    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH, exec_path=None,
                  entrypoint=None, in_paths=None, out_paths=None,
                  tag=None, archive=None):
-        super().__init__(uri, git_path, worktreepath,
+        super().__init__(uri, git_path, worktreepath, exec_path=exec_path,
                          entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths,
                          tag=tag, archive=archive)
 
         if not GraalRepository.exists(exec_path):
             raise GraalError(cause="executable path %s not valid" % exec_path)
 
-        self.exec_path = exec_path
         self.analyzer_kind = None
         self.analyzer = None
 
@@ -234,6 +233,6 @@ class CoLicCommand(GraalCommand):
     def setup_cmd_parser(cls):
         """Returns the CoLic argument parser."""
 
-        parser = GraalCommand.setup_cmd_parser(cls.BACKEND, exec_path=True)
+        parser = GraalCommand.setup_cmd_parser(cls.BACKEND)
 
         return parser

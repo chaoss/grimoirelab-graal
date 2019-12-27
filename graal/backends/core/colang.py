@@ -46,6 +46,7 @@ class CoLang(Graal):
     :param uri: URI of the Git repository
     :param gitpath: path to the repository or to the log file
     :param worktreepath: the directory where to store the working tree
+    :param exec_path: path of the executable to perform the analysis
     :param entrypoint: the entrypoint of the analysis
     :param in_paths: the target paths of the analysis
     :param out_paths: the paths to be excluded from the analysis
@@ -56,14 +57,14 @@ class CoLang(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.1.0'
+    version = '0.2.0'
 
     CATEGORIES = [CATEGORY_COLANG_LINGUIST, CATEGORY_COLANG_CLOC]
 
-    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH,
+    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH, exec_path=None,
                  entrypoint=None, in_paths=None, out_paths=None, details=False,
                  tag=None, archive=None):
-        super().__init__(uri, git_path, worktreepath,
+        super().__init__(uri, git_path, worktreepath, exec_path=exec_path,
                          entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
                          tag=tag, archive=archive)
 

@@ -49,6 +49,7 @@ class CoQua(Graal):
     :param uri: URI of the Git repository
     :param gitpath: path to the repository or to the log file
     :param worktreepath: the directory where to store the working tree
+    :param exec_path: path of the executable
     :param entrypoint: the entrypoint of the analysis
     :param in_paths: the target paths of the analysis
     :param out_paths: the paths to be excluded from the analysis
@@ -63,10 +64,10 @@ class CoQua(Graal):
 
     CATEGORIES = [CATEGORY_COQUA_PYLINT, CATEGORY_COQUA_FLAKE8]
 
-    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH,
+    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH, exec_path=None,
                  entrypoint=None, in_paths=None, out_paths=None, details=False,
                  tag=None, archive=None):
-        super().__init__(uri, git_path, worktreepath,
+        super().__init__(uri, git_path, worktreepath, exec_path=exec_path,
                          entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
                          tag=tag, archive=archive)
 

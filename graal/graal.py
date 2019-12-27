@@ -78,6 +78,7 @@ class Graal(Git):
     :param uri: URI of the Git repository
     :param git_path: path to where is/to clone the repository
     :param worktreepath: the directory where to store the working tree
+    :param exec_path: path of the executable to perform the analysis
     :param entrypoint: the entrypoint of the analysis
     :param in_paths: the target paths of the analysis
     :param out_paths: the paths to be excluded from the analysis
@@ -88,11 +89,11 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.4'
+    version = '0.6.1'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
-    def __init__(self, uri, gitpath, worktreepath=DEFAULT_WORKTREE_PATH,
+    def __init__(self, uri, gitpath, worktreepath=DEFAULT_WORKTREE_PATH, exec_path=None,
                  entrypoint=None, in_paths=None, out_paths=None, details=False,
                  tag=None, archive=None):
         super().__init__(uri, gitpath, tag=tag, archive=archive)
@@ -100,6 +101,7 @@ class Graal(Git):
         self.gitpath = gitpath
 
         self.entrypoint = entrypoint
+        self.exec_path = exec_path
         self.in_paths = in_paths
         self.out_paths = out_paths
         self.details = details
@@ -474,10 +476,10 @@ class GraalCommand(GitCommand):
         setattr(self.parsed_args, 'git_path', git_path)
 
     @staticmethod
-    def setup_cmd_parser(backend, exec_path=False):
+    def setup_cmd_parser(backend):
         """Returns the Graal argument parser."""
 
-        parser = GraalCommandArgumentParser(backend=backend, from_date=True, to_date=True, exec_path=exec_path)
+        parser = GraalCommandArgumentParser(backend=backend, from_date=True, to_date=True)
 
         # Optional arguments
         group = parser.parser.add_argument_group('Git arguments')
@@ -490,6 +492,8 @@ class GraalCommand(GitCommand):
         group.add_argument('--worktree-path', dest='worktreepath',
                            default=DEFAULT_WORKTREE_PATH,
                            help="Path where to save the working tree")
+        group.add_argument('--exec-path', dest='exec_path', default=None,
+                           help="local path of the particular tool")
         group.add_argument('--in-paths', dest='in_paths',
                            nargs='+', type=str, default=None,
                            help="Target paths of the analysis")
@@ -523,13 +527,11 @@ class GraalCommandArgumentParser:
     :param backend: set backend argument
     :param from_date: set from_date argument
     :param to_date: set to_date argument
-    :param exec_path: set the path of the analysis tool executable
     """
-    def __init__(self, backend, from_date=False, to_date=False, exec_path=False):
+    def __init__(self, backend, from_date=False, to_date=False):
         self._backend = backend
         self._from_date = from_date
         self._to_date = to_date
-        self._exec_path = exec_path
 
         self.parser = argparse.ArgumentParser()
 
@@ -546,10 +548,6 @@ class GraalCommandArgumentParser:
         if to_date:
             group.add_argument('--to-date', dest='to_date',
                                help="fetch items updated before this date")
-
-        if exec_path:
-            group.add_argument('--exec-path', dest='exec_path',
-                               help="local path of the particular tool")
 
         self._set_output_arguments()
 
@@ -574,8 +572,6 @@ class GraalCommandArgumentParser:
             parsed_args.from_date = str_to_datetime(parsed_args.from_date)
         if self._to_date and parsed_args.to_date:
             parsed_args.to_date = str_to_datetime(parsed_args.to_date)
-        if self._exec_path:
-            parsed_args.exec_path = parsed_args.exec_path
 
         return parsed_args
 
