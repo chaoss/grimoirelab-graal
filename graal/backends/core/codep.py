@@ -27,10 +27,16 @@ from graal.graal import (Graal,
                          GraalError,
                          GraalRepository,
                          DEFAULT_WORKTREE_PATH)
+from graal.backends.core.analyzers.analyzer import Analyzer
+from graal.backends.core.analyzers.jadolint import Jadolint, DEPENDENCIES
 from graal.backends.core.analyzers.reverse import Reverse
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
-CATEGORY_CODEP = 'code_dependencies'
+PYREVERSE = 'pyreverse'
+JADOLINT = 'jadolint'
+
+CATEGORY_CODEP_PYREVERSE = 'code_dependencies_' + PYREVERSE
+CATEGORY_CODEP_JADOLINT = 'code_dependencies_' + JADOLINT
 
 logger = logging.getLogger(__name__)
 
@@ -55,9 +61,9 @@ class CoDep(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.3.0'
+    version = '0.4.0'
 
-    CATEGORIES = [CATEGORY_CODEP]
+    CATEGORIES = [CATEGORY_CODEP_PYREVERSE, CATEGORY_CODEP_JADOLINT]
 
     def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH, exec_path=None,
                  entrypoint=None, in_paths=None, out_paths=None, details=False,
@@ -66,15 +72,28 @@ class CoDep(Graal):
                          entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
                          tag=tag, archive=archive)
 
-        if not self.entrypoint:
-            raise GraalError(cause="Entrypoint cannot be null")
+        self.analyzer_kind = None
+        self.analyzer = None
 
-        self.dependency_analyzer = DependencyAnalyzer()
-
-    def fetch(self, category=CATEGORY_CODEP, paths=None,
+    def fetch(self, category=CATEGORY_CODEP_PYREVERSE, paths=None,
               from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
               branches=None, latest_items=False):
         """Fetch commits and code (package and class) dependencies information."""
+
+        if not self.entrypoint and category == CATEGORY_CODEP_PYREVERSE:
+            raise GraalError(cause="Entrypoint cannot be null")
+
+        if not self.exec_path and category == CATEGORY_CODEP_JADOLINT:
+            raise GraalError(cause="Exec path cannot be null")
+
+        if category == CATEGORY_CODEP_PYREVERSE:
+            self.analyzer_kind = PYREVERSE
+            self.analyzer = PyreverseAnalyzer()
+        elif category == CATEGORY_CODEP_JADOLINT:
+            self.analyzer_kind = JADOLINT
+            self.analyzer = JadolintAnalyzer(self.exec_path, analysis=DEPENDENCIES)
+        else:
+            raise GraalError(cause="Unknown category %s" % category)
 
         items = super().fetch(category,
                               from_date=from_date, to_date=to_date,
@@ -86,10 +105,16 @@ class CoDep(Graal):
     def metadata_category(item):
         """Extracts the category from a Code item.
 
-        This backend only generates one type of item which is
-        'code_dependencies'.
+        This backend generates the following types of item:
+        - 'code_dependencies_pyreverse'
+        - 'code_dependencies_jadolint'
         """
-        return CATEGORY_CODEP
+        if item['analyzer'] == PYREVERSE:
+            return CATEGORY_CODEP_PYREVERSE
+        elif item['analyzer'] == JADOLINT:
+            return CATEGORY_CODEP_JADOLINT
+        else:
+            raise GraalError(cause="Unknown analyzer %s" % item['analyzer'])
 
     def _filter_commit(self, commit):
         """Filter a commit according to its data (e.g., author, sha, etc.)
@@ -98,7 +123,15 @@ class CoDep(Graal):
 
         :returns: a boolean value
         """
-        return False
+        if not self.in_paths:
+            return False
+
+        for f in commit['files']:
+            for p in self.in_paths:
+                if f['file'].endswith(p):
+                    return False
+
+        return True
 
     def _analyze(self, commit):
         """Analyse a snapshot and the corresponding
@@ -106,14 +139,32 @@ class CoDep(Graal):
 
         :param commit: a Perceval commit item
         """
-        module_path = os.path.join(self.worktreepath, self.entrypoint)
+        analysis = {}
+        if self.analyzer_kind == PYREVERSE:
+            module_path = os.path.join(self.worktreepath, self.entrypoint)
 
-        if not GraalRepository.exists(module_path):
-            logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
-                           % (module_path, commit['commit']))
-            return {}
+            if not GraalRepository.exists(module_path):
+                logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
+                               % (module_path, commit['commit']))
+                return analysis
 
-        analysis = self.dependency_analyzer.analyze(module_path)
+            analysis = self.analyzer.analyze(module_path)
+        else:
+            for committed_file in commit['files']:
+                file_path = committed_file['file']
+                if self.in_paths:
+                    found = [p for p in self.in_paths if file_path.endswith(p)]
+                    if not found:
+                        continue
+
+                local_path = self.worktreepath + '/' + file_path
+                if not GraalRepository.exists(local_path):
+                    analysis.update({file_path: {DEPENDENCIES: []}})
+                    continue
+
+                dependencies = self.analyzer.analyze(local_path)
+                analysis.update({file_path: dependencies})
+
         return analysis
 
     def _post(self, commit):
@@ -126,17 +177,19 @@ class CoDep(Graal):
         commit.pop('files', None)
         commit.pop('parents', None)
         commit.pop('refs', None)
+        commit['analyzer'] = self.analyzer_kind
+
         return commit
 
 
-class DependencyAnalyzer:
+class PyreverseAnalyzer(Analyzer):
     """Class to obtain a graph representation of package and class dependencies information
     from a Python module. Such a representation can be then used to plot an UML diagram using common
     visualization libraries.
     """
 
     def __init__(self):
-        self.reverse = Reverse()
+        self.analyzer = Reverse()
 
     def analyze(self, module_path):
         """Analyze the content of a Python project using Pyreverse
@@ -149,7 +202,29 @@ class DependencyAnalyzer:
         }
         """
         kwargs = {'module_path': module_path}
-        analysis = self.reverse.analyze(**kwargs)
+        analysis = self.analyzer.analyze(**kwargs)
+
+        return analysis
+
+
+class JadolintAnalyzer(Analyzer):
+    """Class to obtain a list of dependencies extracted from Dockerfiles."""
+
+    def __init__(self, exec_path, analysis=DEPENDENCIES):
+        self.analyzer = Jadolint(exec_path, analysis=analysis)
+
+    def analyze(self, file_path):
+        """Analyze the content of a Python project using Jadolint
+
+        :param file_path: path of the target file
+
+        :returns a dict containing the results of the analysis, like the one below
+        {
+          'image_path': ..
+        }
+        """
+        kwargs = {'file_path': file_path}
+        analysis = self.analyzer.analyze(**kwargs)
 
         return analysis
 
