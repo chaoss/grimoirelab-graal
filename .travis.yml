@@ -32,6 +32,8 @@ before_script:
   - cd scancode-toolkit
   - git checkout -b test_scancli 96069fd84066c97549d54f66bd2fe8c7813c6b52
   - ./scancode --help
+  - cd /home/travis/build/chaoss/grimoirelab-graal/exec
+  - wget https://github.com/crossminer/crossJadolint/releases/download/Pre-releasev2/jadolint.jar
   - cd /home/travis/build/chaoss/grimoirelab-graal
 
 script:
