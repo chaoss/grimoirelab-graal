@@ -21,7 +21,7 @@ the analysis to filter in/out files and directories in the repository (**in_path
 and define the **details** level of the analysis (useful when analyzing large software projects).
 
 ## Requirements
-- [lizard](https://github.com/terryyin/lizard)>=1.16.3
+- [lizard](https://github.com/terryyin/lizard)==1.16.6
 - [perceval](https://github.com/chaoss/grimoirelab-perceval)>=0.9.6
 - [pylint](https://github.com/PyCQA/pylint)>=1.8.4
 - [flake8](https://github.com/PyCQA/flake8)>=3.7.7
