@@ -88,7 +88,7 @@ class Graal(Git):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.3'
+    version = '0.5.4'
 
     CATEGORIES = [CATEGORY_GRAAL]
 
@@ -465,7 +465,7 @@ class GraalCommand(GitCommand):
         """Initialize repositories directory path"""
 
         if not self.parsed_args.git_path:
-            base_path = os.path.expanduser('~/.graal/repositories/')
+            base_path = os.path.expanduser('~/.graal/repositories/' + self.BACKEND.__name__ + '/')
             processed_uri = self.parsed_args.uri.lstrip('/')
             git_path = os.path.join(base_path, processed_uri) + '-git'
         else:
