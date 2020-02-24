@@ -49,7 +49,7 @@ class TestCoLicBackend(TestCaseRepo):
     def test_initialization(self):
         """Test whether attributes are initializated"""
 
-        cl = CoLic('http://example.com', self.git_path, NOMOS_PATH, self.worktree_path, tag='test')
+        cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=NOMOS_PATH, tag='test')
         self.assertEqual(cl.uri, 'http://example.com')
         self.assertEqual(cl.gitpath, self.git_path)
         self.assertEqual(cl.worktreepath, os.path.join(self.worktree_path, os.path.split(cl.gitpath)[1]))
@@ -59,7 +59,7 @@ class TestCoLicBackend(TestCaseRepo):
         self.assertIsNone(cl.analyzer)
         self.assertIsNone(cl.analyzer_kind)
 
-        cl = CoLic('http://example.com', self.git_path, NOMOS_PATH, self.worktree_path, tag='test')
+        cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=NOMOS_PATH, tag='test')
         self.assertEqual(cl.uri, 'http://example.com')
         self.assertEqual(cl.gitpath, self.git_path)
         self.assertEqual(cl.worktreepath, os.path.join(self.worktree_path, os.path.split(cl.gitpath)[1]))
@@ -70,14 +70,14 @@ class TestCoLicBackend(TestCaseRepo):
         self.assertIsNone(cl.analyzer_kind)
 
         # When tag is empty or None it will be set to the value in uri
-        cl = CoLic('http://example.com', self.git_path, NOMOS_PATH, self.worktree_path)
+        cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=NOMOS_PATH)
         self.assertEqual(cl.origin, 'http://example.com')
         self.assertEqual(cl.tag, 'http://example.com')
         self.assertEqual(cl.exec_path, NOMOS_PATH)
         self.assertIsNone(cl.analyzer)
         self.assertIsNone(cl.analyzer_kind)
 
-        cl = CoLic('http://example.com', self.git_path, NOMOS_PATH, self.worktree_path)
+        cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=NOMOS_PATH)
         self.assertEqual(cl.origin, 'http://example.com')
         self.assertEqual(cl.tag, 'http://example.com')
         self.assertEqual(cl.exec_path, NOMOS_PATH)
@@ -85,12 +85,12 @@ class TestCoLicBackend(TestCaseRepo):
         self.assertIsNone(cl.analyzer_kind)
 
         with self.assertRaises(GraalError):
-            _ = CoLic('http://example.com', self.git_path, "/tmp/invalid", worktreepath=self.worktree_path)
+            _ = CoLic('http://example.com', self.git_path, worktreepath=self.worktree_path, exec_path="/tmp/invalid")
 
     def test_fetch_nomossa(self):
         """Test whether commits are properly processed"""
 
-        cl = CoLic('http://example.com', self.git_path, NOMOS_PATH, self.worktree_path,
+        cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=NOMOS_PATH,
                    in_paths=['perceval/backends/core/github.py'])
         commits = [commit for commit in cl.fetch(category=CATEGORY_COLIC_NOMOS)]
 
@@ -111,7 +111,7 @@ class TestCoLicBackend(TestCaseRepo):
     def test_fetch_scancode(self):
         """Test whether commits are properly processed"""
 
-        cl = CoLic('http://example.com', self.git_path, SCANCODE_PATH, self.worktree_path,
+        cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=SCANCODE_PATH,
                    in_paths=['perceval/backends/core/github.py'])
         commits = [commit for commit in cl.fetch(category=CATEGORY_COLIC_SCANCODE)]
 
@@ -132,7 +132,7 @@ class TestCoLicBackend(TestCaseRepo):
     def test_fetch_scancode_cli(self):
         """Test whether commits are properly processed"""
 
-        cl = CoLic('http://example.com', self.git_path, SCANCODE_CLI_PATH, self.worktree_path,
+        cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=SCANCODE_CLI_PATH,
                    in_paths=['perceval/backends/core/github.py'])
         commits = [commit for commit in cl.fetch(category=CATEGORY_COLIC_SCANCODE_CLI)]
 
@@ -153,7 +153,7 @@ class TestCoLicBackend(TestCaseRepo):
     def test_fetch_unknown(self):
         """Test whether commits are properly processed"""
 
-        cl = CoLic('http://example.com', self.git_path, SCANCODE_CLI_PATH, self.worktree_path,
+        cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=SCANCODE_CLI_PATH,
                    in_paths=['perceval/backends/core/github.py'])
 
         with self.assertRaises(GraalError):
@@ -162,7 +162,7 @@ class TestCoLicBackend(TestCaseRepo):
     def test_fetch_empty_in_paths(self):
         """Test whether all commits are processed when the no `in_paths` are provided"""
 
-        cl = CoLic('http://example.com', self.git_path, NOMOS_PATH, self.worktree_path, in_paths=[])
+        cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=NOMOS_PATH, in_paths=[])
         commits = [commit for commit in cl.fetch(category=CATEGORY_COLIC_NOMOS)]
 
         self.assertEqual(len(commits), 6)

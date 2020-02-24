@@ -27,15 +27,19 @@ from graal.graal import (Graal,
                          GraalError,
                          GraalRepository,
                          DEFAULT_WORKTREE_PATH)
+from graal.backends.core.analyzers.analyzer import Analyzer
 from graal.backends.core.analyzers.pylint import PyLint
 from graal.backends.core.analyzers.flake8 import Flake8
+from graal.backends.core.analyzers.jadolint import Jadolint, SMELLS
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
 PYLINT = "pylint"
 FLAKE8 = "flake8"
+JADOLINT = "jadolint"
 
 CATEGORY_COQUA_PYLINT = 'code_quality_' + PYLINT
 CATEGORY_COQUA_FLAKE8 = 'code_quality_' + FLAKE8
+CATEGORY_COQUA_JADOLINT = 'code_quality_' + JADOLINT
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +53,7 @@ class CoQua(Graal):
     :param uri: URI of the Git repository
     :param gitpath: path to the repository or to the log file
     :param worktreepath: the directory where to store the working tree
+    :param exec_path: path of the executable
     :param entrypoint: the entrypoint of the analysis
     :param in_paths: the target paths of the analysis
     :param out_paths: the paths to be excluded from the analysis
@@ -59,19 +64,16 @@ class CoQua(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.3.0'
+    version = '0.4.0'
 
-    CATEGORIES = [CATEGORY_COQUA_PYLINT, CATEGORY_COQUA_FLAKE8]
+    CATEGORIES = [CATEGORY_COQUA_PYLINT, CATEGORY_COQUA_FLAKE8, CATEGORY_COQUA_JADOLINT]
 
-    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH,
+    def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH, exec_path=None,
                  entrypoint=None, in_paths=None, out_paths=None, details=False,
                  tag=None, archive=None):
-        super().__init__(uri, git_path, worktreepath,
+        super().__init__(uri, git_path, worktreepath, exec_path=exec_path,
                          entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
                          tag=tag, archive=archive)
-
-        if not self.entrypoint:
-            raise GraalError(cause="Entrypoint cannot be null")
 
         self.analyzer_kind = None
         self.analyzer = None
@@ -81,14 +83,23 @@ class CoQua(Graal):
               branches=None, latest_items=False):
         """Fetch commits and add code quality information."""
 
+        if not self.entrypoint and category in [CATEGORY_COQUA_FLAKE8, CATEGORY_COQUA_PYLINT]:
+            raise GraalError(cause="Entrypoint cannot be null")
+
+        if not self.exec_path and category == CATEGORY_COQUA_JADOLINT:
+            raise GraalError(cause="Exec path cannot be null")
+
         if category == CATEGORY_COQUA_PYLINT:
             self.analyzer_kind = PYLINT
+            self.analyzer = ModuleAnalyzer(self.details, self.analyzer_kind)
         elif category == CATEGORY_COQUA_FLAKE8:
             self.analyzer_kind = FLAKE8
+            self.analyzer = ModuleAnalyzer(self.details, self.analyzer_kind)
+        elif category == CATEGORY_COQUA_JADOLINT:
+            self.analyzer_kind = JADOLINT
+            self.analyzer = JadolintAnalyzer(self.exec_path, analysis=SMELLS)
         else:
             raise GraalError(cause="Unknown category %s" % category)
-
-        self.module_analyzer = ModuleAnalyzer(self.details, self.analyzer_kind)
 
         items = super().fetch(category,
                               from_date=from_date, to_date=to_date,
@@ -101,12 +112,14 @@ class CoQua(Graal):
         """Extracts the category from a Code item.
 
         This backend generates two types of item which can be:
-        'code_quality_pylint' or 'code_quality_flake8'
+        'code_quality_pylint', 'code_quality_flake8' or 'code_quality_jadolint'
         """
         if item['analyzer'] == PYLINT:
             return CATEGORY_COQUA_PYLINT
         elif item['analyzer'] == FLAKE8:
             return CATEGORY_COQUA_FLAKE8
+        elif item['analyzer'] == JADOLINT:
+            return CATEGORY_COQUA_JADOLINT
         else:
             raise GraalError(cause="Unknown analyzer %s" % item['analyzer'])
 
@@ -117,7 +130,15 @@ class CoQua(Graal):
 
         :returns: a boolean value
         """
-        return False
+        if not self.in_paths:
+            return False
+
+        for f in commit['files']:
+            for p in self.in_paths:
+                if f['file'].endswith(p):
+                    return False
+
+        return True
 
     def _analyze(self, commit):
         """Analyse a snapshot and the corresponding
@@ -125,14 +146,32 @@ class CoQua(Graal):
 
         :param commit: a Perceval commit item
         """
-        module_path = os.path.join(self.worktreepath, self.entrypoint)
+        analysis = {}
+        if self.analyzer_kind in [FLAKE8, PYLINT]:
+            module_path = os.path.join(self.worktreepath, self.entrypoint)
 
-        if not GraalRepository.exists(module_path):
-            logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
-                           % (module_path, commit['commit']))
-            return {}
+            if not GraalRepository.exists(module_path):
+                logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
+                               % (module_path, commit['commit']))
+                return {}
 
-        analysis = self.module_analyzer.analyze(module_path, self.worktreepath)
+            analysis = self.analyzer.analyze(module_path, self.worktreepath)
+        else:
+            for committed_file in commit['files']:
+                file_path = committed_file['file']
+                if self.in_paths:
+                    found = [p for p in self.in_paths if file_path.endswith(p)]
+                    if not found:
+                        continue
+
+                local_path = self.worktreepath + '/' + file_path
+                if not GraalRepository.exists(local_path):
+                    analysis.update({file_path: {SMELLS: []}})
+                    continue
+
+                smells = self.analyzer.analyze(local_path)
+                digested_smells = {SMELLS: [smell.replace(self.worktreepath, '') for smell in smells[SMELLS]]}
+                analysis.update({file_path: digested_smells})
 
         return analysis
 
@@ -150,7 +189,29 @@ class CoQua(Graal):
         return commit
 
 
-class ModuleAnalyzer:
+class JadolintAnalyzer(Analyzer):
+    """Class to obtain a list of smells extracted from Dockerfiles."""
+
+    def __init__(self, exec_path, analysis=SMELLS):
+        self.analyzer = Jadolint(exec_path, analysis=analysis)
+
+    def analyze(self, file_path):
+        """Analyze the content of a Python project using Jadolint
+
+        :param file_path: path of the target file
+
+        :returns a dict containing the results of the analysis, like the one below
+        {
+          'image_path': ..
+        }
+        """
+        kwargs = {'file_path': file_path}
+        analysis = self.analyzer.analyze(**kwargs)
+
+        return analysis
+
+
+class ModuleAnalyzer(Analyzer):
     """Class to evaluate code quality in a Python project
 
     :params details: if enable, it returns fine-grained results

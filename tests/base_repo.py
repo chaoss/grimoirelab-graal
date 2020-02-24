@@ -33,27 +33,26 @@ def get_file_path(filename):
 class TestCaseRepo(unittest.TestCase):
     """Base class to test Graal on a Git repo"""
 
+    repo_name = 'graaltest'
+
     def setUp(self):
         self.tmp_path = tempfile.mkdtemp(prefix='graal_')
         self.tmp_repo_path = os.path.join(self.tmp_path, 'repos')
         os.mkdir(self.tmp_repo_path)
 
-        self.git_path = os.path.join(self.tmp_path, 'graaltest')
+        self.git_path = os.path.join(self.tmp_path, self.repo_name)
         self.worktree_path = os.path.join(self.tmp_path, 'graal_worktrees')
 
         data_path = os.path.dirname(os.path.abspath(__file__))
         data_path = os.path.join(data_path, 'data')
 
-        repo_name = 'graaltest'
-        repo_path = self.git_path
-
         fdout, _ = tempfile.mkstemp(dir=self.tmp_path)
 
-        zip_path = os.path.join(data_path, repo_name + '.zip')
+        zip_path = os.path.join(data_path, self.repo_name + '.zip')
         subprocess.check_call(['unzip', '-qq', zip_path, '-d', self.tmp_repo_path])
 
-        origin_path = os.path.join(self.tmp_repo_path, repo_name)
-        subprocess.check_call(['git', 'clone', '-q', '--bare', origin_path, repo_path],
+        origin_path = os.path.join(self.tmp_repo_path, 'graaltest')
+        subprocess.check_call(['git', 'clone', '-q', '--bare', origin_path, self.git_path],
                               stderr=fdout)
 
     def tearDown(self):

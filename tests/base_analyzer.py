@@ -27,6 +27,7 @@ import unittest
 
 ANALYZER_TEST_FOLDER = "data/"
 ANALYZER_TEST_FILE = "sample_code.py"
+DOCKERFILE_TEST = "Dockerfile"
 
 
 def get_file_path(filename):

@@ -18,8 +18,10 @@
 #
 # Authors:
 #     Nishchith Shetty <inishchith@gmail.com>
+#     Valerio Cosentino <valcos@bitergia.com>
 #
 
 NOMOS_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/fossology/src/nomos/agent/nomossa"
 SCANCODE_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/scancode-toolkit/scancode"
 SCANCODE_CLI_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/scancode-toolkit/etc/scripts/scancli.py"
+JADOLINT_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/jadolint.jar"
