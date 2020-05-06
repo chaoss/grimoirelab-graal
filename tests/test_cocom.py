@@ -88,7 +88,7 @@ class TestCoComBackend(TestCaseRepo):
             self.assertTrue('Author' in commit['data'])
             self.assertTrue('Commit' in commit['data'])
             self.assertFalse('files' in commit['data'])
-            self.assertFalse('parents' in commit['data'])
+            self.assertTrue('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
     def test_fetch_scc_file(self):
@@ -108,7 +108,7 @@ class TestCoComBackend(TestCaseRepo):
             self.assertTrue('Author' in commit['data'])
             self.assertTrue('Commit' in commit['data'])
             self.assertFalse('files' in commit['data'])
-            self.assertFalse('parents' in commit['data'])
+            self.assertTrue('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
     def test_fetch_lizard_repository(self):
@@ -126,7 +126,7 @@ class TestCoComBackend(TestCaseRepo):
             self.assertTrue('Author' in commit['data'])
             self.assertTrue('Commit' in commit['data'])
             self.assertFalse('files' in commit['data'])
-            self.assertFalse('parents' in commit['data'])
+            self.assertTrue('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
     def test_fetch_scc_repository(self):
@@ -144,7 +144,7 @@ class TestCoComBackend(TestCaseRepo):
             self.assertTrue('Author' in commit['data'])
             self.assertTrue('Commit' in commit['data'])
             self.assertFalse('files' in commit['data'])
-            self.assertFalse('parents' in commit['data'])
+            self.assertTrue('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
     def test_fetch_unknown(self):
