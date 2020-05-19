@@ -215,6 +215,7 @@ class CoCom(Graal):
         else:
             files_affected = [file_info['file'] for file_info in commit['files']]
             analysis = self.analyzer.analyze(self.worktreepath, files_affected)
+
         return analysis
 
     def _post(self, commit):
@@ -222,7 +223,7 @@ class CoCom(Graal):
 
         :param commit: a Graal commit item
         """
-        commit.pop('files', None)
+        commit['files'] = [f.replace(self.worktreepath, '') for f in GraalRepository.files(self.worktreepath)]
         commit.pop('refs', None)
         commit['analyzer'] = self.analyzer_kind
 

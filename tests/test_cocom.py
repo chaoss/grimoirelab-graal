@@ -87,7 +87,7 @@ class TestCoComBackend(TestCaseRepo):
                              'perceval/backends/core/github.py')
             self.assertTrue('Author' in commit['data'])
             self.assertTrue('Commit' in commit['data'])
-            self.assertFalse('files' in commit['data'])
+            self.assertTrue('files' in commit['data'])
             self.assertTrue('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
@@ -107,7 +107,7 @@ class TestCoComBackend(TestCaseRepo):
                              'perceval/backends/core/github.py')
             self.assertTrue('Author' in commit['data'])
             self.assertTrue('Commit' in commit['data'])
-            self.assertFalse('files' in commit['data'])
+            self.assertTrue('files' in commit['data'])
             self.assertTrue('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
@@ -125,7 +125,7 @@ class TestCoComBackend(TestCaseRepo):
             self.assertEqual(commit['category'], CATEGORY_COCOM_LIZARD_REPOSITORY)
             self.assertTrue('Author' in commit['data'])
             self.assertTrue('Commit' in commit['data'])
-            self.assertFalse('files' in commit['data'])
+            self.assertTrue('files' in commit['data'])
             self.assertTrue('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
@@ -143,7 +143,7 @@ class TestCoComBackend(TestCaseRepo):
             self.assertEqual(commit['category'], CATEGORY_COCOM_SCC_REPOSITORY)
             self.assertTrue('Author' in commit['data'])
             self.assertTrue('Commit' in commit['data'])
-            self.assertFalse('files' in commit['data'])
+            self.assertTrue('files' in commit['data'])
             self.assertTrue('parents' in commit['data'])
             self.assertFalse('refs' in commit['data'])
 
