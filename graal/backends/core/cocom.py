@@ -84,7 +84,7 @@ class CoCom(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.0'
+    version = '0.5.1'
 
     CATEGORIES = [CATEGORY_COCOM_LIZARD_FILE,
                   CATEGORY_COCOM_LIZARD_REPOSITORY,
@@ -223,7 +223,7 @@ class CoCom(Graal):
 
         :param commit: a Graal commit item
         """
-        commit['files'] = [f.replace(self.worktreepath, '') for f in GraalRepository.files(self.worktreepath)]
+        commit['files'] = [f.replace(self.worktreepath + '/', '') for f in GraalRepository.files(self.worktreepath)]
         commit.pop('refs', None)
         commit['analyzer'] = self.analyzer_kind
 
