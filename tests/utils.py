@@ -22,6 +22,6 @@
 #
 
 NOMOS_PATH = "/usr/share/fossology/nomos/agent/nomossa"
-SCANCODE_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/scancode-toolkit/scancode"
-SCANCODE_CLI_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/scancode-toolkit/etc/scripts/scancli.py"
-JADOLINT_PATH = "/home/travis/build/chaoss/grimoirelab-graal/exec/jadolint.jar"
+SCANCODE_PATH = "/home/runner/work/grimoirelab-graal/grimoirelab-graal/exec/scancode-toolkit/scancode"
+SCANCODE_CLI_PATH = "/home/runner/work/grimoirelab-graal/grimoirelab-graal/exec/scancode-toolkit/etc/scripts/scancli.py"
+JADOLINT_PATH = "//home/runner/work/grimoirelab-graal/grimoirelab-graal/exec/jadolint.jar"
