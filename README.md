@@ -38,7 +38,7 @@ and define the **details** level of the analysis (useful when analyzing large so
 ### How to install/create the executables:
 - **Cloc**
 ```
-$> sudo apt-get install cloc
+$ sudo apt-get install cloc
 ```
 
 - **SCC**
@@ -46,7 +46,7 @@ $> sudo apt-get install cloc
 A tool similar to cloc - for counting physical the lines of code, blank lines, comment lines, and physical lines of source code in many programming languages and COCOMO estimates written in pure Go.
 
 ```
-$> go get -u github.com/boyter/scc/
+$ go get -u github.com/boyter/scc/
 ```
 
 
@@ -56,30 +56,37 @@ Maybe you'll need to install some packages for compiling the tool.
 For example, in Debian, likely you'll need:
 
 ```
-$> sudo apt-get install pkg-config libglib2.0-dev libjson-c-dev libpq-dev
+$ sudo apt-get install pkg-config libglib2.0-dev libjson-c-dev libpq-dev
 ```
 
 - For compiling the tool (`nomossa`):
 
 ```
-$> git clone https://github.com/fossology/fossology
-$> cd <...>/fossology/src/nomos/agent
-$> make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq  -lglib-2.0 -ljson-c -lpthread -lrt"
+$ git clone https://github.com/fossology/fossology
+$ cd <...>/fossology/src/nomos/agent
+$ make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq  -lglib-2.0 -ljson-c -lpthread -lrt"
 ```
 
 - **ScanCode**
 
-```
 Check which version of Python is installed. ScanCode requires 3.6, 3.7, 3.8. or 3.9 at time of writing.
-$> python3 --version
+```
+$ python3 --version
+```
+
 Identify the correct package for your version of Python from the latest ScanCode release:
   https://github.com/nexB/scancode-toolkit/releases/latest
+
 Download and extract the correct ScanCode package:
-$> wget https://github.com/nexB/scancode-toolkit/releases/download/v30.1.0/scancode-toolkit-30.1.0_py36-linux.tar.xz
-$> tar -xvf scancode-toolkit-30.1.0_py36-linux.tar.xz
+```
+$ wget https://github.com/nexB/scancode-toolkit/releases/download/v30.1.0/scancode-toolkit-30.1.0_py36-linux.tar.xz
+$ tar -xvf scancode-toolkit-30.1.0_py36-linux.tar.xz
+```
+
 Enter the extracted directory and initialize ScanCode:
-$> cd <...>/scancode-toolkit-30.1.0
-$> ./scancode --help
+```
+$ cd <...>/scancode-toolkit-30.1.0
+$ ./scancode --help
 ```
 
 - **ScanCode Cli**
@@ -87,7 +94,7 @@ $> ./scancode --help
 After successfully executing the above mentioned steps, (if required) we have to install python modules: `simplejson` and `execnet`, for the execution of `scancode_cli` analyzer.
 
 ```
-$> pip3 install simplejson execnet
+$ pip3 install simplejson execnet
 ```
 
 ##  How to install/uninstall
@@ -97,15 +104,15 @@ on any Linux-like (or Unix-like) platform, upon providing the right version of P
 
 **To install**, run:
 ```
-$> git clone https://github.com/chaoss/grimoirelab-graal.git
-$> python3 setup.py build
-$> python3 setup.py install
-(note: you can install to your local directory by including `--user` following `install`)
+$ git clone https://github.com/chaoss/grimoirelab-graal.git
+$ python3 setup.py build
+$ python3 setup.py install
 ```
+(note: you can install to your local directory by including `--user` following `install`)
 
 **To uninstall**, run:
 ```
-$> pip3 uninstall graal
+$ pip3 uninstall graal
 ```
 
 ## Backends
