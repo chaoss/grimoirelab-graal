@@ -163,7 +163,7 @@ Quest completed.
 - **CoLic Backend**
 
 ```
-graal colic https://github.com/chaoss/grimoirelab-toolkit --git-path /tmp/scancode_cli --exec-path /home/scancode-toolkit/etc/scripts/scancli.py --category code_license_scancode_cli
+$ graal colic https://github.com/chaoss/grimoirelab-toolkit --git-path /tmp/scancode_cli --exec-path /home/scancode-toolkit/etc/scripts/scancli.py --category code_license_scancode_cli
 Starting the quest for the Graal.
 Git worktree /tmp/... created!
 Fetching commits: ...
