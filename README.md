@@ -69,25 +69,16 @@ $ make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq  -lglib-2.0 -ljson-c -lpthread
 
 - **ScanCode**
 
-Check which version of Python is installed. ScanCode requires 3.6, 3.7, 3.8. or 3.9 at time of writing.
-```
-$ python3 --version
-```
+Use a clone of scancode-tool instead of a release, as the `scancli.py` script (required for execution of scancode_cli) is not included in the release packages.
 
-Identify the correct package for your version of Python from the latest ScanCode release:  
-  https://github.com/nexB/scancode-toolkit/releases/latest
-
-Download and extract the correct ScanCode package:
 ```
-$ wget https://github.com/nexB/scancode-toolkit/releases/download/v30.1.0/scancode-toolkit-30.1.0_py36-linux.tar.xz
-$ tar -xvf scancode-toolkit-30.1.0_py36-linux.tar.xz
-```
-
-Enter the extracted directory and initialize ScanCode:
-```
-$ cd <...>/scancode-toolkit-30.1.0
+$ git clone https://github.com/nexB/scancode-toolkit
+$ cd <...>/scancode-toolkit
 $ ./scancode --help
 ```
+
+(note: the final command will initialize upon first run)
+
 
 - **ScanCode Cli**
 
