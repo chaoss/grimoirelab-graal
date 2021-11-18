@@ -74,7 +74,7 @@ Check which version of Python is installed. ScanCode requires 3.6, 3.7, 3.8. or 
 $ python3 --version
 ```
 
-Identify the correct package for your version of Python from the latest ScanCode release:
+Identify the correct package for your version of Python from the latest ScanCode release:  
   https://github.com/nexB/scancode-toolkit/releases/latest
 
 Download and extract the correct ScanCode package:
