@@ -74,11 +74,8 @@ Use a clone of scancode-tool instead of a release, as the `scancli.py` script (r
 ```
 $ git clone https://github.com/nexB/scancode-toolkit
 $ cd <...>/scancode-toolkit
-$ ./scancode --help
+$ ./configure
 ```
-
-(note: the final command will initialize upon first run)
-
 
 - **ScanCode Cli**
 
@@ -86,6 +83,12 @@ After successfully executing the above mentioned steps, (if required) we have to
 
 ```
 $ pip3 install simplejson execnet
+```
+
+- To use ScanCode you must activate the virtual environment with
+
+```
+$ source <...>/scancode-toolkit/bin/activate
 ```
 
 ##  How to install/uninstall
