@@ -82,11 +82,11 @@ class TestCoQuaBackend(TestCaseRepo):
         result = commit['data']['analysis']
         self.assertNotIn('modules', result)
         self.assertIn('quality', result)
-        self.assertTrue(type(result['quality']), str)
+        self.assertEqual(type(result['quality']), str)
         self.assertIn('num_modules', result)
-        self.assertTrue(type(result['num_modules']), int)
+        self.assertEqual(type(result['num_modules']), int)
         self.assertIn('warnings', result)
-        self.assertTrue(type(result['warnings']), int)
+        self.assertEqual(type(result['warnings']), int)
 
     def test_fetch_flake8(self):
         """Test whether commits are properly processed"""
@@ -104,7 +104,7 @@ class TestCoQuaBackend(TestCaseRepo):
         self.assertEqual(commit['category'], CATEGORY_COQUA_FLAKE8)
         result = commit['data']['analysis']
         self.assertIn('warnings', result)
-        self.assertTrue(type(result['warnings']), int)
+        self.assertEqual(type(result['warnings']), int)
         self.assertNotIn('lines', result)
 
     def test_fetch_error(self):
@@ -390,17 +390,17 @@ class TestModuleAnalyzer(TestCaseAnalyzer):
         result = mod_analyzer.analyze(module_path, self.worktree_path)
         self.assertNotIn('modules', result)
         self.assertIn('quality', result)
-        self.assertTrue(type(result['quality']), str)
+        self.assertEqual(type(result['quality']), str)
         self.assertIn('num_modules', result)
-        self.assertTrue(type(result['num_modules']), int)
+        self.assertEqual(type(result['num_modules']), int)
         self.assertIn('warnings', result)
-        self.assertTrue(type(result['warnings']), int)
+        self.assertEqual(type(result['warnings']), int)
 
         mod_analyzer = ModuleAnalyzer(kind=FLAKE8)
         result = mod_analyzer.analyze(module_path, self.worktree_path)
         self.assertNotIn('lines', result)
         self.assertIn('warnings', result)
-        self.assertTrue(type(result['warnings']), int)
+        self.assertEqual(type(result['warnings']), int)
 
 
 class TestCoDepCommand(unittest.TestCase):
