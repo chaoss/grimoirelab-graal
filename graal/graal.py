@@ -531,6 +531,7 @@ class GraalCommandArgumentParser:
     :param from_date: set from_date argument
     :param to_date: set to_date argument
     """
+
     def __init__(self, backend, from_date=False, to_date=False):
         self._backend = backend
         self._from_date = from_date
