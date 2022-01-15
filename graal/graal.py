@@ -170,7 +170,8 @@ class Graal(Git):
         icommits = 0
         branch = None
 
-        # the worktree is created from the default branch or from the first branch in `branches`. This
+        # the worktree is created from the default branch or 
+        # from the first branch in `branches`. This
         # is needed since currently Graal doesn't support multiple worktrees
         branches = kwargs.get('branches', [])
         if branches and len(branches) > 1:

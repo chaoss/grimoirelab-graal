@@ -21,10 +21,12 @@
 #     inishchith <inishchith@gmail.com>
 #
 
+from urllib import response
 import warnings
 
 import lizard
 from graal.backends.core.analyzers.cloc import Cloc
+from graal.graal import GraalError
 from .analyzer import Analyzer
 
 
@@ -46,21 +48,17 @@ class Lizard(Analyzer):
         Golang
         Lua
     """
-    version = '0.3.1'
+    version = '0.3.2'
 
-    def __analyze_file(self, file_path, details):
-        """Add code complexity information for a file using Lizard.
-
-        Current information includes cyclomatic complexity (ccn),
-        avg lines of code and tokens, number of functions and tokens.
-        Optionally, the following information can be included for every function:
-        ccn, tokens, LOC, lines, name, args, start, end
-
-        :param file_path: file path
-        :param details: if True, it returns information about single functions
-
-        :returns  result: dict of the results of the analysis
+    def __init__(self, repository_level: bool): 
         """
+        Sets up Lizard analysis. 
+        
+        :param repository_level: determines analysis method (repository- or file-level)
+        """
+        self.analyze = self.__analyze_repository if repository_level else self.__analyze_files
+
+    def __analyze_file(self, file_path, details): 
         result = {}
 
         # Filter DeprecationWarning from lizard_ext/auto_open.py line 26
@@ -95,7 +93,38 @@ class Lizard(Analyzer):
         result['funs'] = funs_data
         return result
 
-    def __analyze_repository(self, repository_path, files_affected, details):
+    def __analyze_files(self, **kwargs):
+        """Add code complexity information for a file using Lizard.
+
+        Current information includes cyclomatic complexity (ccn),
+        avg lines of code and tokens, number of functions and tokens.
+        Optionally, the following information can be included for every function:
+        ccn, tokens, LOC, lines, name, args, start, end
+
+        :param file_path: file path
+        :param details: if True, it returns information about single functions
+
+        :returns  result: dict of the results of the analysis
+        """
+
+        commit = kwargs["commit"]
+        details = kwargs['details']
+        in_paths = kwargs["in_paths"]
+
+        results = []
+
+        for file_path in commit["files"]: 
+            if self.in_paths:
+                found = [p for p in self.in_paths if file_path.endswith(p)]
+                if not found:
+                    continue
+
+            file_info = self.__analyze_file(file_path, details, in_paths)
+            results.append(file_info)
+
+        return results
+
+    def __analyze_repository(self, **kwargs):
         """Add code complexity information for a given repository
         using Lizard and CLOC.
 
@@ -107,6 +136,11 @@ class Lizard(Analyzer):
 
         :returns  result: list of the results of the analysis
         """
+
+        repository_path = kwargs["repository_path"]
+        files_affected = kwargs['files_affected']
+        details = kwargs["details"]
+
         analysis_result = []
 
         repository_analysis = lizard.analyze(
@@ -147,12 +181,4 @@ class Lizard(Analyzer):
         :returns  result: the results of the analysis
         """
 
-        details = kwargs['details']
-
-        if kwargs.get('repository_level', False):
-            files_affected = kwargs['files_affected']
-            result = self.__analyze_repository(kwargs["repository_path"], files_affected, details)
-        else:
-            result = self.__analyze_file(kwargs['file_path'], details)
-
-        return result
+        raise GraalError("analysis sub-analysis method is not set for Lizard")

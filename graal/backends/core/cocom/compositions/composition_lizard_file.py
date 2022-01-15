@@ -1,25 +1,21 @@
+import array
 
+from graal.backends.core.analyzers.analyzer import Analyzer
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
 from graal.backends.core.composer import Composer
-from graal.graal import GraalRepository
+
+LIZARD_FILE = 'lizard_file'
+CATEGORY_COCOM_LIZARD_FILE = 'code_complexity_' + LIZARD_FILE
 
 
 class CompositionLizardFile(Composer):
     """Analyzer Composition for Lizard Files."""
 
-    LIZARD_FILE = 'lizard_file'
-    CATEGORY_COCOM_LIZARD_FILE = 'code_complexity_' + LIZARD_FILE
-
     ALLOWED_EXTENSIONS = ['java', 'py', 'php', 'scala', 'js', 'rb', 'cs', 'cpp', 'c', 'lua', 'go', 'swift']
 
-    def compose(self):
-        """Creates composition"""
-
-        file_analyzers = [Cloc(), Lizard()]
-        repo_analyzers = []
-
-        return (file_analyzers, repo_analyzers)
+    def get_composition(self) -> array[Analyzer]:
+        return [Cloc(), Lizard(repository_level=False)]
 
     # def analyze(self, **kwargs):
     #     """Performs analysis"""
@@ -41,12 +37,8 @@ class CompositionLizardFile(Composer):
 
     #     return file_analysis
 
-    def get_key(self):
-        """Returns project key"""
-
+    def get_key(self) -> str:
         return self.CATEGORY_COCOM_LIZARD_FILE
 
-    def get_kind(self):
-        """Returns project kind"""
-
+    def get_kind(self) -> str:
         return self.LIZARD_FILE
