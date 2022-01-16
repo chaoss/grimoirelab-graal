@@ -21,6 +21,8 @@
 #     inishchith <inishchith@gmail.com>
 #
 
+from asyncore import file_dispatcher
+from base64 import decode
 import subprocess
 
 from graal.graal import (GraalError,
@@ -38,16 +40,55 @@ class Cloc(Analyzer):
 
     :param diff_timeout: max time to compute diffs of a given file
     """
-    version = '0.3.0'
+    version = '0.3.1'
 
-    def __init__(self, diff_timeout=DEFAULT_DIFF_TIMEOUT):
+    def __init__(self, repository_level=False, diff_timeout=DEFAULT_DIFF_TIMEOUT):
         self.diff_timeout = diff_timeout
+        self.analyze = self.__analyze_repository if repository_level else self.__analyze_files
+
+    def __decode_cloc_command(self, **kwargs):
+        """Decodes CLOC command"""
+
+        file_path = kwargs['file_path']
+
+        try:
+            cloc_command = ['cloc', file_path, '--diff-timeout', str(self.diff_timeout)]
+            message = subprocess.check_output(cloc_command).decode("utf-8")
+            return message
+        except subprocess.CalledProcessError as error:
+            cause = f"Cloc failed at {file_path}, {error.output.decode('utf-8')}"
+            raise GraalError(cause=cause) from error
+        finally:
+            subprocess._cleanup()
+
+    def __analyze_files(self, **kwargs):
+        """
+        Add information about LOC, blank and 
+        commented lines using CLOC for all files in the commit
+
+        :returns result: dict of the results of the analysis over all files
+        """
+
+
+        results = []
+
+        commit = kwargs["commit"]
+        for commit_file in commit["files"]:
+            file_path = commit_file['file']
+            kwargs['file_path'] = file_path
+            message = self.__decode_cloc_command(**kwargs)
+            result = self.__analyze_file(message)
+            result['ext'] = GraalRepository.extension(file_path)
+            results.append(result)
+
+        return results
 
     def __analyze_file(self, message):
-        """Add information about LOC, blank and commented lines using CLOC for a given file
+        """
+        Add information about LOC, blank and 
+        commented lines using CLOC for a given file
 
         :param message: message from standard output after execution of cloc
-
         :returns result: dict of the results of the analysis over a file
         """
 
@@ -73,13 +114,17 @@ class Cloc(Analyzer):
 
         return results
 
-    def __analyze_repository(self, message):
-        """Add information LOC, total files, blank and commented lines using CLOC for the entire repository
+    def __analyze_repository(self, **kwargs):
+        """
+        Add information LOC, total files, blank and commented lines 
+        using CLOC for the entire repository
 
         :param message: message from standard output after execution of cloc
 
         :returns result: dict of the results of the analysis over a repository
         """
+
+        message = self.__decode_cloc_command(**kwargs)
 
         results = {}
         flag = False
@@ -115,21 +160,4 @@ class Cloc(Analyzer):
         :returns result: dict of the results of the analysis
         """
 
-        file_path = kwargs['file_path']
-        repository_level = kwargs.get('repository_level', False)
-
-        try:
-            cloc_command = ['cloc', file_path, '--diff-timeout', str(self.diff_timeout)]
-            message = subprocess.check_output(cloc_command).decode("utf-8")
-        except subprocess.CalledProcessError as e:
-            raise GraalError(cause="Cloc failed at %s, %s" % (file_path, e.output.decode("utf-8")))
-        finally:
-            subprocess._cleanup()
-
-        if repository_level:
-            results = self.__analyze_repository(message)
-        else:
-            results = self.__analyze_file(message)
-            results['ext'] = GraalRepository.extension(file_path)
-
-        return results
+        raise GraalError(cause=f"analysis sub-analysis method is not set for {__name__}")
