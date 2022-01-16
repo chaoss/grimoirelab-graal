@@ -1,0 +1,39 @@
+
+from copyreg import constructor
+import unittest.mock
+from base_repo import TestCaseRepo
+from graal.backends.core.cocom import CoCom
+
+
+# from graal.backends.core.cocom.cocom import CoCom
+
+test_repo = "./tmp/test/"
+test_repo_url = "https://github.com/wmeijer221/grimoirelab-graal"
+
+
+class TestMiniTest(TestCaseRepo):
+
+    def constructor(self): 
+        print(f'{CoCom.version=}')
+
+        print(f'starting the test with\n{test_repo=}\n{test_repo_url=}')
+
+        cc = CoCom(test_repo_url, test_repo)
+
+        commits = cc.fetch()
+
+
+        # for commit in commits: 
+        #     print(commit["analysis"])
+
+
+
+if __name__ == "__main__":
+    TestMiniTest().constructor()
+    # unittest.main()
+
+
+
+
+
+
