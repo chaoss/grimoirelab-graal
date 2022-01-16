@@ -1,6 +1,3 @@
-import array
-
-from graal.backends.core.analyzers.analyzer import Analyzer
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
 from graal.backends.core.composer import Composer
@@ -14,7 +11,7 @@ class CompositionLizardFile(Composer):
 
     ALLOWED_EXTENSIONS = ['java', 'py', 'php', 'scala', 'js', 'rb', 'cs', 'cpp', 'c', 'lua', 'go', 'swift']
 
-    def get_composition(self) -> array[Analyzer]:
+    def get_composition(self):
         return [Cloc(), Lizard(repository_level=False)]
 
     # def analyze(self, **kwargs):
@@ -38,7 +35,7 @@ class CompositionLizardFile(Composer):
     #     return file_analysis
 
     def get_key(self) -> str:
-        return self.CATEGORY_COCOM_LIZARD_FILE
+        return CATEGORY_COCOM_LIZARD_FILE
 
     def get_kind(self) -> str:
-        return self.LIZARD_FILE
+        return LIZARD_FILE

@@ -1,8 +1,11 @@
 
 from copyreg import constructor
+from unicodedata import category
 import unittest.mock
 from base_repo import TestCaseRepo
 from graal.backends.core.cocom import CoCom
+
+from graal.backends.core.cocom.compositions.composition_lizard_file import CATEGORY_COCOM_LIZARD_FILE
 
 
 # from graal.backends.core.cocom.cocom import CoCom
@@ -20,11 +23,10 @@ class TestMiniTest(TestCaseRepo):
 
         cc = CoCom(test_repo_url, test_repo)
 
-        commits = cc.fetch()
+        commits = cc.fetch(category=CATEGORY_COCOM_LIZARD_FILE)
 
-
-        # for commit in commits: 
-        #     print(commit["analysis"])
+        for commit in commits: 
+            print(commit["analysis"])
 
 
 

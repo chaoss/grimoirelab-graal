@@ -5,6 +5,7 @@ from pkgutil import iter_modules
 from importlib import import_module
 
 
+# TODO: this doesn't work in Graal for some reason. Figure out why.
 def create_instances(package_dir: str, super_class: type) -> array:
     """
     Returns list of instances of the super class contained in the package directory.
@@ -17,6 +18,8 @@ def create_instances(package_dir: str, super_class: type) -> array:
 
     # iterate through the modules in the current package
     for _, module_name, _ in iter_modules([package_dir]):
+        
+        print(module_name)
 
         # import the module and iterate through its attributes
         module = import_module(f"{package_dir}.{module_name}")

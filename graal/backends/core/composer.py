@@ -1,12 +1,10 @@
-import array
-
 from graal.backends.core.analyzers.analyzer import Analyzer
 
 
 class Composer:
     """Template class for composition of analyzers"""
 
-    def get_composition(self) -> array[Analyzer]:
+    def get_composition(self):
         """Returns the corresponding composition"""
 
         raise NotImplementedError

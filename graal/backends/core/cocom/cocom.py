@@ -27,7 +27,6 @@ from .cocom_analyzer_factory import CoComAnalyzerFactory
 from graal.backends.core.composer import Composer
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
-
 class CoCom(Graal):
     """CoCom Backend"""
 
@@ -41,9 +40,10 @@ class CoCom(Graal):
                          tag=tag, archive=archive)
 
         self.factory = CoComAnalyzerFactory()
+        self.categories = self.factory.get_categories()
         self.analyzers = None
         self.analyzer_kind = None
-
+    
     # TODO: wouldn't be a bad idea to introduce parameter object.
     # TODO: could we concatenate categories, and compose them that way?
     #       That'd remove the need for a factory as you can dynamically
@@ -70,10 +70,12 @@ class CoCom(Graal):
 
         :returns: a generator of items
         """
+        print("this is pefformed")
 
         # TODO: this method was identical to the one in Graal, so
         # I removed it. Make sure this still works!!
-        super().fetch_items(self, category, **kwargs)
+        super().fetch_items(self, category, kwargs)
+        print("this is pefformed also")
 
     def _filter_commit(self, commit):
         """Filters when changed commit files 

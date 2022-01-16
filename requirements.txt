@@ -1,8 +1,8 @@
-lizard==1.16.6
-pylint>=1.8.4
-flake8>=3.7.7
-networkx>=2.1
-pydot>=1.2.4
 bandit>=1.4.0
--e git+https://github.com/chaoss/grimoirelab-perceval/#egg=grimoirelab-perceval
--e git+https://github.com/chaoss/grimoirelab-toolkit/#egg=grimoirelab-toolkit
+flake8>=3.7.7
+grimoirelab-toolkit==0.2.0
+lizard==1.16.6
+networkx>=2.1
+perceval>=0.12.0
+pydot>=1.2.4
+pylint>=1.8.4

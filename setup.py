@@ -88,6 +88,8 @@ setup(name="graal",
           'graal',
           'graal.backends',
           'graal.backends.core',
+          'graal.backends.core.cocom',
+          'graal.backends.core.cocom.compositions',
           'graal.backends.core.analyzers'
       ],
       namespace_packages=['graal', 'graal.backends'],
@@ -99,6 +101,7 @@ setup(name="graal",
           'networkx>=2.1',
           'pydot>=1.2.4',
           'bandit>=1.4.0'
+          
       ],
       scripts=[
           'bin/graal'
