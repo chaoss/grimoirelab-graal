@@ -10,7 +10,7 @@ from graal.backends.core.cocom.compositions.composition_lizard_file import CATEG
 
 # from graal.backends.core.cocom.cocom import CoCom
 
-test_repo = "./tmp/test/"
+test_repo = "./tmp/worktree"
 test_repo_url = "https://github.com/wmeijer221/grimoirelab-graal"
 
 

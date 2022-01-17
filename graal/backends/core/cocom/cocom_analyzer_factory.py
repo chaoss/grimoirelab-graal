@@ -16,7 +16,7 @@ class CoComAnalyzerFactory:
         self._load_compositions()
 
     def _load_compositions(self):
-        # TODO: add dynamic loading.
+        #TODO: add dynamic loading.
         self.compositions = {
             CATEGORY_COCOM_LIZARD_FILE: CompositionLizardFile(),
             CATEGORY_COCOM_LIZARD_REPOSITORY: CompositionLizardRepository(),
@@ -40,7 +40,7 @@ class CoComAnalyzerFactory:
 
         return self.compositions[category]
 
-    def get_categories(self): 
+    def get_categories(self):
         """Returns all considered categories"""
 
         return self.compositions.keys()
