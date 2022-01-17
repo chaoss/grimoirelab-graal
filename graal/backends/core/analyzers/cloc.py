@@ -19,6 +19,7 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     wmeijer221 <w.meijer.5@student.rug.nl>
 #
 
 import subprocess
@@ -29,7 +30,9 @@ from .analyzer import Analyzer
 
 DEFAULT_DIFF_TIMEOUT = 60
 
-# TODO: split up file analyzer from repository analyzer? 
+# TODO: split up file analyzer from repository analyzer?
+
+
 class Cloc(Analyzer):
     """A wrapper for Cloc.
 
@@ -146,18 +149,25 @@ class Cloc(Analyzer):
             if flag:
                 if line.lower().startswith("sum"):
                     break
-                elif not line.startswith("-----"):
-                    digested_split = line.split()
-                    langauge, files_info = digested_split[:-4], digested_split[-4:]
-                    language = " ".join(langauge)
-                    total_files, blank_lines, commented_lines, loc = map(int, files_info)
-                    language_result = {
-                        "total_files": total_files,
-                        "blanks": blank_lines,
-                        "comments": commented_lines,
-                        "loc": loc
-                    }
-                    results[language] = language_result
+
+                if line.startswith("-----"):
+                    continue
+
+                digested_split = line.split()
+                language = digested_split[:-4]
+                files_info = digested_split[-4:]
+                language = " ".join(language)
+
+                total_files, blank_lines, commented_lines, loc = map(int, files_info)
+
+                language_result = {
+                    "total_files": total_files,
+                    "blanks": blank_lines,
+                    "comments": commented_lines,
+                    "loc": loc
+                }
+
+                results[language] = language_result
 
             if line.lower().startswith("language"):
                 flag = True
