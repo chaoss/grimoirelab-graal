@@ -21,11 +21,9 @@
 #     inishchith <inishchith@gmail.com>
 #
 
-from urllib import response
 import warnings
 
 import lizard
-from graal.backends.core.analyzers.cloc import Cloc
 from graal.graal import GraalError
 from .analyzer import Analyzer
 
@@ -50,15 +48,15 @@ class Lizard(Analyzer):
     """
     version = '0.3.2'
 
-    def __init__(self, repository_level: bool): 
+    def __init__(self, repository_level: bool):
         """
         Sets up Lizard analysis. 
-        
+
         :param repository_level: determines analysis method (repository- or file-level)
         """
         self.analyze = self.__analyze_repository if repository_level else self.__analyze_files
 
-    def __analyze_file(self, file_path, details): 
+    def __analyze_file(self, file_path, details):
         result = {}
 
         # Filter DeprecationWarning from lizard_ext/auto_open.py line 26
@@ -108,18 +106,17 @@ class Lizard(Analyzer):
         """
 
         commit = kwargs["commit"]
-        details = kwargs['details']
         in_paths = kwargs["in_paths"]
 
         results = []
 
-        for file_path in commit["files"]: 
-            if self.in_paths:
-                found = [p for p in self.in_paths if file_path.endswith(p)]
+        for file_path in commit["files"]:
+            if in_paths:
+                found = [p for p in in_paths if file_path.endswith(p)]
                 if not found:
                     continue
 
-            file_info = self.__analyze_file(file_path, details, in_paths)
+            file_info = self.__analyze_file(file_path, **kwargs)
             results.append(file_info)
 
         return results
@@ -139,7 +136,6 @@ class Lizard(Analyzer):
 
         repository_path = kwargs["repository_path"]
         files_affected = kwargs['files_affected']
-        details = kwargs["details"]
 
         analysis_result = []
 
@@ -148,10 +144,8 @@ class Lizard(Analyzer):
             threads=1,
             exts=lizard.get_extensions([]),
         )
-        cloc = Cloc()
 
         for analysis in repository_analysis:
-            cloc_analysis = cloc.analyze(file_path=analysis.filename)
             file_path = analysis.filename.replace(repository_path + "/", '')
             in_commit = True if file_path in files_affected else False
 
@@ -162,12 +156,10 @@ class Lizard(Analyzer):
                 'num_funs': len(analysis.function_list),
                 'file_path': file_path,
                 'in_commit': in_commit,
-                'blanks': cloc_analysis['blanks'],
-                'comments': cloc_analysis['comments']
             }
             analysis_result.append(result)
 
-        # TODO: implement details option
+        #TODO: implement details option
 
         return analysis_result
 
@@ -181,4 +173,4 @@ class Lizard(Analyzer):
         :returns  result: the results of the analysis
         """
 
-        raise GraalError("analysis sub-analysis method is not set for Lizard")
+        raise GraalError(cause=f"analysis sub-analysis method is not set for {__name__}")

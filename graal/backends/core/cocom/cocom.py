@@ -40,7 +40,7 @@ class CoCom(Graal):
                          tag=tag, archive=archive)
 
         self.factory = CoComAnalyzerFactory()
-        self.categories = self.factory.get_categories()
+        self.CATEGORIES = self.factory.get_categories()
         self.analyzers = None
         self.analyzer_kind = None
     
@@ -62,23 +62,8 @@ class CoCom(Graal):
 
         return items
 
-    def fetch_items(self, category, **kwargs):
-        """Fetch the commits and adds analysis information
-
-        :param category: the category of items to fetch
-        :param kwargs: backend arguments
-
-        :returns: a generator of items
-        """
-        print("this is pefformed")
-
-        # TODO: this method was identical to the one in Graal, so
-        # I removed it. Make sure this still works!!
-        super().fetch_items(self, category, kwargs)
-        print("this is pefformed also")
-
     def _filter_commit(self, commit):
-        """Filters when changed commit files 
+        """Filters when changed commit files
         are not inside target directory
 
         :param commit: a Perceval commit item

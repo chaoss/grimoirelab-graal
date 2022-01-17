@@ -12,7 +12,7 @@ class CompositionLizardFile(Composer):
     ALLOWED_EXTENSIONS = ['java', 'py', 'php', 'scala', 'js', 'rb', 'cs', 'cpp', 'c', 'lua', 'go', 'swift']
 
     def get_composition(self):
-        return [Cloc(), Lizard(repository_level=False)]
+        return [Cloc(repository_level=False), Lizard(repository_level=False)]
 
     # def analyze(self, **kwargs):
     #     """Performs analysis"""
