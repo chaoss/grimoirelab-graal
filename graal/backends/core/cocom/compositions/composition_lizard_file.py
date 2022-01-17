@@ -49,9 +49,9 @@ class CompositionLizardFile(Composer):
             for entry in result:
                 file_path = entry['file_path']
 
-                if not file_path in merged:
-                    merged[file_path] = entry
-                else:
+                if file_path in merged:
                     merged[file_path].update(entry)
+                else:
+                    merged[file_path] = entry
 
         return list(merged.values())
