@@ -22,18 +22,19 @@
 #     wmeijer221 <w.meijer.5@student.rug.nl>
 #
 
+import lizard
 import os
 import warnings
 
 from .analyzer import Analyzer
 from graal.graal import GraalError, GraalRepository
-import lizard
 
 
 ALLOWED_EXTENSIONS = ['java', 'py', 'php', 'scala', 'js', 'rb', 'cs', 'cpp', 'c', 'lua', 'go', 'swift']
 
-# TODO: split up file analyzer from repository analyzer? 
+
 class Lizard(Analyzer):
+    # TODO: split up file analyzer from repository analyzer?
     """A wrapper for Lizard, a code complexity analyzer, which is able
     to handle many imperative programming languages such as:
         C/C++ (works with C++14)
@@ -61,7 +62,87 @@ class Lizard(Analyzer):
         """
         self.analyze = self.__analyze_repository if repository_level else self.__analyze_files
 
-    def __do_file_analsysis(self, file_path, result): 
+    def __analyze_files(self, **kwargs):
+        """Add code complexity information for a file using Lizard.
+
+        Current information includes cyclomatic complexity (ccn),
+        avg lines of code and tokens, number of functions and tokens.
+        Optionally, the following information can be included for every function:
+        ccn, tokens, LOC, lines, name, args, start, end
+
+        :param commit: to-be-analyzed commit
+        :param in_paths: the target paths of the analysis
+        :param details: if True, it returns information about single functions
+        :param worktreepath: the directory where to store the working tree
+
+        :returns  result: dict of the results of the analysis
+        """
+
+        commit = kwargs["commit"]
+        in_paths = kwargs["in_paths"]
+        details = kwargs["details"]
+        worktreepath = kwargs['worktreepath']
+
+        results = []
+
+        for commit_file in commit["files"]:
+            # selects file path; source depends on whether it's new
+            new_file = commit_file.get("newfile", None)
+            file_path = new_file if new_file else commit_file['file']
+
+            # sets file path to the new file.
+            if in_paths:
+                found = [p for p in in_paths if file_path.endswith(p)]
+                if not found:
+                    continue
+
+            result = {
+                'file_path': file_path,
+                'ext': GraalRepository.extension(file_path)
+            }
+
+            # skips deleted and unsupported files.
+            if commit_file.get("action", None) == "D" or not result['ext'] in ALLOWED_EXTENSIONS:
+                results.append(result)
+                continue
+
+            # performs analysis and updates result
+            local_path = os.path.join(worktreepath, file_path)
+            if GraalRepository.exists(local_path):
+                result = self.__analyze_file(local_path, details, result)
+                results.append(result)
+
+        return results
+
+    def __analyze_file(self, file_path, details, result):
+        """
+        Analyzes a single file using lizard.
+
+        :param file_path: path of the file that is analyzed
+        :param details: if True, it returns information about single functions
+        :param result: preliminary results of this module
+
+        :returns  result: dict of the results of the analysis
+        """
+
+        analysis_result, analysis = self.__do_file_analsysis(file_path, result)
+        result.update(analysis_result)
+
+        if details:
+            self.__add_file_details(result, analysis)
+
+        return result
+
+    def __do_file_analsysis(self, file_path, result):
+        """
+        Performs lizard file analysis
+
+        :param file_path: path of the file that is analyzed
+        :param result: preliminary results of this module
+
+        :returns: result with lizard analysis fields added to it.
+        """
+
         # Filter DeprecationWarning from lizard_ext/auto_open.py line 26
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=DeprecationWarning)
@@ -81,7 +162,10 @@ class Lizard(Analyzer):
         """
         Adds additional details to the results.
 
-        :returns  result: dict of the results of the analysis
+        :param result: preliminary results of this module
+        :param analysis: analysis object of lizard. 
+
+        :returns: result with detailed lizard analysis fields added to it.
         """
 
         funs_data = []
@@ -100,83 +184,6 @@ class Lizard(Analyzer):
 
         return result
 
-    def __analyze_file(self, file_path, details):
-        """
-        Analyzes a single file
-
-        :params file_path: path of the file that is analyzed
-        :params details: if True, it returns information about single functions
-
-        :returns  result: dict of the results of the analysis
-        """
-
-        ext = GraalRepository.extension(file_path)
-        result = {'ext': ext}
-
-        if not ext in ALLOWED_EXTENSIONS:
-            return result
-
-        result, analysis = self.__do_file_analsysis(file_path, result)
-
-        if details:
-            self.__add_file_details(result, analysis)
-
-        return result
-
-    def __analyze_files(self, **kwargs):
-        """Add code complexity information for a file using Lizard.
-
-        Current information includes cyclomatic complexity (ccn),
-        avg lines of code and tokens, number of functions and tokens.
-        Optionally, the following information can be included for every function:
-        ccn, tokens, LOC, lines, name, args, start, end
-
-        :param file_path: file path
-        :param details: if True, it returns information about single functions
-
-        :returns  result: dict of the results of the analysis
-        """
-
-        commit = kwargs["commit"]
-        in_paths = kwargs["in_paths"]
-        details = kwargs["details"]
-        worktreepath = kwargs['worktreepath']
-
-        results = []
-
-        for commit_file in commit["files"]:
-            file_path = commit_file['file']
-
-            result = {
-                'file_path': file_path,
-                'ext': GraalRepository.extension(file_path)
-            }
-
-            results.append(result)
-
-            # skips deleted files.
-            if commit_file.get("action", None) == "D":
-                continue
-
-            # sets file path to the new file.
-            new_file = commit_file.get("newfile", None)
-            if new_file:
-                file_path = new_file
-
-            if in_paths:
-                found = [p for p in in_paths if file_path.endswith(p)]
-                if not found:
-                    continue
-
-            local_path = os.path.join(worktreepath, file_path)
-
-            if GraalRepository.exists(local_path):
-                file_info = self.__analyze_file(local_path, details)
-                file_info['file_path'] = file_path
-                results.append(file_info)
-
-        return results
-
     def __analyze_repository(self, **kwargs):
         """Add code complexity information for a given repository
         using Lizard and CLOC.
@@ -192,6 +199,7 @@ class Lizard(Analyzer):
 
         repository_path = kwargs["repository_path"]
         files_affected = kwargs['files_affected']
+        details = kwargs["details"]
 
         analysis_result = []
 
@@ -215,16 +223,14 @@ class Lizard(Analyzer):
             }
             analysis_result.append(result)
 
-        # TODO: implement details option
+        if details:
+            # TODO: implement details option
+            pass
 
         return analysis_result
 
     def analyze(self, **kwargs):
         """Add code complexity information using Lizard.
-
-        :param file_path: file path
-        :param repository_path: repository path
-        :param details: if True, it returns detailed information about an analysis
 
         :returns  result: the results of the analysis
         """

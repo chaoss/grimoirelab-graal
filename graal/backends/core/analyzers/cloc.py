@@ -30,10 +30,9 @@ from .analyzer import Analyzer
 
 DEFAULT_DIFF_TIMEOUT = 60
 
-# TODO: split up file analyzer from repository analyzer?
-
 
 class Cloc(Analyzer):
+    # TODO: split up file analyzer from repository analyzer?
     """A wrapper for Cloc.
 
     This class allows to call Cloc over a file, parses
@@ -47,38 +46,34 @@ class Cloc(Analyzer):
         self.diff_timeout = diff_timeout
         self.analyze = self.__analyze_repository if repository_level else self.__analyze_files
 
-    def __decode_cloc_command(self, **kwargs):
-        """Decodes CLOC command"""
-
-        file_path = kwargs['file_path']
-
-        try:
-            cloc_command = ['cloc', file_path, '--diff-timeout', str(self.diff_timeout)]
-            message = subprocess.check_output(cloc_command).decode("utf-8")
-            return message
-        except subprocess.CalledProcessError as error:
-            cause = f"Cloc failed at {file_path}, {error.output.decode('utf-8')}"
-            raise GraalError(cause=cause) from error
-        finally:
-            subprocess._cleanup()
-
     def __analyze_files(self, **kwargs):
         """
         Add information about LOC, blank and 
         commented lines using CLOC for all files in the commit
+
+        :param commit: to-be-analyzed commit
+        :param in_paths: the target paths of the analysis
+        :param worktreepath: the directory where to store the working tree
 
         :returns result: dict of the results of the analysis over all files
         """
 
         results = []
 
-        worktreepath = kwargs["worktreepath"]
         commit = kwargs["commit"]
+        in_paths = kwargs["in_paths"]
+        worktreepath = kwargs["worktreepath"]
 
         for commit_file in commit["files"]:
             # selects file path; source depends on whether it's new
             new_file = commit_file.get("newfile", None)
             file_path = new_file if new_file else commit_file['file']
+
+            # sets file path to the new file.
+            if in_paths:
+                found = [p for p in in_paths if file_path.endswith(p)]
+                if not found:
+                    continue
 
             result = {
                 'file_path': file_path,
@@ -105,6 +100,8 @@ class Cloc(Analyzer):
         commented lines using CLOC for a given file
 
         :param message: message from standard output after execution of cloc
+        :param result: preliminary results of this module
+
         :returns result: dict of the results of the analysis over a file
         """
 
@@ -173,3 +170,18 @@ class Cloc(Analyzer):
                 flag = True
 
         return results
+
+    def __decode_cloc_command(self, **kwargs):
+        """Decodes CLOC command"""
+
+        file_path = kwargs['file_path']
+
+        try:
+            cloc_command = ['cloc', file_path, '--diff-timeout', str(self.diff_timeout)]
+            message = subprocess.check_output(cloc_command).decode("utf-8")
+            return message
+        except subprocess.CalledProcessError as error:
+            cause = f"Cloc failed at {file_path}, {error.output.decode('utf-8')}"
+            raise GraalError(cause=cause) from error
+        finally:
+            subprocess._cleanup()
