@@ -22,6 +22,7 @@
 #
 
 import warnings
+import os
 
 import lizard
 from graal.graal import GraalError, GraalRepository
@@ -116,19 +117,42 @@ class Lizard(Analyzer):
         commit = kwargs["commit"]
         in_paths = kwargs["in_paths"]
         details = kwargs["details"]
+        worktreepath = kwargs['worktreepath']
 
         results = []
 
-        for commit_path in commit["files"]:
-            file_path = commit_path["file"]
+        for commit_file in commit["files"]:
+            file_path = commit_file['file']
+
+            result = {
+                'file_path':file_path,
+                'ext': GraalRepository.extension(file_path)
+            }
+
+            results.append(result)
+
+            # skips deleted files.
+            if commit_file.get("action", None) == "D":
+                continue
+            
+            # sets file path to the new file.
+            new_file = commit_file.get("newfile", None)
+            if new_file:
+                file_path = new_file
+
+            # file_path = commit_file["file"]
             if in_paths:
                 found = [p for p in in_paths if file_path.endswith(p)]
                 if not found:
                     continue
+            
+            local_path = os.path.join(worktreepath, file_path)
 
-            file_info = self.__analyze_file(file_path, details)
-            file_info['file_path'] = file_path
-            results.append(file_info)
+            if GraalRepository.exists(local_path): 
+
+                file_info = self.__analyze_file(local_path, details)
+                file_info['file_path'] = file_path
+                results.append(file_info)
 
         return results
 

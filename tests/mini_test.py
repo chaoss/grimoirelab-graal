@@ -12,7 +12,7 @@ from graal.backends.core.cocom.compositions.composition_lizard_file import CATEG
 # from graal.backends.core.cocom.cocom import CoCom
 
 test_repo = "./tmp/worktree"
-test_repo_url = "https://github.com/wmeijer221/grimoirelab-graal"
+test_repo_url = "https://github.com/chaoss/grimoirelab-graal"
 
 
 class TestMiniTest(TestCaseRepo):
@@ -26,9 +26,12 @@ class TestMiniTest(TestCaseRepo):
 
         commits = cc.fetch(category=CATEGORY_COCOM_LIZARD_FILE)
 
+        i = 0
         for commit in commits: 
             print(json.dumps(commit, indent=2))
-            break
+            i += 1
+            if i == 2: 
+                break
 
 
 

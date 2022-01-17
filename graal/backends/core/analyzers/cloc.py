@@ -24,8 +24,7 @@
 import subprocess
 import os
 
-from graal.graal import (GraalError,
-                         GraalRepository)
+from graal.graal import (GraalError, GraalRepository)
 from .analyzer import Analyzer
 
 DEFAULT_DIFF_TIMEOUT = 60
@@ -74,10 +73,10 @@ class Cloc(Analyzer):
         commit = kwargs["commit"]
 
         for commit_file in commit["files"]:
-            file_path = commit_file['file'] 
+            file_path = commit_file['file']
 
             result = {
-                'file_path':file_path,
+                'file_path': file_path,
                 'ext': GraalRepository.extension(file_path)
             }
 
@@ -86,7 +85,7 @@ class Cloc(Analyzer):
             # skips deleted files.
             if commit_file.get("action", None) == "D":
                 continue
-            
+
             # sets file path to the new file.
             new_file = commit_file.get("newfile", None)
             if new_file:
@@ -96,10 +95,12 @@ class Cloc(Analyzer):
             local_path = os.path.join(worktreepath, file_path)
             kwargs['file_path'] = local_path
 
-            message = self.__decode_cloc_command(**kwargs)
-            analysis_result = self.__analyze_file(message)
+            if GraalRepository.exists(local_path):
 
-            results[-1].update(analysis_result)
+                message = self.__decode_cloc_command(**kwargs)
+                analysis_result = self.__analyze_file(message)
+
+                results[-1].update(analysis_result)
 
         return results
 
@@ -170,14 +171,3 @@ class Cloc(Analyzer):
                 flag = True
 
         return results
-
-    def analyze(self, **kwargs):
-        """Add information using CLOC
-
-        :param file_path: file path
-        :param repository_level: set to True if analysis has to be performed on a repository
-
-        :returns result: dict of the results of the analysis
-        """
-
-        raise GraalError(cause=f"analysis sub-analysis method is not set for {__name__}")

@@ -4,6 +4,10 @@ from inspect import isclass
 from pkgutil import iter_modules
 from importlib import import_module
 
+from graal.graal import GraalRepository
+
+
+
 
 # TODO: this doesn't work in Graal for some reason. Figure out why.
 def create_instances(package_dir: str, super_class: type) -> array:

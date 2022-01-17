@@ -1,18 +1,13 @@
 class Composer:
     """Template class for composition of analyzers"""
 
-    def get_key(self):
-        """Returns key used to identify this composition"""
-
-        raise NotImplementedError
-
     def get_kind(self):
         """Returns more readable name of this composition"""
 
         raise NotImplementedError
 
     def get_category(self):
-        """Retruns the category of this composition"""
+        """Returns the category of this composition"""
 
         raise NotImplementedError
 

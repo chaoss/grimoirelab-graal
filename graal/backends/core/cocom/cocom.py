@@ -42,6 +42,7 @@ class CoCom(Graal):
 
         self.factory = CoComAnalyzerFactory()
         self.CATEGORIES = self.factory.get_categories()
+        self.composer = None
 
     # TODO: wouldn't be a bad idea to introduce parameter object.
     # TODO: could we concatenate categories, and compose them that way?
@@ -51,8 +52,7 @@ class CoCom(Graal):
               branches=None, latest_items=False):
         """Fetch commits and add code complexity information."""
 
-        items = super().fetch(category,
-                              from_date=from_date, to_date=to_date,
+        items = super().fetch(category, from_date=from_date, to_date=to_date,
                               branches=branches, latest_items=latest_items)
 
         self.composer = self.factory.get_composer(category)
@@ -70,9 +70,9 @@ class CoCom(Graal):
         if not self.in_paths:
             return False
 
-        for f in commit['files']:
-            for p in self.in_paths:
-                if f['file'].endswith(p):
+        for file in commit['files']:
+            for path in self.in_paths:
+                if file['file'].endswith(path):
                     return False
 
         return True

@@ -1,2 +1,0 @@
-1) The results of Cocom Lizard File composition are different compared to the pre-refactor code.
-2) CLoc fails to read certain files .
