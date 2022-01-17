@@ -19,19 +19,20 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     wmeijer221 <w.meijer.5@student.rug.nl>
 #
 
-import warnings
 import os
+import warnings
 
-import lizard
-from graal.graal import GraalError, GraalRepository
 from .analyzer import Analyzer
+from graal.graal import GraalError, GraalRepository
+import lizard
 
 
 ALLOWED_EXTENSIONS = ['java', 'py', 'php', 'scala', 'js', 'rb', 'cs', 'cpp', 'c', 'lua', 'go', 'swift']
 
-
+# TODO: split up file analyzer from repository analyzer? 
 class Lizard(Analyzer):
     """A wrapper for Lizard, a code complexity analyzer, which is able
     to handle many imperative programming languages such as:
@@ -60,15 +61,7 @@ class Lizard(Analyzer):
         """
         self.analyze = self.__analyze_repository if repository_level else self.__analyze_files
 
-    def __analyze_file(self, file_path, details):
-        """Analyzes a single file"""
-
-        ext = GraalRepository.extension(file_path)
-        result = {'ext': ext}
-
-        if not ext in ALLOWED_EXTENSIONS:
-            return result
-
+    def __do_file_analsysis(self, file_path, result): 
         # Filter DeprecationWarning from lizard_ext/auto_open.py line 26
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=DeprecationWarning)
@@ -82,8 +75,14 @@ class Lizard(Analyzer):
         result['loc'] = analysis.nloc
         result['tokens'] = analysis.token_count
 
-        if not details:
-            return result
+        return result, analysis
+
+    def __add_file_details(self, result, analysis):
+        """
+        Adds additional details to the results.
+
+        :returns  result: dict of the results of the analysis
+        """
 
         funs_data = []
         for fun in analysis.function_list:
@@ -98,6 +97,30 @@ class Lizard(Analyzer):
             funs_data.append(fun_data)
 
         result['funs'] = funs_data
+
+        return result
+
+    def __analyze_file(self, file_path, details):
+        """
+        Analyzes a single file
+
+        :params file_path: path of the file that is analyzed
+        :params details: if True, it returns information about single functions
+
+        :returns  result: dict of the results of the analysis
+        """
+
+        ext = GraalRepository.extension(file_path)
+        result = {'ext': ext}
+
+        if not ext in ALLOWED_EXTENSIONS:
+            return result
+
+        result, analysis = self.__do_file_analsysis(file_path, result)
+
+        if details:
+            self.__add_file_details(result, analysis)
+
         return result
 
     def __analyze_files(self, **kwargs):
@@ -125,7 +148,7 @@ class Lizard(Analyzer):
             file_path = commit_file['file']
 
             result = {
-                'file_path':file_path,
+                'file_path': file_path,
                 'ext': GraalRepository.extension(file_path)
             }
 
@@ -134,22 +157,20 @@ class Lizard(Analyzer):
             # skips deleted files.
             if commit_file.get("action", None) == "D":
                 continue
-            
+
             # sets file path to the new file.
             new_file = commit_file.get("newfile", None)
             if new_file:
                 file_path = new_file
 
-            # file_path = commit_file["file"]
             if in_paths:
                 found = [p for p in in_paths if file_path.endswith(p)]
                 if not found:
                     continue
-            
+
             local_path = os.path.join(worktreepath, file_path)
 
-            if GraalRepository.exists(local_path): 
-
+            if GraalRepository.exists(local_path):
                 file_info = self.__analyze_file(local_path, details)
                 file_info['file_path'] = file_path
                 results.append(file_info)

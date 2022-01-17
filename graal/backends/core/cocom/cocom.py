@@ -22,10 +22,14 @@
 #     wmeijer221 <w.meijer.5@student.rug.nl>
 #
 
-from graal.graal import (Graal, GraalCommand, DEFAULT_WORKTREE_PATH, GraalError, GraalRepository)
-from .cocom_analyzer_factory import CoComAnalyzerFactory
-from graal.backends.core.composer import Composer
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
+
+from .cocom_analyzer_factory import CoComAnalyzerFactory
+from graal.graal import (Graal,
+                         GraalCommand,
+                         DEFAULT_WORKTREE_PATH,
+                         GraalError,
+                         GraalRepository)
 
 
 class CoCom(Graal):
@@ -37,17 +41,13 @@ class CoCom(Graal):
                  exec_path=None, entrypoint=None, in_paths=None,
                  out_paths=None, details=False, tag=None, archive=None):
         super().__init__(uri, git_path, worktreepath, exec_path=exec_path,
-                         entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
-                         tag=tag, archive=archive)
+                         entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths,
+                         details=details, tag=tag, archive=archive)
 
         self.factory = CoComAnalyzerFactory()
         self.CATEGORIES = self.factory.get_categories()
         self.composer = None
 
-    # TODO: wouldn't be a bad idea to introduce parameter object.
-    # TODO: could we concatenate categories, and compose them that way?
-    #       That'd remove the need for a factory as you can dynamically
-    #       load the analyzers.
     def fetch(self, category, from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
               branches=None, latest_items=False):
         """Fetch commits and add code complexity information."""
@@ -60,8 +60,9 @@ class CoCom(Graal):
         return items
 
     def _filter_commit(self, commit):
-        """Filters when changed commit files
-        are not inside target directory
+        """
+        Filters when changed commit files
+        are not inside target directory.
 
         :param commit: a Perceval commit item
         :returns: a boolean value
@@ -78,7 +79,8 @@ class CoCom(Graal):
         return True
 
     def _analyze(self, commit):
-        """Analyse a commit and the corresponding
+        """
+        Analyse a commit and the corresponding
         checkout version of the repository.
 
         :param commit: a Perceval commit item
@@ -90,10 +92,10 @@ class CoCom(Graal):
 
         results = []
 
-        # TODO: take out the kwargs and make a parameter object? 
-        #       the data sent is always the same, so no need for abstraction.
         analyzers = self.composer.get_composition()
         for analyzer in analyzers:
+
+            # TODO: Introduce parameter object instead of kwargs
             sub_analysis = analyzer.analyze(commit=commit, details=self.details,
                                             in_paths=self.in_paths, worktreepath=self.worktreepath)
             results.append(sub_analysis)
@@ -119,10 +121,8 @@ class CoCom(Graal):
     def metadata_category(item):
         """Extracts the category from a Code item."""
 
-        # TODO: analyzers essentially have two keys, kind and category: why?
         analyzer = item['analyzer']
 
-        print(f'{analyzer=}')
         factory = CoComAnalyzerFactory()
         composer = factory.get_composer(analyzer)
 

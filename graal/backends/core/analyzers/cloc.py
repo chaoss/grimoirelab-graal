@@ -29,7 +29,7 @@ from .analyzer import Analyzer
 
 DEFAULT_DIFF_TIMEOUT = 60
 
-
+# TODO: split up file analyzer from repository analyzer? 
 class Cloc(Analyzer):
     """A wrapper for Cloc.
 
@@ -73,38 +73,30 @@ class Cloc(Analyzer):
         commit = kwargs["commit"]
 
         for commit_file in commit["files"]:
-            file_path = commit_file['file']
+            # selects file path; source depends on whether it's new
+            new_file = commit_file.get("newfile", None)
+            file_path = new_file if new_file else commit_file['file']
 
             result = {
                 'file_path': file_path,
                 'ext': GraalRepository.extension(file_path)
             }
 
-            results.append(result)
-
             # skips deleted files.
             if commit_file.get("action", None) == "D":
+                results.append(result)
                 continue
-
-            # sets file path to the new file.
-            new_file = commit_file.get("newfile", None)
-            if new_file:
-                file_path = new_file
 
             # performs analysis and updates result
             local_path = os.path.join(worktreepath, file_path)
-            kwargs['file_path'] = local_path
-
             if GraalRepository.exists(local_path):
-
-                message = self.__decode_cloc_command(**kwargs)
-                analysis_result = self.__analyze_file(message)
-
-                results[-1].update(analysis_result)
+                message = self.__decode_cloc_command(**kwargs, file_path=local_path)
+                result = self.__analyze_file(message, result)
+                results.append(result)
 
         return results
 
-    def __analyze_file(self, message):
+    def __analyze_file(self, message, results):
         """
         Add information about LOC, blank and
         commented lines using CLOC for a given file
@@ -114,11 +106,11 @@ class Cloc(Analyzer):
         """
 
         flag = False
-        results = {
+        results.update({
             "blanks": 0,
             "comments": 0,
             "loc": 0
-        }
+        })
 
         for line in message.strip().split("\n"):
             if flag:
