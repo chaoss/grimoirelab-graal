@@ -17,10 +17,15 @@ class CoComAnalyzerFactory:
 
     def _load_compositions(self):
         #TODO: add dynamic loading.
+        #TODO: do something about kind + category
         self.compositions = {
             CATEGORY_COCOM_LIZARD_FILE: CompositionLizardFile(),
+            LIZARD_FILE: CompositionLizardFile(), 
             CATEGORY_COCOM_LIZARD_REPOSITORY: CompositionLizardRepository(),
+            LIZARD_REPOSITORY: CompositionLizardRepository(),
             CATEGORY_COCOM_SCC_FILE: CompositionSccFile(),
+            SCC_FILE: CompositionSccFile(),
+            SCC_REPOSITORY: CompositionSccRepository(),
             CATEGORY_COCOM_SCC_REPOSITORY: CompositionSccRepository()
         }
 

@@ -11,8 +11,8 @@ class CompositionSccRepository(Composer):
     def get_composition(self):
         return [SCC()]
 
-    def get_key(self) -> str:
+    def get_category(self):
         return CATEGORY_COCOM_SCC_REPOSITORY
 
-    def get_kind(self) -> str:
+    def get_kind(self):
         return SCC_REPOSITORY

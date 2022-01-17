@@ -12,7 +12,7 @@ class CompositionLizardRepository(Composer):
     def get_composition(self):
         return [Cloc(repository_level=True), Lizard(repository_level=True)]
 
-    def get_key(self):
+    def get_category(self):
         return CATEGORY_COCOM_LIZARD_REPOSITORY
 
     def get_kind(self):

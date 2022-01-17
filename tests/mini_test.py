@@ -4,6 +4,7 @@ from unicodedata import category
 import unittest.mock
 from base_repo import TestCaseRepo
 from graal.backends.core.cocom import CoCom
+import json
 
 from graal.backends.core.cocom.compositions.composition_lizard_file import CATEGORY_COCOM_LIZARD_FILE
 
@@ -26,7 +27,8 @@ class TestMiniTest(TestCaseRepo):
         commits = cc.fetch(category=CATEGORY_COCOM_LIZARD_FILE)
 
         for commit in commits: 
-            print(commit["analysis"])
+            print(json.dumps(commit, indent=2))
+            break
 
 
 

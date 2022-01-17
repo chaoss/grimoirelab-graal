@@ -11,7 +11,7 @@ class CompositionSccFile(Composer):
     def get_composition(self):
         return [SCC()]
 
-    def get_key(self):
+    def get_category(self):
         return CATEGORY_COCOM_SCC_FILE
 
     def get_kind(self):

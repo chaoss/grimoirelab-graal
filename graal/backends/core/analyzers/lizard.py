@@ -24,8 +24,11 @@
 import warnings
 
 import lizard
-from graal.graal import GraalError
+from graal.graal import GraalError, GraalRepository
 from .analyzer import Analyzer
+
+
+ALLOWED_EXTENSIONS = ['java', 'py', 'php', 'scala', 'js', 'rb', 'cs', 'cpp', 'c', 'lua', 'go', 'swift']
 
 
 class Lizard(Analyzer):
@@ -50,14 +53,20 @@ class Lizard(Analyzer):
 
     def __init__(self, repository_level: bool):
         """
-        Sets up Lizard analysis. 
+        Sets up Lizard analysis.
 
         :param repository_level: determines analysis method (repository- or file-level)
         """
         self.analyze = self.__analyze_repository if repository_level else self.__analyze_files
 
     def __analyze_file(self, file_path, details):
-        result = {}
+        """Analyzes a single file"""
+
+        ext = GraalRepository.extension(file_path)
+        result = {'ext': ext}
+
+        if not ext in ALLOWED_EXTENSIONS:
+            return result
 
         # Filter DeprecationWarning from lizard_ext/auto_open.py line 26
         with warnings.catch_warnings():
@@ -71,7 +80,6 @@ class Lizard(Analyzer):
         result['num_funs'] = len(analysis.function_list)
         result['loc'] = analysis.nloc
         result['tokens'] = analysis.token_count
-        result['ext'] = file_path.split(".")[-1]
 
         if not details:
             return result
@@ -107,16 +115,19 @@ class Lizard(Analyzer):
 
         commit = kwargs["commit"]
         in_paths = kwargs["in_paths"]
+        details = kwargs["details"]
 
         results = []
 
-        for file_path in commit["files"]:
+        for commit_path in commit["files"]:
+            file_path = commit_path["file"]
             if in_paths:
                 found = [p for p in in_paths if file_path.endswith(p)]
                 if not found:
                     continue
 
-            file_info = self.__analyze_file(file_path, **kwargs)
+            file_info = self.__analyze_file(file_path, details)
+            file_info['file_path'] = file_path
             results.append(file_info)
 
         return results
@@ -159,7 +170,7 @@ class Lizard(Analyzer):
             }
             analysis_result.append(result)
 
-        #TODO: implement details option
+        # TODO: implement details option
 
         return analysis_result
 

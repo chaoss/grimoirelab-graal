@@ -27,6 +27,7 @@ from .cocom_analyzer_factory import CoComAnalyzerFactory
 from graal.backends.core.composer import Composer
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
+
 class CoCom(Graal):
     """CoCom Backend"""
 
@@ -41,9 +42,7 @@ class CoCom(Graal):
 
         self.factory = CoComAnalyzerFactory()
         self.CATEGORIES = self.factory.get_categories()
-        self.analyzers = None
-        self.analyzer_kind = None
-    
+
     # TODO: wouldn't be a bad idea to introduce parameter object.
     # TODO: could we concatenate categories, and compose them that way?
     #       That'd remove the need for a factory as you can dynamically
@@ -56,9 +55,7 @@ class CoCom(Graal):
                               from_date=from_date, to_date=to_date,
                               branches=branches, latest_items=latest_items)
 
-        composer: Composer = self.factory.get_composer(category)
-        self.analyzers = composer.get_composition()
-        self.analyzer_kind = composer.get_kind()
+        self.composer = self.factory.get_composer(category)
 
         return items
 
@@ -88,16 +85,22 @@ class CoCom(Graal):
         :returns: a boolean value
         """
 
-        if not self.analyzers:
+        if not self.composer:
             raise GraalError(msg="running analyze without having set an analyzer")
 
-        analysis = []
+        results = []
 
-        for analyzer in self.analyzers:
-            sub_analysis = analyzer.analyze(commit=commit, details=self.details)
-            analysis.append(sub_analysis)
+        # TODO: take out the kwargs and make a parameter object? 
+        #       the data sent is always the same, so no need for abstraction.
+        analyzers = self.composer.get_composition()
+        for analyzer in analyzers:
+            sub_analysis = analyzer.analyze(commit=commit, details=self.details,
+                                            in_paths=self.in_paths, worktreepath=self.worktreepath)
+            results.append(sub_analysis)
 
-        return analysis
+        merged_results = self.composer.merge_results(results)
+
+        return merged_results
 
     def _post(self, commit):
         """Remove attributes of the Graal item obtained
@@ -108,7 +111,7 @@ class CoCom(Graal):
         commit['files'] = [f.replace(self.worktreepath + '/', '')
                            for f in GraalRepository.files(self.worktreepath)]
         commit.pop('refs', None)
-        commit['analyzer'] = self.analyzer_kind
+        commit['analyzer'] = self.composer.get_kind()
 
         return commit
 
@@ -119,6 +122,7 @@ class CoCom(Graal):
         # TODO: analyzers essentially have two keys, kind and category: why?
         analyzer = item['analyzer']
 
+        print(f'{analyzer=}')
         factory = CoComAnalyzerFactory()
         composer = factory.get_composer(analyzer)
 

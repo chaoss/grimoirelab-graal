@@ -21,9 +21,8 @@
 #     inishchith <inishchith@gmail.com>
 #
 
-from asyncore import file_dispatcher
-from base64 import decode
 import subprocess
+import os
 
 from graal.graal import (GraalError,
                          GraalRepository)
@@ -69,23 +68,44 @@ class Cloc(Analyzer):
         :returns result: dict of the results of the analysis over all files
         """
 
-
         results = []
 
+        worktreepath = kwargs["worktreepath"]
         commit = kwargs["commit"]
+
         for commit_file in commit["files"]:
-            file_path = commit_file['file']
-            kwargs['file_path'] = file_path
-            message = self.__decode_cloc_command(**kwargs)
-            result = self.__analyze_file(message)
-            result['ext'] = GraalRepository.extension(file_path)
+            file_path = commit_file['file'] 
+
+            result = {
+                'file_path':file_path,
+                'ext': GraalRepository.extension(file_path)
+            }
+
             results.append(result)
+
+            # skips deleted files.
+            if commit_file.get("action", None) == "D":
+                continue
+            
+            # sets file path to the new file.
+            new_file = commit_file.get("newfile", None)
+            if new_file:
+                file_path = new_file
+
+            # performs analysis and updates result
+            local_path = os.path.join(worktreepath, file_path)
+            kwargs['file_path'] = local_path
+
+            message = self.__decode_cloc_command(**kwargs)
+            analysis_result = self.__analyze_file(message)
+
+            results[-1].update(analysis_result)
 
         return results
 
     def __analyze_file(self, message):
         """
-        Add information about LOC, blank and 
+        Add information about LOC, blank and
         commented lines using CLOC for a given file
 
         :param message: message from standard output after execution of cloc
@@ -116,7 +136,7 @@ class Cloc(Analyzer):
 
     def __analyze_repository(self, **kwargs):
         """
-        Add information LOC, total files, blank and commented lines 
+        Add information LOC, total files, blank and commented lines
         using CLOC for the entire repository
 
         :param message: message from standard output after execution of cloc
