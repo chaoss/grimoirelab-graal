@@ -4,5 +4,9 @@ build
 dist
 *.egg-info
 __pycache__
+
+# SME Custom ignores. Remove these when delivering.
 /tmp/*
 .devcontainer/*
+/go/*
+**tar.gz

@@ -38,8 +38,9 @@ class CoComAnalyzerFactory:
         self._load_compositions()
 
     def _load_compositions(self):
-        # TODO: add dynamic loading.
-        # TODO: do something about kind + category
+        # TODO: add dynamic loading. Look at Graal, as it's used there for loading backends.
+        # TODO: do something about kind + category.
+        #       You shouldn't be able to load a composition with the composition kind.
         self.compositions = {
             CATEGORY_COCOM_LIZARD_FILE: CompositionLizardFile(),
             LIZARD_FILE: CompositionLizardFile(),
@@ -63,7 +64,7 @@ class CoComAnalyzerFactory:
         """Returns composer object corresponding with category"""
 
         if not category in self.compositions:
-            raise GraalError(cause="Unknown category %s" % category)
+            raise GraalError(cause=f"Unknown category {category}")
 
         return self.compositions[category]
 
