@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   tests:
     
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8]
@@ -30,6 +30,8 @@ jobs:
           go-version: 1.15
         
       - name: Install dependencies
+        env:
+          FOSSOLOGY_VERSION: 3.11.0
         run: |
           pip install --upgrade setuptools==49.6.0
           pip install --upgrade pip==18.1
@@ -38,10 +40,10 @@ jobs:
           pip install flake8 coveralls
           gem install github-linguist
           pip install bandit pylint execnet
-          wget https://github.com/fossology/fossology/releases/download/3.8.1/FOSSology-3.8.0-debian9stretch.tar.gz
-          tar -xzf FOSSology-3.8.0-debian9stretch.tar.gz
+          wget https://github.com/fossology/fossology/releases/download/${FOSSOLOGY_VERSION}/FOSSology-${FOSSOLOGY_VERSION}-ubuntu-focal.tar.gz
+          tar -xzf FOSSology-${FOSSOLOGY_VERSION}-ubuntu-focal.tar.gz
           sudo apt-get update -y
-          sudo apt-get -y install ./packages/fossology-common_3.8.1-1_amd64.deb ./packages/fossology-nomos_3.8.1-1_amd64.deb
+          sudo apt-get -y install ./packages/fossology-common_${FOSSOLOGY_VERSION}-1_amd64.deb ./packages/fossology-nomos_${FOSSOLOGY_VERSION}-1_amd64.deb
           sudo apt-get install cloc
           eval "$(gimme stable)"
         
