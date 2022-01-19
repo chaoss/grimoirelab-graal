@@ -22,7 +22,7 @@
 
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
-from graal.backends.core.composer import Composer
+from graal.backends.core.composer import Composer, merge_with_file_name
 
 LIZARD_FILE = 'lizard_file'
 CATEGORY_COCOM_LIZARD_FILE = 'code_complexity_' + LIZARD_FILE
@@ -39,19 +39,9 @@ class CompositionLizardFile(Composer):
     def get_kind(self):
         return LIZARD_FILE
 
+    # TODO: don't use method; change variable.
     def get_composition(self):
         return [Cloc(repository_level=False), Lizard(repository_level=False)]
 
     def merge_results(self, results):
-        merged = {}
-
-        for result in results:
-            for entry in result:
-                file_path = entry['file_path']
-
-                if file_path in merged:
-                    merged[file_path].update(entry)
-                else:
-                    merged[file_path] = entry
-
-        return list(merged.values())
+        return merge_with_file_name(results)

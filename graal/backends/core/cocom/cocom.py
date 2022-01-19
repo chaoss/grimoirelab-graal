@@ -24,6 +24,8 @@
 
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
+from graal.backends.core.analyzers.analyzer import Analyzer, is_in_paths
+
 from .cocom_analyzer_factory import CoComAnalyzerFactory
 from graal.graal import (Graal,
                          GraalCommand,
@@ -44,9 +46,9 @@ class CoCom(Graal):
                          entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths,
                          details=details, tag=tag, archive=archive)
 
-        self.factory = CoComAnalyzerFactory()
-        self.CATEGORIES = self.factory.get_categories()
-        self.composer = None
+        self.__factory = CoComAnalyzerFactory()
+        self.CATEGORIES = self.__factory.get_categories()
+        self.__composer = None
 
     def fetch(self, category, from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
               branches=None, latest_items=False):
@@ -55,7 +57,7 @@ class CoCom(Graal):
         items = super().fetch(category, from_date=from_date, to_date=to_date,
                               branches=branches, latest_items=latest_items)
 
-        self.composer = self.factory.get_composer(category)
+        self.__composer = self.__factory.get_composer(category)
 
         return items
 
@@ -87,12 +89,12 @@ class CoCom(Graal):
         :returns: a boolean value
         """
 
-        if not self.composer:
-            raise GraalError(msg="running analyze without having set an analyzer")
+        if not self.__composer:
+            raise GraalError(cause="running analyze without having set an analyzer")
 
         results = []
 
-        analyzers = self.composer.get_composition()
+        analyzers = self.__composer.get_composition()
         for analyzer in analyzers:
 
             # TODO: Introduce parameter object instead of kwargs
@@ -100,7 +102,7 @@ class CoCom(Graal):
                                             in_paths=self.in_paths, worktreepath=self.worktreepath)
             results.append(sub_analysis)
 
-        merged_results = self.composer.merge_results(results)
+        merged_results = self.__composer.merge_results(results)
 
         return merged_results
 
@@ -113,7 +115,7 @@ class CoCom(Graal):
         commit['files'] = [f.replace(self.worktreepath + '/', '')
                            for f in GraalRepository.files(self.worktreepath)]
         commit.pop('refs', None)
-        commit['analyzer'] = self.composer.get_kind()
+        commit['analyzer'] = self.__composer.get_kind()
 
         return commit
 

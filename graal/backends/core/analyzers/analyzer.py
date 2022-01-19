@@ -37,3 +37,21 @@ class Analyzer:
 
     def analyze(self, **kwargs):
         raise NotImplementedError
+
+def is_in_paths(in_paths, file_path):
+    """
+    Returns true if the file path is in in_paths.
+
+    :param in_paths: the list of in_paths
+    :param file_path: to-be-tested file path
+
+    :returns: boolean value
+    """
+
+    if in_paths:
+        found = [p for p in in_paths if file_path.endswith(p)]
+
+        if not found:
+            return False
+
+    return True

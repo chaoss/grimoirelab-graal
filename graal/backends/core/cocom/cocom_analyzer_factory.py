@@ -35,27 +35,30 @@ class CoComAnalyzerFactory:
     version = '0.1.0'
 
     def __init__(self):
-        self._load_compositions()
+        self.__load_compositions()
 
-    def _load_compositions(self):
+    def __load_compositions(self):
         # TODO: add dynamic loading. Look at Graal, as it's used there for loading backends.
+        #       when doing so, the factory can be completely abstracted (i.e. one factory
+        #       can be used for all backends; have them load the concrete analyzers).
         # TODO: do something about kind + category.
         #       You shouldn't be able to load a composition with the composition kind.
-        self.compositions = {
-            CATEGORY_COCOM_LIZARD_FILE: CompositionLizardFile(),
-            LIZARD_FILE: CompositionLizardFile(),
-            CATEGORY_COCOM_LIZARD_REPOSITORY: CompositionLizardRepository(),
-            LIZARD_REPOSITORY: CompositionLizardRepository(),
-            CATEGORY_COCOM_SCC_FILE: CompositionSccFile(),
-            SCC_FILE: CompositionSccFile(),
-            SCC_REPOSITORY: CompositionSccRepository(),
-            CATEGORY_COCOM_SCC_REPOSITORY: CompositionSccRepository()
-        }
+        self.compositions = {}
+        self.__add(CompositionLizardFile())
+        self.__add(CompositionLizardRepository())
+        self.__add(CompositionSccFile())
+        self.__add(CompositionSccRepository())
+
+    def __add(self, composer):
+        """Adds composer to the factory"""
+
+        self.compositions[composer.get_category()] = composer
+        self.compositions[composer.get_kind()] = composer
 
     def build(self, category):
         """Returns composition of analyzers"""
 
-        composer: Composer = self.get_composer(category)
+        composer = self.get_composer(category)
         composition = composer.get_composition()
 
         return composition
@@ -72,8 +75,3 @@ class CoComAnalyzerFactory:
         """Returns all considered categories"""
 
         return self.compositions.keys()
-
-    def add(self, category, composer):
-        """Adds composer to the factory"""
-
-        self.compositions[category] = composer
