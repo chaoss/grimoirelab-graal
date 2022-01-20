@@ -24,15 +24,15 @@
 
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
-from graal.backends.core.analyzers.analyzer import Analyzer, is_in_paths
-
 from .cocom_analyzer_factory import CoComAnalyzerFactory
 from graal.graal import (Graal,
                          GraalCommand,
                          DEFAULT_WORKTREE_PATH,
                          GraalError,
                          GraalRepository)
+from graal.backends.core.cocom.compositions.composition_lizard_file import CATEGORY_COCOM_LIZARD_FILE
 
+DEFAULT_CATEGORY = CATEGORY_COCOM_LIZARD_FILE
 
 class CoCom(Graal):
     """CoCom Backend"""
@@ -50,7 +50,7 @@ class CoCom(Graal):
         self.CATEGORIES = self.__factory.get_categories()
         self.__composer = None
 
-    def fetch(self, category, from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
+    def fetch(self, category=DEFAULT_CATEGORY, from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
               branches=None, latest_items=False):
         """Fetch commits and add code complexity information."""
 
@@ -135,3 +135,10 @@ class CoComCommand(GraalCommand):
     """Class to run CoCom backend from the command line."""
 
     BACKEND = CoCom
+
+    @classmethod
+    def setup_cmd_parser(cls):
+        """Returns the CoCom argument parser."""
+
+        return GraalCommand.setup_cmd_parser(cls.BACKEND)
+        

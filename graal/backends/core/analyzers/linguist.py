@@ -38,17 +38,17 @@ class Linguist(Analyzer):
     def analyze(self, **kwargs):
         """Add information about code language distribution
 
-        :param repository_path: repository path
+        :param worktreepath: repository path
         :param details: if True, it returns detailed information about single commit
 
         :returns result: dict of the results of the analysis
         """
-        repository_path = kwargs['repository_path']
+        worktreepath = kwargs['worktreepath']
         details = kwargs['details']
 
         try:
             message = subprocess.check_output(
-                ['github-linguist', repository_path]).decode("utf-8")
+                ['github-linguist', worktreepath]).decode("utf-8")
         except subprocess.CalledProcessError as e:
             message = e.output.decode("utf-8")
         finally:

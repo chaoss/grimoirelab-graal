@@ -21,6 +21,8 @@
 #     inishchith <inishchith@gmail.com>
 #
 
-from ....._version import __version__
+from .colang import *
+
+from ...._version import __version__
 
 __version__ = __version__

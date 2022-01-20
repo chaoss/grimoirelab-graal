@@ -17,10 +17,29 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 # Authors:
-#     Valerio Cosentino <valcos@bitergia.com>
-#     inishchith <inishchith@gmail.com>
+#     wmeijer221 <w.meijer.5@student.rug.nl>
 #
 
-from ....._version import __version__
+from graal.backends.core.analyzers.cloc import Cloc
+from graal.backends.core.composer import Composer
 
-__version__ = __version__
+CLOC = "cloc"
+CATEGORY_COLANG_CLOC = "code_language_" + CLOC
+
+
+class CompositionCloc(Composer):
+    """Analyzer Composition for Lizard Files."""
+
+    version = '0.1.0'
+
+    def get_category(self):
+        return CATEGORY_COLANG_CLOC
+
+    def get_kind(self):
+        return CLOC
+
+    def get_composition(self):
+        return [Cloc(repository_level=True)]
+
+    def merge_results(self, results):
+        return results[0]

@@ -17,10 +17,29 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 # Authors:
-#     Valerio Cosentino <valcos@bitergia.com>
-#     inishchith <inishchith@gmail.com>
+#     wmeijer221 <w.meijer.5@student.rug.nl>
 #
 
-from ....._version import __version__
+from graal.backends.core.analyzers.linguist import Linguist
+from graal.backends.core.composer import Composer
 
-__version__ = __version__
+LINGUIST = "linguist"
+CATEGORY_COLANG_LINGUIST = "code_language_" + LINGUIST
+
+
+class CompositionLinguist(Composer):
+    """Analyzer Composition for Lizard Files."""
+
+    version = '0.1.0'
+
+    def get_category(self):
+        return CATEGORY_COLANG_LINGUIST
+
+    def get_kind(self):
+        return LINGUIST
+
+    def get_composition(self):
+        return [Linguist()]
+
+    def merge_results(self, results):
+        return results[0]

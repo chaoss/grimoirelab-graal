@@ -22,37 +22,30 @@
 #
 
 import os
-import shutil
-import subprocess
-import tempfile
+import unittest
 import unittest.mock
 
-from graal.graal import GraalCommandArgumentParser
-from graal.backends.core.analyzers.linguist import Linguist
-from graal.backends.core.analyzers.cloc import Cloc
-from graal.backends.core.colang import (CATEGORY_COLANG_LINGUIST,
-                                        CATEGORY_COLANG_CLOC,
-                                        CLOC,
-                                        CoLang,
-                                        RepositoryAnalyzer,
-                                        CoLangCommand)
-from graal.graal import GraalError
 from perceval.utils import DEFAULT_DATETIME
-from base_analyzer import TestCaseAnalyzer
-from base_repo import TestCaseRepo
+
+from graal.backends.core.colang.colang import CoLang, CoLangCommand
+from graal.backends.core.colang.compositions.composition_linguist import CATEGORY_COLANG_LINGUIST
+from graal.backends.core.colang.compositions.composition_cloc import CATEGORY_COLANG_CLOC
+from graal.graal import GraalError, GraalCommandArgumentParser
+
+from .base_repo import TestCaseRepo
 
 
 class TestCoLangBackend(TestCaseRepo):
     """CoLang backend tests"""
 
-    def test_initialization(self):
-        """Test whether attributes are initializated"""
+    def test_constructor(self):
+        "Tests constructor"
 
         cl = CoLang('http://example.com', self.git_path,
                     self.worktree_path, tag="test")
         self.assertEqual(cl.uri, 'http://example.com')
         self.assertEqual(cl.gitpath, self.git_path)
-        self.assertEqual(cl.repository_path, os.path.join(
+        self.assertEqual(cl.worktreepath, os.path.join(
             self.worktree_path, os.path.split(cl.gitpath)[1]))
         self.assertEqual(cl.origin, 'http://example.com')
         self.assertEqual(cl.tag, 'test')
@@ -61,7 +54,7 @@ class TestCoLangBackend(TestCaseRepo):
         """Test whether commits are properly processed"""
 
         cl = CoLang('http://example.com', self.git_path, tag="test")
-        commits = [commit for commit in cl.fetch()]
+        commits = [commit for commit in cl.fetch(category=CATEGORY_COLANG_LINGUIST)]
 
         self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(cl.worktreepath))
@@ -143,64 +136,6 @@ class TestCoLangBackend(TestCaseRepo):
         }
         with self.assertRaises(GraalError):
             _ = CoLang.metadata_category(item, )
-
-
-class TestRepositoryAnalyzer(TestCaseAnalyzer):
-    """RepositoryAnalyzer tests"""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp_path = tempfile.mkdtemp(prefix='colang_')
-        cls.tmp_repo_path = os.path.join(cls.tmp_path, 'repos')
-        os.mkdir(cls.tmp_repo_path)
-
-        data_path = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(data_path, 'data')
-
-        repo_name = 'graaltest'
-        fdout, _ = tempfile.mkstemp(dir=cls.tmp_path)
-
-        zip_path = os.path.join(data_path, repo_name + '.zip')
-        subprocess.check_call(['unzip', '-qq', zip_path, '-d', cls.tmp_repo_path])
-
-        cls.origin_path = os.path.join(cls.tmp_repo_path, repo_name)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.tmp_path)
-
-    def test_init(self):
-        """Test initialization"""
-
-        repo_analyzer = RepositoryAnalyzer()
-        self.assertIsInstance(repo_analyzer, RepositoryAnalyzer)
-        self.assertIsInstance(repo_analyzer.analyzer, Linguist)
-
-        repo_analyzer = RepositoryAnalyzer(kind=CLOC)
-        self.assertIsInstance(repo_analyzer, RepositoryAnalyzer)
-        self.assertIsInstance(repo_analyzer.analyzer, Cloc)
-
-    def test_analyze(self):
-        """Test whether the analyze method works"""
-
-        repo_analyzer = RepositoryAnalyzer()
-        result = repo_analyzer.analyze(self.origin_path)
-        self.assertNotIn('breakdown', result)
-        self.assertIn('Python', result)
-        self.assertTrue(type(result['Python']), float)
-
-        repo_analyzer = RepositoryAnalyzer(kind=CLOC)
-        results = repo_analyzer.analyze(self.origin_path)
-        result = results[next(iter(results))]
-
-        self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
-        self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
-        self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
-        self.assertIn('total_files', result)
-        self.assertTrue(type(result['total_files']), int)
 
 
 class TestCoLangCommand(unittest.TestCase):

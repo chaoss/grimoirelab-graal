@@ -46,7 +46,7 @@ class Composer:
 
 def merge_with_file_name(results):
     """
-    Merges the results using their file names.
+    Utility method; merges the results using their file names.
 
     :param results: Results that are to be merged.
                     These should be on a file-level.

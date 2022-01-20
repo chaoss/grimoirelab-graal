@@ -22,13 +22,11 @@
 
 from graal.graal import GraalError
 
-from graal.backends.core.cocom.compositions.composition_lizard_file import *
-from graal.backends.core.cocom.compositions.composition_lizard_repository import *
-from graal.backends.core.cocom.compositions.composition_scc_file import *
-from graal.backends.core.cocom.compositions.composition_scc_repository import *
+from graal.backends.core.colang.compositions.composition_cloc import *
+from graal.backends.core.colang.compositions.composition_linguist import *
 
 
-class CoComAnalyzerFactory:
+class CoLangAnalyzerFactory:
     """Factory class for Analyzer Compositions"""
 
     version = '0.1.0'
@@ -43,10 +41,8 @@ class CoComAnalyzerFactory:
         # TODO: do something about kind + category.
         #       You shouldn't be able to load a composition with the composition kind.
         self.compositions = {}
-        self.__add(CompositionLizardFile())
-        self.__add(CompositionLizardRepository())
-        self.__add(CompositionSccFile())
-        self.__add(CompositionSccRepository())
+        self.__add(CompositionLinguist())
+        self.__add(CompositionCloc())
 
     def __add(self, composer):
         """Adds composer to the factory"""

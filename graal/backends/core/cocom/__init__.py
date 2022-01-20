@@ -17,6 +17,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 # Authors:
+#     Valerio Cosentino <valcos@bitergia.com>
+#     inishchith <inishchith@gmail.com>
 #
 
 from .cocom import *

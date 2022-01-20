@@ -21,7 +21,6 @@
 #
 
 import unittest
-import random
 
 from graal.backends.core.composer import Composer
 from graal.backends.core.cocom.cocom_analyzer_factory import CoComAnalyzerFactory

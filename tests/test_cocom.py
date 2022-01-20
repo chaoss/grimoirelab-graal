@@ -23,17 +23,11 @@
 #
 
 import os
-from unicodedata import category
 import unittest
 import unittest.mock
 from build.lib.graal.backends.core.cocom.compositions.composition_lizard_file import LIZARD_FILE
-from graal.backends.core import cocom
 
-from graal.graal import GraalError
-from graal.graal import GraalCommandArgumentParser
-
-from graal.backends.core.analyzers.cloc import Cloc
-from graal.backends.core.analyzers.lizard import Lizard
+from graal.graal import GraalCommandArgumentParser, GraalError
 
 from graal.backends.core.cocom.compositions.composition_lizard_file import (CATEGORY_COCOM_LIZARD_FILE, LIZARD_FILE)
 from graal.backends.core.cocom.compositions.composition_lizard_repository import (
@@ -44,8 +38,6 @@ from graal.backends.core.cocom.compositions.composition_scc_repository import (C
 from graal.backends.core.cocom import (CoCom, CoComCommand)
 from perceval.utils import DEFAULT_DATETIME
 
-from .base_analyzer import (ANALYZER_TEST_FILE,
-                            TestCaseAnalyzer)
 from .base_repo import TestCaseRepo
 
 
@@ -228,6 +220,33 @@ class TestCoComBackend(TestCaseRepo):
         }
         with self.assertRaises(GraalError):
             _ = CoCom.metadata_category(item)
+
+
+class TestCoComCommand(unittest.TestCase):
+    """CoComCommand tests"""
+
+    def test_backend_class(self):
+        """Test if the backend class is CoCom"""
+
+        self.assertIs(CoComCommand.BACKEND, CoCom)
+
+    def test_setup_cmd_parser(self):
+        """Test setup_cmd_parser"""
+
+        parser = CoComCommand.setup_cmd_parser()
+        self.assertIsInstance(parser, GraalCommandArgumentParser)
+        self.assertEqual(parser._backend, CoCom)
+
+        args = ['http://example.com/',
+                '--git-path', '/tmp/gitpath',
+                '--tag', 'test',
+                '--from-date', '1970-01-01']
+
+        parsed_args = parser.parse(*args)
+        self.assertEqual(parsed_args.uri, 'http://example.com/')
+        self.assertEqual(parsed_args.git_path, '/tmp/gitpath')
+        self.assertEqual(parsed_args.tag, 'test')
+        self.assertEqual(parsed_args.from_date, DEFAULT_DATETIME)
 
 
 if __name__ == "__main__":
