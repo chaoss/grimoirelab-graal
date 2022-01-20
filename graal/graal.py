@@ -427,9 +427,9 @@ class GraalRepository(GitRepository):
     @staticmethod
     def extension(file_path):
         """Get the extension of a file"""
-
-        ext = file_path.split(".")[-1]
-        return ext
+        
+        split = file_path.split(".")
+        return split[-1] if len(split) > 1 else ''
 
     @staticmethod
     def files(dir_path):

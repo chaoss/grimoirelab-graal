@@ -33,10 +33,13 @@ class CompositionSccFile(Composer):
     version = '0.1.0'
 
     def get_composition(self):
-        return [SCC()]
+        return [SCC(repository_level=False)]
 
     def get_category(self):
         return CATEGORY_COCOM_SCC_FILE
 
     def get_kind(self):
         return SCC_FILE
+
+    def merge_results(self, results):
+        return results[0]

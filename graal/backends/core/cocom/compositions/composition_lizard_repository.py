@@ -22,7 +22,7 @@
 
 from graal.backends.core.analyzers.lizard import Lizard
 from graal.backends.core.analyzers.cloc import Cloc
-from graal.backends.core.composer import Composer
+from graal.backends.core.composer import Composer, merge_with_file_name
 
 LIZARD_REPOSITORY = 'lizard_repository'
 CATEGORY_COCOM_LIZARD_REPOSITORY = 'code_complexity_' + LIZARD_REPOSITORY
@@ -41,3 +41,7 @@ class CompositionLizardRepository(Composer):
 
     def get_kind(self):
         return LIZARD_REPOSITORY
+
+    def merge_results(self, results):
+        return merge_with_file_name(results)
+        
