@@ -19,6 +19,7 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import os
@@ -28,20 +29,26 @@ from graal.graal import (GraalCommandArgumentParser,
                          GraalError)
 from graal.backends.core.analyzers.nomos import Nomos
 from graal.backends.core.analyzers.scancode import ScanCode
-from graal.backends.core.colic import (CATEGORY_COLIC_NOMOS,
-                                       CATEGORY_COLIC_SCANCODE,
-                                       CATEGORY_COLIC_SCANCODE_CLI,
-                                       NOMOS,
-                                       SCANCODE,
-                                       SCANCODE_CLI,
-                                       CoLic,
-                                       LicenseAnalyzer,
-                                       CoLicCommand)
+from graal.backends.core.colic.colic import CATEGORY_PACKAGE
+from graal.backends.core.colic.compositions.composition_nomos import (
+    CATEGORY_COLIC_NOMOS,
+)
+from graal.backends.core.colic.compositions.composition_scancode import (
+    CATEGORY_COLIC_SCANCODE,
+)
+from graal.backends.core.colic.compositions.composition_scancode_cli import (
+    CATEGORY_COLIC_SCANCODE_CLI,
+)
+from graal.backends.core.colic import (
+    CoLic,
+    CoLicCommand
+)
 from perceval.utils import DEFAULT_DATETIME
-from base_analyzer import (ANALYZER_TEST_FILE,
+from base_analyzer import (ANALYZER_TEST_FILE, ANALYZER_TEST_FOLDER,
                            TestCaseAnalyzer)
 from base_repo import TestCaseRepo
 from utils import NOMOS_PATH, SCANCODE_PATH, SCANCODE_CLI_PATH
+from graal.backends.core.analyzer_composition_factory import AnalyzerCompositionFactory
 
 
 class TestCoLicBackend(TestCaseRepo):
@@ -57,8 +64,6 @@ class TestCoLicBackend(TestCaseRepo):
         self.assertEqual(cl.origin, 'http://example.com')
         self.assertEqual(cl.tag, 'test')
         self.assertEqual(cl.exec_path, NOMOS_PATH)
-        self.assertIsNone(cl.analyzer)
-        self.assertIsNone(cl.analyzer_kind)
 
         cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=NOMOS_PATH, tag='test')
         self.assertEqual(cl.uri, 'http://example.com')
@@ -67,23 +72,17 @@ class TestCoLicBackend(TestCaseRepo):
         self.assertEqual(cl.origin, 'http://example.com')
         self.assertEqual(cl.tag, 'test')
         self.assertEqual(cl.exec_path, NOMOS_PATH)
-        self.assertIsNone(cl.analyzer)
-        self.assertIsNone(cl.analyzer_kind)
 
         # When tag is empty or None it will be set to the value in uri
         cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=NOMOS_PATH)
         self.assertEqual(cl.origin, 'http://example.com')
         self.assertEqual(cl.tag, 'http://example.com')
         self.assertEqual(cl.exec_path, NOMOS_PATH)
-        self.assertIsNone(cl.analyzer)
-        self.assertIsNone(cl.analyzer_kind)
 
         cl = CoLic('http://example.com', self.git_path, self.worktree_path, exec_path=NOMOS_PATH)
         self.assertEqual(cl.origin, 'http://example.com')
         self.assertEqual(cl.tag, 'http://example.com')
         self.assertEqual(cl.exec_path, NOMOS_PATH)
-        self.assertIsNone(cl.analyzer)
-        self.assertIsNone(cl.analyzer_kind)
 
         with self.assertRaises(GraalError):
             _ = CoLic('http://example.com', self.git_path, worktreepath=self.worktree_path, exec_path="/tmp/invalid")
@@ -236,47 +235,61 @@ class TestLicenseAnalyzer(TestCaseAnalyzer):
     def test_init(self):
         """Test initialization"""
 
-        license_analyzer = LicenseAnalyzer(NOMOS_PATH)
-        self.assertIsInstance(license_analyzer, LicenseAnalyzer)
-        self.assertIsInstance(license_analyzer.analyzer, Nomos)
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
 
-        license_analyzer = LicenseAnalyzer(NOMOS_PATH, NOMOS)
-        self.assertIsInstance(license_analyzer, LicenseAnalyzer)
-        self.assertIsInstance(license_analyzer.analyzer, Nomos)
+        composer = factory.get_composer(CATEGORY_COLIC_NOMOS)
+        license_analyzer = composer.get_composition()[0]
+        self.assertIsInstance(license_analyzer, Nomos)
 
-        license_analyzer = LicenseAnalyzer(SCANCODE_PATH, SCANCODE)
-        self.assertIsInstance(license_analyzer, LicenseAnalyzer)
-        self.assertIsInstance(license_analyzer.analyzer, ScanCode)
+        composer = factory.get_composer(CATEGORY_COLIC_SCANCODE)
+        license_analyzer = composer.get_composition()[0]
+        self.assertIsInstance(license_analyzer, ScanCode)
 
-        license_analyzer = LicenseAnalyzer(SCANCODE_CLI_PATH, SCANCODE_CLI)
-        self.assertIsInstance(license_analyzer, LicenseAnalyzer)
-        self.assertIsInstance(license_analyzer.analyzer, ScanCode)
-
-        with self.assertRaises(GraalError):
-            _ = LicenseAnalyzer("/tmp/analyzer", SCANCODE)
+        composer = factory.get_composer(CATEGORY_COLIC_SCANCODE_CLI)
+        license_analyzer = composer.get_composition()[0]
+        self.assertIsInstance(license_analyzer, ScanCode)
 
     def test_analyze(self):
         """Test whether the analyze method works"""
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
 
-        file_path = os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)
-        license_analyzer = LicenseAnalyzer(NOMOS_PATH)
-        analysis = license_analyzer.analyze(file_path)
+        kwargs = {
+            'commit': {'files': [{'file': ANALYZER_TEST_FILE}]},
+            'exec_path': NOMOS_PATH,
+            'worktreepath': ANALYZER_TEST_FOLDER,
+            'in_paths': []
+        }
 
-        self.assertIn('licenses', analysis)
+        # test colic nomos
+        composer = factory.get_composer(CATEGORY_COLIC_NOMOS)
+        license_analyzer = composer.get_composition()[0]
 
-        file_path = os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)
-        license_analyzer = LicenseAnalyzer(SCANCODE_PATH, kind=SCANCODE)
-        analysis = license_analyzer.analyze(file_path)
+        analysis = license_analyzer.analyze(**kwargs)
+        for result in analysis:
+            self.assertIn('licenses', result)
 
-        self.assertIn('licenses', analysis)
-        self.assertIn('copyrights', analysis)
+        # test colic scancode
+        composer = factory.get_composer(CATEGORY_COLIC_SCANCODE)
+        license_analyzer = composer.get_composition()[0]
+        self.assertIsInstance(license_analyzer, ScanCode)
 
-        file_paths = [os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)]
-        license_analyzer = LicenseAnalyzer(SCANCODE_CLI_PATH, kind=SCANCODE_CLI)
-        analysis = license_analyzer.analyze(file_paths)
+        kwargs['exec_path'] = SCANCODE_PATH
+        analysis = license_analyzer.analyze(**kwargs)
 
-        self.assertIn('licenses', analysis[0])
-        self.assertIn('copyrights', analysis[0])
+        for result in analysis:
+            self.assertIn('licenses', result)
+            self.assertIn('copyrights', result)
+
+        # test colic scancode cli
+        composer = factory.get_composer(CATEGORY_COLIC_SCANCODE_CLI)
+        license_analyzer = composer.get_composition()[0]
+
+        kwargs['exec_path'] = SCANCODE_CLI_PATH
+        analysis = license_analyzer.analyze(**kwargs)
+
+        for result in analysis:
+            self.assertIn('licenses', result)
+            self.assertIn('copyrights', result)
 
 
 class TestCoLicCommand(unittest.TestCase):

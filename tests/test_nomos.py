@@ -19,6 +19,7 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import os
@@ -26,7 +27,7 @@ import subprocess
 import unittest
 import unittest.mock
 
-from base_analyzer import (TestCaseAnalyzer,
+from base_analyzer import (DOCKERFILE_TEST, TestCaseAnalyzer,
                            ANALYZER_TEST_FILE)
 
 from graal.backends.core.analyzers.nomos import Nomos
@@ -40,21 +41,27 @@ class TestNomos(TestCaseAnalyzer):
     def test_init(self):
         """Test the analyzer is properly initialized"""
 
-        nomos = Nomos(exec_path=NOMOS_PATH)
-        self.assertEqual(nomos.exec_path, NOMOS_PATH)
+        nomos = Nomos()
         self.assertIsNotNone(nomos.search_pattern)
-
-        with self.assertRaises(GraalError):
-            _ = Nomos("/tmp/invalid")
 
     def test_analyze(self):
         """Test whether nomos returns the expected fields data"""
 
-        nomos = Nomos(exec_path=NOMOS_PATH)
-        kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)}
-        result = nomos.analyze(**kwargs)
+        nomos = Nomos()
+        kwargs = {
+            'worktreepath': self.tmp_data_path,
+            'commit': {'files': [{'file': ANALYZER_TEST_FILE}, {'file': DOCKERFILE_TEST}]},
+            'exec_path': NOMOS_PATH,
+            'in_paths': []
+        }
+        results = nomos.analyze(**kwargs)
 
-        self.assertIn('licenses', result)
+        for result in results:
+            self.assertIn('licenses', result)
+
+        with self.assertRaises(GraalError):
+            kwargs['exec_path'] = "/tmp/invalid"
+            _ = nomos.analyze(**kwargs)
 
     @unittest.mock.patch('subprocess.check_output')
     def test_analyze_error(self, check_output_mock):
@@ -62,10 +69,9 @@ class TestNomos(TestCaseAnalyzer):
 
         check_output_mock.side_effect = subprocess.CalledProcessError(-1, "command", output=b'output')
 
-        nomos = Nomos(exec_path=NOMOS_PATH)
-        kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)}
+        nomos = Nomos()
         with self.assertRaises(GraalError):
-            _ = nomos.analyze(**kwargs)
+            _ = nomos.analyze_file(NOMOS_PATH, ANALYZER_TEST_FILE, os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE))
 
 
 if __name__ == "__main__":
