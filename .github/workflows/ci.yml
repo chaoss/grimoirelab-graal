@@ -19,10 +19,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
         
-      - name: Set up Ruby
-        uses: actions/setup-ruby@v1
-        with:
-          ruby-version: 2.6
+      # - name: Set up Ruby
+      #   uses: actions/setup-ruby@v1
+      #   with:
+      #     ruby-version: 2.6
         
       - name: Set up Go
         uses: actions/setup-go@v2
@@ -38,11 +38,11 @@ jobs:
           pip install --upgrade wheel
           pip install -r "requirements.txt"
           pip install flake8 coveralls
-          gem install github-linguist
           pip install bandit pylint execnet
           wget https://github.com/fossology/fossology/releases/download/${FOSSOLOGY_VERSION}/FOSSology-${FOSSOLOGY_VERSION}-ubuntu-focal.tar.gz
           tar -xzf FOSSology-${FOSSOLOGY_VERSION}-ubuntu-focal.tar.gz
           sudo apt-get update -y
+          sudo apt-get install -y ruby-github-linguist
           sudo apt-get -y install ./packages/fossology-common_${FOSSOLOGY_VERSION}-1_amd64.deb ./packages/fossology-nomos_${FOSSOLOGY_VERSION}-1_amd64.deb
           sudo apt-get install cloc
           eval "$(gimme stable)"
