@@ -54,7 +54,7 @@ class TestAnalyzerCompositionFactory(TestCaseAnalyzer):
         fac = AnalyzerCompositionFactory(self.target_package)
 
         cats = fac.get_categories()
-        self.assertEqual(len(cats), 4)
+        self.assertEqual(len(cats), 3)
         self.assertIn(CATEGORY_COLIC_NOMOS, cats)
         self.assertIn(CATEGORY_COLIC_SCANCODE, cats)
         self.assertIn(CATEGORY_COLIC_SCANCODE_CLI, cats)
