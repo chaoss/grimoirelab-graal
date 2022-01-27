@@ -1,8 +1,8 @@
-title: 'Refactor CoLic with strategy pattern'
+title: 'Refactor Backends with strategy pattern'
 category: changed
 author: Groninger Bugbusters <w.meijer.5@student.rug.nl>
 issue: 104
 notes: >
     Graal backends face evolution issues. This refactor
-    implements the strategy pattern in the CoLic backend
-    to prevent these issues from occurring. 
+    implements the strategy pattern in the Graal backends
+    to prevent these issues from occurring.

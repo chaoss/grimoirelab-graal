@@ -19,46 +19,55 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import os
+import unittest
 import unittest.mock
+from perceval.utils import DEFAULT_DATETIME
 
-from graal.graal import GraalError
-from graal.graal import GraalCommandArgumentParser
+from graal.graal import GraalCommandArgumentParser, GraalError
+
+from graal.backends.core.cocom.cocom import CATEGORY_PACKAGE
+from graal.backends.core.analyzer_composition_factory import AnalyzerCompositionFactory
+
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
-from graal.backends.core.cocom import (CATEGORY_COCOM_LIZARD_FILE,
-                                       CATEGORY_COCOM_LIZARD_REPOSITORY,
-                                       CATEGORY_COCOM_SCC_FILE,
-                                       CATEGORY_COCOM_SCC_REPOSITORY,
-                                       CoCom,
-                                       FileAnalyzer,
-                                       RepositoryAnalyzer,
-                                       CoComCommand)
-from perceval.utils import DEFAULT_DATETIME
-from base_analyzer import (ANALYZER_TEST_FILE,
-                           TestCaseAnalyzer)
+from graal.backends.core.analyzers.scc import SCC
+
+from graal.backends.core.cocom.compositions.composition_lizard_file import (CATEGORY_COCOM_LIZARD_FILE, LIZARD_FILE)
+from graal.backends.core.cocom.compositions.composition_lizard_repository import (
+    CATEGORY_COCOM_LIZARD_REPOSITORY, LIZARD_REPOSITORY)
+from graal.backends.core.cocom.compositions.composition_scc_file import (CATEGORY_COCOM_SCC_FILE, SCC_FILE)
+from graal.backends.core.cocom.compositions.composition_scc_repository import (CATEGORY_COCOM_SCC_REPOSITORY, SCC_REPOSITORY)
+
+from graal.backends.core.cocom import (CoCom, CoComCommand)
+
+from base_analyzer import ANALYZER_TEST_FILE, TestCaseAnalyzer
 from base_repo import TestCaseRepo
 
 
 class TestCoComBackend(TestCaseRepo):
     """CoCom backend tests"""
 
-    def test_initialization(self):
-        """Test whether attributes are initializated"""
+    def test_constructor(self):
+        """Tests constructor."""
 
         cc = CoCom('http://example.com', self.git_path, self.worktree_path, tag='test')
         self.assertEqual(cc.uri, 'http://example.com')
         self.assertEqual(cc.gitpath, self.git_path)
-        self.assertEqual(cc.worktreepath, os.path.join(self.worktree_path, os.path.split(cc.gitpath)[1]))
+        self.assertEqual(cc.worktreepath,
+                         os.path.join(self.worktree_path, os.path.split(cc.gitpath)[1]))
         self.assertEqual(cc.origin, 'http://example.com')
         self.assertEqual(cc.tag, 'test')
 
-        cc = CoCom('http://example.com', self.git_path, self.worktree_path, details=True, tag='test')
+        cc = CoCom('http://example.com', self.git_path, self.worktree_path,
+                   details=True, tag='test')
         self.assertEqual(cc.uri, 'http://example.com')
         self.assertEqual(cc.gitpath, self.git_path)
-        self.assertEqual(cc.worktreepath, os.path.join(self.worktree_path, os.path.split(cc.gitpath)[1]))
+        self.assertEqual(cc.worktreepath,
+                         os.path.join(self.worktree_path, os.path.split(cc.gitpath)[1]))
         self.assertEqual(cc.origin, 'http://example.com')
         self.assertEqual(cc.tag, 'test')
 
@@ -71,51 +80,66 @@ class TestCoComBackend(TestCaseRepo):
         self.assertEqual(cc.origin, 'http://example.com')
         self.assertEqual(cc.tag, 'http://example.com')
 
+        self.assertGreater(len(cc.CATEGORIES), 0)
+
     def test_fetch_lizard_file(self):
         """Test whether commits are properly processed via file level"""
 
-        cc = CoCom('http://example.com', self.git_path, self.worktree_path, in_paths=['perceval/backends/core/github.py'])
-        commits = [commit for commit in cc.fetch()]
+        ccom = CoCom('http://example.com', self.git_path, self.worktree_path,
+                     in_paths=['perceval/backends/core/github.py'])
+        commits = [commit for commit in ccom.fetch(category=CATEGORY_COCOM_LIZARD_FILE)]
 
         self.assertEqual(len(commits), 1)
-        self.assertFalse(os.path.exists(cc.worktreepath))
+        self.assertFalse(os.path.exists(ccom.worktreepath))
 
         for commit in commits:
             self.assertEqual(commit['backend_name'], 'CoCom')
             self.assertEqual(commit['category'], CATEGORY_COCOM_LIZARD_FILE)
-            self.assertEqual(commit['data']['analysis'][0]['file_path'],
+            self.assertIn('data', commit)
+
+            data = commit['data']
+            self.assertEqual(data['analysis'][0]['file_path'],
                              'perceval/backends/core/github.py')
-            self.assertTrue('Author' in commit['data'])
-            self.assertTrue('Commit' in commit['data'])
-            self.assertTrue('files' in commit['data'])
-            self.assertTrue('parents' in commit['data'])
-            self.assertFalse('refs' in commit['data'])
+
+            self.assertIn('Author', data)
+            self.assertIn('Commit', data)
+            self.assertIn('files', data)
+            self.assertIn('parents', data)
+            self.assertNotIn('refs', data)
+            self.assertIn('analyzer', data)
+            self.assertEqual(data['analyzer'], LIZARD_FILE)
 
     def test_fetch_scc_file(self):
         """Test whether commits are properly processed via file level"""
 
-        cc = CoCom('http://example.com', self.git_path, self.worktree_path, in_paths=['perceval/backends/core/github.py'])
-        commits = [commit for commit in cc.fetch(category="code_complexity_scc_file")]
+        ccom = CoCom('http://example.com', self.git_path, self.worktree_path,
+                     in_paths=['perceval/backends/core/github.py'])
+        commits = [commit for commit in ccom.fetch(category=CATEGORY_COCOM_SCC_FILE)]
 
         self.assertEqual(len(commits), 1)
-        self.assertFalse(os.path.exists(cc.worktreepath))
+        self.assertFalse(os.path.exists(ccom.worktreepath))
 
         for commit in commits:
             self.assertEqual(commit['backend_name'], 'CoCom')
             self.assertEqual(commit['category'], CATEGORY_COCOM_SCC_FILE)
-            self.assertEqual(commit['data']['analysis'][0]['file_path'],
+
+            data = commit['data']
+            self.assertEqual(data['analysis'][0]['file_path'],
                              'perceval/backends/core/github.py')
-            self.assertTrue('Author' in commit['data'])
-            self.assertTrue('Commit' in commit['data'])
-            self.assertTrue('files' in commit['data'])
-            self.assertTrue('parents' in commit['data'])
-            self.assertFalse('refs' in commit['data'])
+
+            self.assertIn('Author', data)
+            self.assertIn('Commit', data)
+            self.assertIn('files', data)
+            self.assertIn('parents', data)
+            self.assertNotIn('refs', data)
+            self.assertIn('analyzer', data)
+            self.assertEqual(data['analyzer'], SCC_FILE)
 
     def test_fetch_lizard_repository(self):
         """Test whether commits are properly processed via repository level"""
 
         cc = CoCom('http://example.com', self.git_path, self.worktree_path)
-        commits = [commit for commit in cc.fetch(category="code_complexity_lizard_repository")]
+        commits = [commit for commit in cc.fetch(category=CATEGORY_COCOM_LIZARD_REPOSITORY)]
 
         self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(cc.worktreepath))
@@ -123,17 +147,22 @@ class TestCoComBackend(TestCaseRepo):
         for commit in commits:
             self.assertEqual(commit['backend_name'], 'CoCom')
             self.assertEqual(commit['category'], CATEGORY_COCOM_LIZARD_REPOSITORY)
-            self.assertTrue('Author' in commit['data'])
-            self.assertTrue('Commit' in commit['data'])
-            self.assertTrue('files' in commit['data'])
-            self.assertTrue('parents' in commit['data'])
-            self.assertFalse('refs' in commit['data'])
+            self.assertIn('data', commit)
+
+            data = commit['data']
+            self.assertIn('Author', data)
+            self.assertIn('Commit', data)
+            self.assertIn('files', data)
+            self.assertIn('parents', data)
+            self.assertNotIn('refs', data)
+            self.assertIn('analyzer', data)
+            self.assertEqual(data['analyzer'], LIZARD_REPOSITORY)
 
     def test_fetch_scc_repository(self):
         """Test whether commits are properly processed via repository level"""
 
         cc = CoCom('http://example.com', self.git_path, self.worktree_path)
-        commits = [commit for commit in cc.fetch(category="code_complexity_scc_repository")]
+        commits = [commit for commit in cc.fetch(category=CATEGORY_COCOM_SCC_REPOSITORY)]
 
         self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(cc.worktreepath))
@@ -141,11 +170,16 @@ class TestCoComBackend(TestCaseRepo):
         for commit in commits:
             self.assertEqual(commit['backend_name'], 'CoCom')
             self.assertEqual(commit['category'], CATEGORY_COCOM_SCC_REPOSITORY)
-            self.assertTrue('Author' in commit['data'])
-            self.assertTrue('Commit' in commit['data'])
-            self.assertTrue('files' in commit['data'])
-            self.assertTrue('parents' in commit['data'])
-            self.assertFalse('refs' in commit['data'])
+            self.assertIn('data', commit)
+
+            data = commit['data']
+            self.assertIn('Author', data)
+            self.assertIn('Commit', data)
+            self.assertIn('files', data)
+            self.assertIn('parents', data)
+            self.assertNotIn('refs', data)
+            self.assertIn('analyzer', data)
+            self.assertEqual(data['analyzer'], SCC_REPOSITORY)
 
     def test_fetch_unknown(self):
         """Test whether commits are properly processed"""
@@ -154,30 +188,6 @@ class TestCoComBackend(TestCaseRepo):
 
         with self.assertRaises(GraalError):
             _ = cc.fetch(category="unknown")
-
-    def test_fetch_analysis(self):
-        """Test whether commits have properly set values"""
-
-        cc = CoCom('http://example.com', self.git_path, self.worktree_path, details=True)
-        commits = [commit for commit in cc.fetch()]
-
-        self.assertEqual(len(commits), 6)
-        self.assertFalse(os.path.exists(cc.worktreepath))
-
-        deleted_file_commit = commits[5]
-
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['file_path'],
-                         'perceval/backends/graal.py')
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['blanks'], None)
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['comments'], None)
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['loc'], None)
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['ccn'], None)
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['avg_ccn'], None)
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['avg_loc'], None)
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['avg_tokens'], None)
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['num_funs'], None)
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['tokens'], None)
-        self.assertEqual(deleted_file_commit['data']['analysis'][0]['funs'], [])
 
     def test_metadata_category(self):
         """Test metadata_category"""
@@ -225,61 +235,97 @@ class TestFileAnalyzer(TestCaseAnalyzer):
     def test_init(self):
         """Test initialization"""
 
-        file_analyzer = FileAnalyzer()
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
 
-        self.assertIsInstance(file_analyzer, FileAnalyzer)
-        self.assertIsInstance(file_analyzer.cloc, Cloc)
-        self.assertIsInstance(file_analyzer.lizard, Lizard)
-        self.assertFalse(file_analyzer.details)
+        # Lizard file
+        composer = factory.get_composer(CATEGORY_COCOM_LIZARD_FILE)
+        composition = composer.get_composition()
 
-        file_analyzer = FileAnalyzer(details=True)
+        self.assertEqual(len(composition), 2)
 
-        self.assertIsInstance(file_analyzer, FileAnalyzer)
-        self.assertIsInstance(file_analyzer.cloc, Cloc)
-        self.assertIsInstance(file_analyzer.lizard, Lizard)
-        self.assertTrue(file_analyzer.details)
+        cloc = [entry for entry in composition if type(entry) == Cloc]
+        self.assertEqual(len(cloc), 1)
+        cloc = cloc[0]
+        self.assertEqual(cloc.analyze, cloc.analyze_files)
+
+        lizard = [entry for entry in composition if type(entry) == Lizard]
+        self.assertEqual(len(lizard), 1)
+        lizard = lizard[0]
+        self.assertEqual(lizard.analyze, lizard.analyze_files)
+
+        # SCC file
+        composer = factory.get_composer(CATEGORY_COCOM_SCC_FILE)
+        composition = composer.get_composition()
+
+        self.assertEqual(len(composition), 1)
+        scc = composition[0]
+        self.assertIsNotNone(scc)
+        self.assertIsInstance(scc, SCC)
+        self.assertEqual(scc.analyze, scc.analyze_files)
 
     def test_analyze_no_functions(self):
         """Test whether the analyze method works"""
 
-        file_path = os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)
-        file_analyzer = FileAnalyzer()
-        analysis = file_analyzer.analyze(file_path)
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
+        composer = factory.get_composer(CATEGORY_COCOM_LIZARD_FILE)
+        composition = composer.get_composition()
 
-        self.assertNotIn('funs', analysis)
-        self.assertIn('ccn', analysis)
-        self.assertIn('avg_loc', analysis)
-        self.assertIn('avg_tokens', analysis)
-        self.assertIn('loc', analysis)
-        self.assertIn('tokens', analysis)
-        self.assertIn('blanks', analysis)
-        self.assertIn('comments', analysis)
+        kwargs = {
+            'commit': {'files': [{'file': ANALYZER_TEST_FILE}]},
+            'details': False,
+            'worktreepath': self.tmp_data_path,
+            'in_paths': []
+        }
+
+        results = [analyzer.analyze(**kwargs) for analyzer in composition]
+        merged_results = composer.merge_results(results)
+
+        for analysis in merged_results:
+            self.assertNotIn('funs', analysis)
+            self.assertIn('ccn', analysis)
+            self.assertIn('avg_loc', analysis)
+            self.assertIn('avg_tokens', analysis)
+            self.assertIn('loc', analysis)
+            self.assertIn('tokens', analysis)
+            self.assertIn('blanks', analysis)
+            self.assertIn('comments', analysis)
 
     def test_analyze_functions(self):
         """Test whether the analyze method returns functions information"""
 
-        file_path = os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)
-        file_analyzer = FileAnalyzer(details=True)
-        analysis = file_analyzer.analyze(file_path)
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
+        composer = factory.get_composer(CATEGORY_COCOM_LIZARD_FILE)
+        composition = composer.get_composition()
 
-        self.assertIn('ccn', analysis)
-        self.assertIn('avg_loc', analysis)
-        self.assertIn('avg_tokens', analysis)
-        self.assertIn('loc', analysis)
-        self.assertIn('tokens', analysis)
-        self.assertIn('blanks', analysis)
-        self.assertIn('comments', analysis)
-        self.assertIn('funs', analysis)
+        kwargs = {
+            'commit': {'files': [{'file': ANALYZER_TEST_FILE}]},
+            'details': True,
+            'worktreepath': self.tmp_data_path,
+            'in_paths': []
+        }
 
-        for fd in analysis['funs']:
-            self.assertIn('ccn', fd)
-            self.assertIn('tokens', fd)
-            self.assertIn('loc', fd)
-            self.assertIn('lines', fd)
-            self.assertIn('name', fd)
-            self.assertIn('args', fd)
-            self.assertIn('start', fd)
-            self.assertIn('end', fd)
+        results = [analyzer.analyze(**kwargs) for analyzer in composition]
+        merged_results = composer.merge_results(results)
+
+        for analysis in merged_results:
+            self.assertIn('ccn', analysis)
+            self.assertIn('avg_loc', analysis)
+            self.assertIn('avg_tokens', analysis)
+            self.assertIn('loc', analysis)
+            self.assertIn('tokens', analysis)
+            self.assertIn('blanks', analysis)
+            self.assertIn('comments', analysis)
+            self.assertIn('funs', analysis)
+
+            for fd in analysis['funs']:
+                self.assertIn('ccn', fd)
+                self.assertIn('tokens', fd)
+                self.assertIn('loc', fd)
+                self.assertIn('lines', fd)
+                self.assertIn('name', fd)
+                self.assertIn('args', fd)
+                self.assertIn('start', fd)
+                self.assertIn('end', fd)
 
 
 class TestRepositoryAnalyzer(TestCaseAnalyzer):
@@ -288,35 +334,58 @@ class TestRepositoryAnalyzer(TestCaseAnalyzer):
     def test_init(self):
         """Test initialization"""
 
-        repository_analyzer = RepositoryAnalyzer()
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
 
-        self.assertIsInstance(repository_analyzer, RepositoryAnalyzer)
-        self.assertIsInstance(repository_analyzer.analyzer, Lizard)
-        self.assertFalse(repository_analyzer.details)
+        # Lizard repository
+        composer = factory.get_composer(CATEGORY_COCOM_LIZARD_REPOSITORY)
+        composition = composer.get_composition()
 
-        repository_analyzer = RepositoryAnalyzer(details=True)
+        cloc = [entry for entry in composition if type(entry) == Cloc]
+        self.assertEqual(len(cloc), 1)
+        cloc = cloc[0]
+        self.assertIsNotNone(cloc)
+        self.assertEqual(cloc.analyze, cloc.analyze_repository)
 
-        self.assertIsInstance(repository_analyzer, RepositoryAnalyzer)
-        self.assertIsInstance(repository_analyzer.analyzer, Lizard)
-        self.assertTrue(repository_analyzer.details)
+        lizard = [entry for entry in composition if type(entry) == Lizard]
+        self.assertEqual(len(lizard), 1)
+        lizard = lizard[0]
+        self.assertIsNotNone(lizard)
+        self.assertEqual(lizard.analyze, lizard.analyze_repository)
+
+        # SCC repository
+        composer = factory.get_composer(CATEGORY_COCOM_SCC_REPOSITORY)
+        composition = composer.get_composition()
+        self.assertEqual(len(composition), 1)
+        scc = composition[0]
+        self.assertIsInstance(scc, SCC)
+        self.assertEqual(scc.analyze, scc.analyze_repository)
 
     def test_analyze(self):
         """Test whether the analyze method works"""
 
-        repository_path = self.tmp_data_path
-        repository_analyzer = RepositoryAnalyzer()
-        analysis = repository_analyzer.analyze(repository_path, files_affected=[])
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
+        composer = factory.get_composer(CATEGORY_COCOM_LIZARD_REPOSITORY)
+        composition = composer.get_composition()
 
-        file_analysis = analysis[0]
+        kwargs = {
+            'commit': {'files': [{'file': ANALYZER_TEST_FILE}]},
+            'details': False,
+            'worktreepath': self.tmp_data_path,
+            'in_paths': [ANALYZER_TEST_FILE]
+        }
 
-        self.assertIn('num_funs', file_analysis)
-        self.assertIn('ccn', file_analysis)
-        self.assertIn('loc', file_analysis)
-        self.assertIn('tokens', file_analysis)
-        self.assertIn('file_path', file_analysis)
-        self.assertIn('in_commit', file_analysis)
-        self.assertIn('blanks', file_analysis)
-        self.assertIn('comments', file_analysis)
+        results = [analyzer.analyze(**kwargs) for analyzer in composition]
+        merged_results = composer.merge_results(results)
+
+        for file_analysis in merged_results:
+            self.assertIn('num_funs', file_analysis)
+            self.assertIn('ccn', file_analysis)
+            self.assertIn('loc', file_analysis)
+            self.assertIn('tokens', file_analysis)
+            self.assertIn('file_path', file_analysis)
+            self.assertIn('in_commit', file_analysis)
+            self.assertIn('blanks', file_analysis)
+            self.assertIn('comments', file_analysis)
 
 
 class TestCoComCommand(unittest.TestCase):

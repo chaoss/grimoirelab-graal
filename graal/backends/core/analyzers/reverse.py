@@ -19,8 +19,10 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
+import logging
 import os
 import subprocess
 import tempfile
@@ -29,18 +31,20 @@ import networkx as nx
 from networkx.drawing.nx_pydot import read_dot
 from networkx.readwrite import json_graph
 
-from graal.graal import GraalError
+from graal.graal import GraalError, GraalRepository
 from .analyzer import Analyzer
 
 CLASSES_FILE_NAME = "classes.dot"
 PACKAGES_FILE_NAME = "packages.dot"
+
+logger = logging.getLogger(__name__)
 
 
 class Reverse(Analyzer):
     """A wrapper for Pyreverse, a tool to extract UML class diagrams and package
     dependencies from Python projects.
     """
-    version = '0.1.0'
+    version = '0.1.1'
 
     def __init__(self):
         self.tmp_path = tempfile.mkdtemp(prefix='codep_graal_')
@@ -48,12 +52,24 @@ class Reverse(Analyzer):
 
     def analyze(self, **kwargs):
         """Get a UML class diagrams from a Python project.
-
-        :param module_path: module path
+        :param worktreepath: the directory where to store the working tree
+        :param entrypoint: the entrypoint of the analysis
         :param result: dict of the results of the analysis
         """
         result = {}
-        module_path = kwargs['module_path']
+
+        worktreepath = kwargs['worktreepath']
+        entrypoint = kwargs['entrypoint']
+
+        if not worktreepath or not entrypoint:
+            raise GraalError(cause="no valid entrypoint given")
+
+        module_path = os.path.join(worktreepath, entrypoint)
+
+        if not GraalRepository.exists(module_path):
+            logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
+                           % (module_path, kwargs['commit']['commit']))
+            return {}
 
         try:
             subprocess.check_output(['pyreverse', module_path]).decode("utf-8")

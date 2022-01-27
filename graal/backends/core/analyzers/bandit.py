@@ -19,6 +19,7 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 from collections import Counter
@@ -34,17 +35,17 @@ class Bandit(Analyzer):
     Once Bandit has finished scanning all the files it generates a report.
     """
 
-    version = '0.2.1'
+    version = '0.2.2'
 
     def analyze(self, **kwargs):
         """Add security issue data using Bandit.
 
-        :param folder_path: folder path
+        :param worktreepath: folder path
         :param details: if True, it returns information about single vulnerabilities
 
         :returns result: dict of the results of the analysis
         """
-        folder_path = kwargs['folder_path']
+        folder_path = kwargs['worktreepath']
         details = kwargs['details']
 
         try:
@@ -63,17 +64,17 @@ class Bandit(Analyzer):
         descr = None
         severity = None
         confidence = None
-        inIssue = False
-        inOverview = False
+        in_issue = False
+        in_overview = False
         lines = msg.lower().split('\n')
         for line in lines:
             if line.startswith(">> issue: "):
                 descr = line.replace(">> issue: ", "")
-                inIssue = True
+                in_issue = True
             elif line.startswith("code scanned:"):
-                inOverview = True
+                in_overview = True
             else:
-                if inIssue:
+                if in_issue:
                     line = line.strip()
                     if line.startswith("severity:"):
                         tokens = [t.strip(":") for t in line.split(" ")]
@@ -94,8 +95,8 @@ class Bandit(Analyzer):
                         severity = None
                         confidence = None
                         descr = None
-                        inIssue = False
-                elif inOverview:
+                        in_issue = False
+                elif in_overview:
                     if line.startswith("\ttotal lines of code:"):
                         loc = line.split(":")[1].strip()
                         loc = int(loc)

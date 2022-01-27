@@ -19,40 +19,42 @@
 # Authors:
 #     inishchith <inishchith@gmail.com>
 #     Valerio Cosentino <valcos@bitergia.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import os
+import tempfile
 import shutil
 import subprocess
-import tempfile
+import unittest
 import unittest.mock
 
-from graal.graal import GraalCommandArgumentParser
+from perceval.utils import DEFAULT_DATETIME
+from graal.backends.core.analyzer_composition_factory import AnalyzerCompositionFactory
+
+from graal.backends.core.colang.colang import CoLang, CoLangCommand, CATEGORY_PACKAGE
 from graal.backends.core.analyzers.linguist import Linguist
 from graal.backends.core.analyzers.cloc import Cloc
-from graal.backends.core.colang import (CATEGORY_COLANG_LINGUIST,
-                                        CATEGORY_COLANG_CLOC,
-                                        CLOC,
-                                        CoLang,
-                                        RepositoryAnalyzer,
-                                        CoLangCommand)
-from graal.graal import GraalError
-from perceval.utils import DEFAULT_DATETIME
-from base_analyzer import TestCaseAnalyzer
+
+from graal.backends.core.colang.compositions.composition_linguist import CATEGORY_COLANG_LINGUIST
+from graal.backends.core.colang.compositions.composition_cloc import CATEGORY_COLANG_CLOC
+from graal.graal import GraalError, GraalCommandArgumentParser
+
 from base_repo import TestCaseRepo
+from base_analyzer import ANALYZER_TEST_FILE, TestCaseAnalyzer
 
 
 class TestCoLangBackend(TestCaseRepo):
     """CoLang backend tests"""
 
-    def test_initialization(self):
-        """Test whether attributes are initializated"""
+    def test_constructor(self):
+        "Tests constructor"
 
         cl = CoLang('http://example.com', self.git_path,
                     self.worktree_path, tag="test")
         self.assertEqual(cl.uri, 'http://example.com')
         self.assertEqual(cl.gitpath, self.git_path)
-        self.assertEqual(cl.repository_path, os.path.join(
+        self.assertEqual(cl.worktreepath, os.path.join(
             self.worktree_path, os.path.split(cl.gitpath)[1]))
         self.assertEqual(cl.origin, 'http://example.com')
         self.assertEqual(cl.tag, 'test')
@@ -61,7 +63,7 @@ class TestCoLangBackend(TestCaseRepo):
         """Test whether commits are properly processed"""
 
         cl = CoLang('http://example.com', self.git_path, tag="test")
-        commits = [commit for commit in cl.fetch()]
+        commits = [commit for commit in cl.fetch(category=CATEGORY_COLANG_LINGUIST)]
 
         self.assertEqual(len(commits), 6)
         self.assertFalse(os.path.exists(cl.worktreepath))
@@ -85,7 +87,7 @@ class TestCoLangBackend(TestCaseRepo):
         self.assertEqual(commit['backend_name'], 'CoLang')
         self.assertEqual(commit['category'], CATEGORY_COLANG_CLOC)
         results = commit['data']['analysis']
-        result = results[next(iter(results))]
+        result = results[0]
 
         self.assertIn('blanks', result)
         self.assertTrue(type(result['blanks']), int)
@@ -93,8 +95,6 @@ class TestCoLangBackend(TestCaseRepo):
         self.assertTrue(type(result['comments']), int)
         self.assertIn('loc', result)
         self.assertTrue(type(result['loc']), int)
-        self.assertIn('total_files', result)
-        self.assertTrue(type(result['total_files']), int)
 
     def test_fetch_unknown(self):
         """Test whether commits are properly processed"""
@@ -172,35 +172,62 @@ class TestRepositoryAnalyzer(TestCaseAnalyzer):
     def test_init(self):
         """Test initialization"""
 
-        repo_analyzer = RepositoryAnalyzer()
-        self.assertIsInstance(repo_analyzer, RepositoryAnalyzer)
-        self.assertIsInstance(repo_analyzer.analyzer, Linguist)
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
 
-        repo_analyzer = RepositoryAnalyzer(kind=CLOC)
-        self.assertIsInstance(repo_analyzer, RepositoryAnalyzer)
-        self.assertIsInstance(repo_analyzer.analyzer, Cloc)
+        # Linguist
+        composer = factory.get_composer(CATEGORY_COLANG_LINGUIST)
+        composition = composer.get_composition()
+        self.assertEqual(len(composition), 1)
+        self.assertIsInstance(composition[0], Linguist)
+
+        # Cloc
+        composer = factory.get_composer(CATEGORY_COLANG_CLOC)
+        composition = composer.get_composition()
+        self.assertEqual(len(composition), 1)
+        self.assertIsInstance(composition[0], Cloc)
 
     def test_analyze(self):
         """Test whether the analyze method works"""
 
-        repo_analyzer = RepositoryAnalyzer()
-        result = repo_analyzer.analyze(self.origin_path)
-        self.assertNotIn('breakdown', result)
-        self.assertIn('Python', result)
-        self.assertTrue(type(result['Python']), float)
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
 
-        repo_analyzer = RepositoryAnalyzer(kind=CLOC)
-        results = repo_analyzer.analyze(self.origin_path)
-        result = results[next(iter(results))]
+        # linguist
+        composer = factory.get_composer(CATEGORY_COLANG_LINGUIST)
+        composition = composer.get_composition()
 
-        self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
-        self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
-        self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
-        self.assertIn('total_files', result)
-        self.assertTrue(type(result['total_files']), int)
+        kwargs = {
+            'worktreepath': self.origin_path,
+            'details': False
+        }
+
+        results = [analyzer.analyze(**kwargs) for analyzer in composition]
+        results = composer.merge_results(results)
+
+        self.assertIn('Python', results)
+        self.assertTrue(type(results['Python']), float)
+        self.assertNotIn('breakdown', results)
+
+        # cloc
+        composer = factory.get_composer(CATEGORY_COLANG_CLOC)
+        composition = composer.get_composition()
+
+        kwargs = {
+            'in_paths': [ANALYZER_TEST_FILE],
+            'worktreepath': self.origin_path,
+        }
+
+        results = [analyzer.analyze(**kwargs) for analyzer in composition]
+        results = composer.merge_results(results)
+
+        for result in results:
+            self.assertIn('blanks', result)
+            self.assertTrue(type(result['blanks']), int)
+            self.assertIn('comments', result)
+            self.assertTrue(type(result['comments']), int)
+            self.assertIn('loc', result)
+            self.assertTrue(type(result['loc']), int)
+            self.assertIn('total_files', result)
+            self.assertTrue(type(result['total_files']), int)
 
 
 class TestCoLangCommand(unittest.TestCase):

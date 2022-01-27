@@ -19,77 +19,174 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
-import os
 import subprocess
 import unittest.mock
 
-from base_analyzer import (TestCaseAnalyzer,
-                           ANALYZER_TEST_FILE)
+from graal.backends.core.analyzers.cloc import (Cloc, DEFAULT_DIFF_TIMEOUT)
 
-from graal.backends.core.analyzers.cloc import (Cloc,
-                                                DEFAULT_DIFF_TIMEOUT)
+from base_analyzer import (DOCKERFILE_TEST,
+                           ANALYZER_TEST_FILE,
+                           TestCaseAnalyzer)
 from graal.graal import GraalError
 
 
 class TestCloc(TestCaseAnalyzer):
     """Cloc tests"""
 
-    def test_initialization(self):
-        """Test whether attributes are initializated"""
+    def test_constructor(self):
+        """Tests the constructor with different repository levels."""
 
-        c = Cloc()
-        self.assertEqual(c.diff_timeout, DEFAULT_DIFF_TIMEOUT)
+        cloc = Cloc(repository_level=False)
+        self.assertEqual(cloc.analyze, cloc.analyze_files)
 
-        c = Cloc(diff_timeout=50)
-        self.assertEqual(c.diff_timeout, 50)
+        cloc = Cloc(repository_level=True)
+        self.assertEqual(cloc.analyze, cloc.analyze_repository)
 
-    def test_analyze(self):
-        """Test whether cloc returns the expected fields data"""
+        self.assertEqual(cloc.diff_timeout, DEFAULT_DIFF_TIMEOUT)
 
-        cloc = Cloc()
-        kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)}
-        result = cloc.analyze(**kwargs)
+        set_timeout = 25
+        cloc = Cloc(repository_level=True, diff_timeout=set_timeout)
+        self.assertEqual(cloc.diff_timeout, set_timeout)
 
-        self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
-        self.assertTrue(result['blanks'], 27)
-        self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
-        self.assertTrue(result['comments'], 31)
-        self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
-        self.assertTrue(result['loc'], 67)
+    def test_analyze_repository_without_in_paths(self):
+        """Tests CLOC on a repository level without in_paths set."""
 
-    def test_analyze_repository_level(self):
-        """Test whether cloc returns the expected fields data for repository level"""
+        cloc = Cloc(repository_level=True)
 
-        cloc = Cloc()
         kwargs = {
-            'file_path': self.origin_path,
-            'repository_level': True
+            'worktreepath': self.tmp_data_path,
+            'in_paths': []
         }
-        results = cloc.analyze(**kwargs)
-        result = results[next(iter(results))]
 
-        self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
-        self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
-        self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
-        self.assertIn('total_files', result)
-        self.assertTrue(type(result['total_files']), int)
+        results = cloc.analyze(**kwargs)
+
+        self.assertEqual(len(results), 4)
+
+        for result in results:
+            self.assertIn('file_path', result)
+            self.assertEqual(type(result['file_path']), str)
+            self.assertIn('ext', result)
+            self.assertEqual(type(result['ext']), str)
+            self.assertIn('blanks', result)
+            self.assertEqual(type(result['blanks']), int)
+            self.assertIn('comments', result)
+            self.assertEqual(type(result['comments']), int)
+            self.assertIn('loc', result)
+            self.assertEqual(type(result['loc']), int)
+
+    def test_analyze_repository_with_in_paths(self):
+        """Tests CLOC on a repository level with in_paths set."""
+
+        cloc = Cloc(repository_level=True)
+
+        kwargs = {
+            'worktreepath': self.tmp_data_path,
+            'in_paths': [ANALYZER_TEST_FILE, DOCKERFILE_TEST]
+        }
+
+        results = cloc.analyze(**kwargs)
+
+        self.assertEqual(len(results), 2)
+
+        for result in results:
+            self.assertIn('file_path', result)
+            self.assertEqual(type(result['file_path']), str)
+            self.assertIn('ext', result)
+            self.assertEqual(type(result['ext']), str)
+            self.assertIn('blanks', result)
+            self.assertEqual(type(result['blanks']), int)
+            self.assertIn('comments', result)
+            self.assertEqual(type(result['comments']), int)
+            self.assertIn('loc', result)
+            self.assertEqual(type(result['loc']), int)
+
+    def test_analyze_files_without_in_paths(self):
+        """Tests CLOC on a file level without in_paths set."""
+
+        cloc = Cloc(repository_level=False)
+
+        kwargs = {
+            'commit': {'files': [{'file': ANALYZER_TEST_FILE}, {'file': DOCKERFILE_TEST}]},
+            'in_paths': [],
+            'worktreepath': self.tmp_data_path
+        }
+
+        results = cloc.analyze(**kwargs)
+
+        self.assertEqual(len(results), 2)
+
+        for result in results:
+            self.assertIn('file_path', result)
+            self.assertEqual(type(result['file_path']), str)
+            self.assertIn('ext', result)
+            self.assertEqual(type(result['ext']), str)
+            self.assertIn('blanks', result)
+            self.assertEqual(type(result['blanks']), int)
+            self.assertIn('comments', result)
+            self.assertEqual(type(result['comments']), int)
+            self.assertIn('loc', result)
+            self.assertEqual(type(result['loc']), int)
+
+    def test_analyze_files_with_in_paths(self):
+        """Tests CLOC on a file level with in_paths set."""
+
+        cloc = Cloc(repository_level=False)
+
+        kwargs = {
+            'commit': {'files': [{'file': ANALYZER_TEST_FILE}]},
+            'in_paths': [ANALYZER_TEST_FILE],
+            'worktreepath': self.tmp_data_path
+        }
+
+        results = cloc.analyze(**kwargs)
+
+        self.assertEqual(len(results), 1)
+
+        for result in results:
+            self.assertIn('file_path', result)
+            self.assertEqual(type(result['file_path']), str)
+            self.assertIn('ext', result)
+            self.assertEqual(type(result['ext']), str)
+            self.assertIn('blanks', result)
+            self.assertEqual(type(result['blanks']), int)
+            self.assertIn('comments', result)
+            self.assertEqual(type(result['comments']), int)
+            self.assertIn('loc', result)
+            self.assertEqual(type(result['loc']), int)
 
     @unittest.mock.patch('subprocess.check_output')
-    def test_analyze_error(self, check_output_mock):
+    def test_analyze_repository_error(self, check_output_mock):
         """Test whether an exception is thrown in case of errors"""
 
         check_output_mock.side_effect = subprocess.CalledProcessError(-1, "command", output=b'output')
 
-        cloc = Cloc()
-        kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE)}
+        cloc = Cloc(repository_level=True)
+
+        kwargs = {
+            'worktreepath': self.tmp_data_path,
+            'in_paths': []
+        }
+
+        with self.assertRaises(GraalError):
+            _ = cloc.analyze(**kwargs)
+
+    @unittest.mock.patch('subprocess.check_output')
+    def test_analyze_files_error(self, check_output_mock):
+        """Test whether an exception is thrown in case of errors"""
+
+        check_output_mock.side_effect = subprocess.CalledProcessError(-1, "command", output=b'output')
+
+        cloc = Cloc(repository_level=True)
+
+        kwargs = {
+            'commit': {'files': [{'file': self.tmp_data_path}]},
+            'in_paths': [],
+            'worktreepath': self.tmp_data_path
+        }
+
         with self.assertRaises(GraalError):
             _ = cloc.analyze(**kwargs)
 

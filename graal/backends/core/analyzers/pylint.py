@@ -19,29 +19,46 @@
 # Authors:
 #     inishchith <inishchith@gmail.com>
 #     Valerio Cosentino <valcos@bitergia.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import subprocess
 
-from graal.graal import GraalError
+from git import os
+
+from graal.graal import GraalError, GraalRepository
 from .analyzer import Analyzer
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PyLint(Analyzer):
     """A wrapper for Pylint, a source code, bug and quality checker for Python."""
 
-    version = '0.2.1'
+    version = '0.2.2'
 
     def analyze(self, **kwargs):
         """Add quality checks data using Pylint.
-
-        :param module_path: module path
+        :param worktreepath: the directory where to store the working tree
+        :param entrypoint: the entrypoint of the analysis
         :param details: if True, it returns information about single modules
-
         :returns result: dict of the results of the analysis
         """
-        module_path = kwargs['module_path']
+        if not kwargs['worktreepath'] or not kwargs['entrypoint']:
+            raise GraalError(cause="entrypoint or worktree path not valid")
+
+        module_path = os.path.join(kwargs['worktreepath'], kwargs['entrypoint'])
         details = kwargs['details']
+
+        if not GraalRepository.exists(module_path):
+            if 'commit' not in kwargs:
+                logger.warning("module path %s does not exist, analysis will be skipped"
+                               % (module_path))
+            else:
+                logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
+                               % (module_path, kwargs['commit']['commit']))
 
         try:
             msg = subprocess.check_output(['pylint', '-rn', '--output-format=text', module_path]).decode("utf-8")

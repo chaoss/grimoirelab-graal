@@ -19,6 +19,7 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import os
@@ -26,13 +27,17 @@ import shutil
 import subprocess
 import tempfile
 import unittest.mock
+from graal.backends.core.analyzer_composition_factory import AnalyzerCompositionFactory
+from graal.backends.core.covuln.covuln import CATEGORY_PACKAGE
 
 from graal.graal import GraalCommandArgumentParser
 from graal.backends.core.analyzers.bandit import Bandit
-from graal.backends.core.covuln import (CATEGORY_COVULN,
-                                        CoVuln,
-                                        VulnAnalyzer,
-                                        CoVulnCommand)
+
+from graal.backends.core.covuln.compositions.composition_bandit import CATEGORY_COVULN
+from graal.backends.core.covuln import (
+    CoVuln,
+    CoVulnCommand
+)
 from perceval.utils import DEFAULT_DATETIME
 from graal.graal import GraalError
 from base_analyzer import TestCaseAnalyzer
@@ -122,17 +127,24 @@ class TestModuleAnalyzer(TestCaseAnalyzer):
     def test_init(self):
         """Test initialization"""
 
-        vuln_analyzer = VulnAnalyzer()
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
+        composer = factory.get_composer(CATEGORY_COVULN)
 
-        self.assertIsInstance(vuln_analyzer, VulnAnalyzer)
-        self.assertIsInstance(vuln_analyzer.bandit, Bandit)
+        vuln_analyzer = composer.get_composition()[0]
+
+        self.assertIsInstance(vuln_analyzer, Bandit)
 
     def test_analyze(self):
         """Test whether the analyze method works"""
 
         module_path = os.path.join(self.tmp_path, 'graaltest', 'perceval')
-        vuln_analyzer = VulnAnalyzer()
-        result = vuln_analyzer.analyze(module_path)
+
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
+        composer = factory.get_composer(CATEGORY_COVULN)
+
+        vuln_analyzer = composer.get_composition()[0]
+
+        result = vuln_analyzer.analyze(worktreepath=module_path, details=False)
 
         self.assertIn('loc_analyzed', result)
         self.assertTrue(type(result['loc_analyzed']), int)

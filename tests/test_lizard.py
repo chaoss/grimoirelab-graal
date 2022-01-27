@@ -19,112 +19,165 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
-import os
 import unittest
 
-from base_analyzer import (TestCaseAnalyzer,
-                           ANALYZER_TEST_FILE)
-
 from graal.backends.core.analyzers.lizard import Lizard
+
+from base_analyzer import (TestCaseAnalyzer, ANALYZER_TEST_FILE)
 
 
 class TestLizard(TestCaseAnalyzer):
     """Lizard tests"""
 
-    def test_analyze_file_no_details(self):
-        """Test whether lizard returns the expected fields data for files"""
+    def test_constructor(self):
+        """Tests the constructor with different repository levels."""
 
-        lizard = Lizard()
-        kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE),
-                  'details': False}
-        result = lizard.analyze(**kwargs)
+        liz = Lizard(repository_level=False)
+        self.assertEqual(liz.analyze, liz.analyze_files)
 
-        self.assertNotIn('funs', result)
-        self.assertIn('ccn', result)
-        self.assertTrue(type(result['ccn']), int)
-        self.assertIn('avg_ccn', result)
-        self.assertTrue(type(result['avg_ccn']), float)
-        self.assertIn('avg_loc', result)
-        self.assertTrue(type(result['avg_loc']), float)
-        self.assertIn('avg_tokens', result)
-        self.assertTrue(type(result['avg_tokens']), float)
-        self.assertIn('num_funs', result)
-        self.assertTrue(type(result['num_funs']), int)
-        self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
-        self.assertIn('tokens', result)
-        self.assertTrue(type(result['tokens']), int)
+        liz = Lizard(repository_level=True)
+        self.assertEqual(liz.analyze, liz.analyze_repository)
 
-    def test_analyze_file_details(self):
-        """Test whether lizard returns the expected fields data for files"""
+    def test_analyze_repository_no_details(self):
+        """Tests analysis on repository without details"""
 
-        lizard = Lizard()
-        kwargs = {'file_path': os.path.join(self.tmp_data_path, ANALYZER_TEST_FILE),
-                  'details': True}
-        result = lizard.analyze(**kwargs)
+        liz = Lizard(repository_level=True)
 
-        self.assertIn('ccn', result)
-        self.assertTrue(type(result['ccn']), int)
-        self.assertIn('avg_ccn', result)
-        self.assertTrue(type(result['avg_ccn']), float)
-        self.assertIn('avg_loc', result)
-        self.assertTrue(type(result['avg_loc']), float)
-        self.assertIn('avg_tokens', result)
-        self.assertTrue(type(result['avg_tokens']), float)
-        self.assertIn('num_funs', result)
-        self.assertTrue(type(result['num_funs']), int)
-        self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
-        self.assertIn('tokens', result)
-        self.assertTrue(type(result['tokens']), int)
-        self.assertIn('funs', result)
-        self.assertTrue(type(result['funs']), dict)
+        kwargs = {
+            'worktreepath': self.tmp_data_path,
+            'commit': {'files': [ANALYZER_TEST_FILE]},
+            'details': False
+        }
 
-        for fd in result['funs']:
-            self.assertIn('ccn', fd)
-            self.assertTrue(type(fd['ccn']), int)
-            self.assertIn('tokens', fd)
-            self.assertTrue(type(fd['tokens']), int)
-            self.assertIn('loc', fd)
-            self.assertTrue(type(fd['loc']), int)
-            self.assertIn('lines', fd)
-            self.assertTrue(type(fd['lines']), int)
-            self.assertIn('name', fd)
-            self.assertTrue(type(fd['name']), str)
-            self.assertIn('args', fd)
-            self.assertTrue(type(fd['args']), int)
-            self.assertIn('start', fd)
-            self.assertTrue(type(fd['start']), int)
-            self.assertIn('end', fd)
-            self.assertTrue(type(fd['end']), int)
+        results = liz.analyze(**kwargs)
 
-    def test_analyze_repository(self):
-        """Test whether lizard returns the expected fields data for repository"""
+        for result in results:
+            self.assertIn('file_path', result)
+            self.assertEqual(type(result['file_path']), str)
+            self.assertIn('ext', result)
+            self.assertEqual(type(result['ext']), str)
+            self.assertIn('in_commit', result)
+            self.assertEqual(type(result['in_commit']), bool)
 
-        lizard = Lizard()
-        kwargs = {'repository_path': self.tmp_data_path,
-                  'repository_level': True,
-                  'files_affected': [],
-                  'details': False}
-        result = lizard.analyze(**kwargs)
-        result = result[0]
+            if result['file_path'] == ANALYZER_TEST_FILE:
+                self.assertTrue(result['in_commit'])
 
-        self.assertIn('ccn', result)
-        self.assertTrue(type(result['ccn']), int)
-        self.assertIn('num_funs', result)
-        self.assertTrue(type(result['num_funs']), int)
-        self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
-        self.assertIn('tokens', result)
-        self.assertTrue(type(result['tokens']), int)
-        self.assertIn('in_commit', result)
-        self.assertTrue(type(result['in_commit']), bool)
-        self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
-        self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
+            self.assertIn('ccn', result)
+            self.assertEqual(type(result['ccn']), int)
+            self.assertIn('num_funs', result)
+            self.assertEqual(type(result['num_funs']), int)
+            self.assertIn('loc', result)
+            self.assertEqual(type(result['loc']), int)
+            self.assertIn('tokens', result)
+            self.assertEqual(type(result['tokens']), int)
+            self.assertIn('avg_ccn', result)
+            self.assertEqual(type(result['avg_ccn']), float)
+            self.assertIn('avg_loc', result)
+            self.assertEqual(type(result['avg_loc']), float)
+            self.assertIn('avg_tokens', result)
+            self.assertEqual(type(result['avg_tokens']), float)
+
+    def test_analyze_repository_details(self):
+        """Tests analysis on repository with details"""
+        # TODO: repository analysis with details is not implemented yet.
+
+    def test_analyze_files_no_details(self):
+        """Tests analysis on repository without details"""
+
+        liz = Lizard(repository_level=False)
+
+        kwargs = {
+            'commit': {'files': [{'file': ANALYZER_TEST_FILE}]},
+            'in_paths': [],
+            'details': False,
+            'worktreepath': self.tmp_data_path
+        }
+
+        results = liz.analyze(**kwargs)
+
+        self.assertEqual(len(results), 1)
+
+        for result in results:
+            self.assertIn('file_path', result)
+            self.assertEqual(type(result['file_path']), str)
+            self.assertIn('ext', result)
+            self.assertEqual(type(result['ext']), str)
+            self.assertIn('ccn', result)
+            self.assertEqual(type(result['ccn']), int)
+            self.assertIn('num_funs', result)
+            self.assertEqual(type(result['num_funs']), int)
+            self.assertIn('loc', result)
+            self.assertEqual(type(result['loc']), int)
+            self.assertIn('tokens', result)
+            self.assertEqual(type(result['tokens']), int)
+            self.assertIn('avg_ccn', result)
+            self.assertEqual(type(result['avg_ccn']), float)
+            self.assertIn('avg_loc', result)
+            self.assertEqual(type(result['avg_loc']), float)
+            self.assertIn('avg_tokens', result)
+            self.assertEqual(type(result['avg_tokens']), float)
+
+    def test_analyze_files_details(self):
+        """Tests analysis on repository with details"""
+
+        liz = Lizard(repository_level=False)
+
+        liz = Lizard(repository_level=False)
+
+        kwargs = {
+            'commit': {'files': [{'file': ANALYZER_TEST_FILE}]},
+            'in_paths': [],
+            'details': True,
+            'worktreepath': self.tmp_data_path
+        }
+
+        results = liz.analyze(**kwargs)
+
+        self.assertEqual(len(results), 1)
+
+        for result in results:
+            self.assertIn('file_path', result)
+            self.assertEqual(type(result['file_path']), str)
+            self.assertIn('ext', result)
+            self.assertEqual(type(result['ext']), str)
+            self.assertIn('ccn', result)
+            self.assertEqual(type(result['ccn']), int)
+            self.assertIn('num_funs', result)
+            self.assertEqual(type(result['num_funs']), int)
+            self.assertIn('loc', result)
+            self.assertEqual(type(result['loc']), int)
+            self.assertIn('tokens', result)
+            self.assertEqual(type(result['tokens']), int)
+            self.assertIn('avg_ccn', result)
+            self.assertEqual(type(result['avg_ccn']), float)
+            self.assertIn('avg_loc', result)
+            self.assertEqual(type(result['avg_loc']), float)
+            self.assertIn('avg_tokens', result)
+            self.assertEqual(type(result['avg_tokens']), float)
+
+            self.assertIn('funs', result)
+            self.assertEqual(type(result['funs']), list)
+
+            for fd in result['funs']:
+                self.assertIn('ccn', fd)
+                self.assertTrue(type(fd['ccn']), int)
+                self.assertIn('tokens', fd)
+                self.assertTrue(type(fd['tokens']), int)
+                self.assertIn('loc', fd)
+                self.assertTrue(type(fd['loc']), int)
+                self.assertIn('lines', fd)
+                self.assertTrue(type(fd['lines']), int)
+                self.assertIn('name', fd)
+                self.assertTrue(type(fd['name']), str)
+                self.assertIn('args', fd)
+                self.assertTrue(type(fd['args']), int)
+                self.assertIn('start', fd)
+                self.assertTrue(type(fd['start']), int)
+                self.assertIn('end', fd)
+                self.assertTrue(type(fd['end']), int)
 
 
 if __name__ == "__main__":

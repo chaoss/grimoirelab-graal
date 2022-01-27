@@ -3,6 +3,6 @@ pylint>=1.8.4
 flake8>=3.7.7
 networkx>=2.1
 pydot>=1.2.4
-bandit>=1.4.0
+bandit>=1.4.0, <=1.7.1
 -e git+https://github.com/chaoss/grimoirelab-perceval/#egg=grimoirelab-perceval
 -e git+https://github.com/chaoss/grimoirelab-toolkit/#egg=grimoirelab-toolkit
