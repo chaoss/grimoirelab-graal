@@ -52,7 +52,7 @@ class TestCaseRepo(unittest.TestCase):
         zip_path = os.path.join(data_path, self.repo_name + '.zip')
         subprocess.check_call(['unzip', '-qq', zip_path, '-d', self.tmp_repo_path])
 
-        origin_path = os.path.join(self.tmp_repo_path, 'graaltest')
+        origin_path = os.path.join(self.tmp_repo_path, self.repo_name)
         subprocess.check_call(['git', 'clone', '-q', '--bare', origin_path, self.git_path],
                               stderr=fdout)
 

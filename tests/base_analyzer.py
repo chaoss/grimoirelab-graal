@@ -29,6 +29,7 @@ import unittest
 
 ANALYZER_TEST_FOLDER = "data/"
 ANALYZER_TEST_FILE = "sample_code.py"
+ANALYZER_TEST_C_FILE = "sample_code.c"
 DOCKERFILE_TEST = "Dockerfile"
 
 

@@ -30,6 +30,7 @@ from graal.graal import (Graal,
                          DEFAULT_WORKTREE_PATH)
 from graal.backends.core.analyzers.cloc import Cloc
 from graal.backends.core.analyzers.lizard import Lizard
+from graal.backends.core.analyzers.qmcalc import QMCalc
 from graal.backends.core.analyzers.scc import SCC
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
@@ -39,11 +40,17 @@ SCC_REPOSITORY = 'scc_repository'
 LIZARD_FILE = 'lizard_file'
 LIZARD_REPOSITORY = 'lizard_repository'
 
+QMCALC_FILE = 'qmcalc_file'
+QMCALC_REPOSITORY = 'qmcalc_repository'
+
 CATEGORY_COCOM_LIZARD_FILE = 'code_complexity_' + LIZARD_FILE
 CATEGORY_COCOM_LIZARD_REPOSITORY = 'code_complexity_' + LIZARD_REPOSITORY
 
 CATEGORY_COCOM_SCC_FILE = 'code_complexity_' + SCC_FILE
 CATEGORY_COCOM_SCC_REPOSITORY = 'code_complexity_' + SCC_REPOSITORY
+
+CATEGORY_COCOM_QMCALC_FILE = 'code_complexity_' + QMCALC_FILE
+CATEGORY_COCOM_QMCALC_REPOSITORY = 'code_complexity_' + QMCALC_REPOSITORY
 
 logger = logging.getLogger(__name__)
 
@@ -84,10 +91,12 @@ class CoCom(Graal):
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.5.1'
+    version = '0.6.0'
 
     CATEGORIES = [CATEGORY_COCOM_LIZARD_FILE,
                   CATEGORY_COCOM_LIZARD_REPOSITORY,
+                  CATEGORY_COCOM_QMCALC_FILE,
+                  CATEGORY_COCOM_QMCALC_REPOSITORY,
                   CATEGORY_COCOM_SCC_FILE,
                   CATEGORY_COCOM_SCC_REPOSITORY]
 
@@ -113,6 +122,10 @@ class CoCom(Graal):
             self.analyzer_kind = LIZARD_FILE
         elif category == CATEGORY_COCOM_LIZARD_REPOSITORY:
             self.analyzer_kind = LIZARD_REPOSITORY
+        elif category == CATEGORY_COCOM_QMCALC_FILE:
+            self.analyzer_kind = QMCALC_FILE
+        elif category == CATEGORY_COCOM_QMCALC_REPOSITORY:
+            self.analyzer_kind = QMCALC_REPOSITORY
         elif category == CATEGORY_COCOM_SCC_FILE:
             self.analyzer_kind = SCC_FILE
         elif category == CATEGORY_COCOM_SCC_REPOSITORY:
@@ -141,6 +154,10 @@ class CoCom(Graal):
             return CATEGORY_COCOM_LIZARD_FILE
         elif item['analyzer'] == LIZARD_REPOSITORY:
             return CATEGORY_COCOM_LIZARD_REPOSITORY
+        elif item['analyzer'] == QMCALC_FILE:
+            return CATEGORY_COCOM_QMCALC_FILE
+        elif item['analyzer'] == QMCALC_REPOSITORY:
+            return CATEGORY_COCOM_QMCALC_REPOSITORY
         elif item['analyzer'] == SCC_FILE:
             return CATEGORY_COCOM_SCC_FILE
         elif item['analyzer'] == SCC_REPOSITORY:
@@ -173,7 +190,7 @@ class CoCom(Graal):
         """
         analysis = []
 
-        if self.analyzer_kind in [LIZARD_FILE, SCC_FILE]:
+        if self.analyzer_kind in [LIZARD_FILE, QMCALC_FILE, SCC_FILE]:
             for committed_file in commit['files']:
 
                 file_path = committed_file['file']
@@ -211,6 +228,7 @@ class CoCom(Graal):
 
                 file_info = self.analyzer.analyze(local_path)
                 file_info.update({'file_path': file_path})
+
                 analysis.append(file_info)
         else:
             files_affected = [file_info['file'] for file_info in commit['files']]
@@ -234,6 +252,7 @@ class FileAnalyzer:
     """Class to analyse the content of files"""
 
     ALLOWED_EXTENSIONS = ['java', 'py', 'php', 'scala', 'js', 'rb', 'cs', 'cpp', 'c', 'lua', 'go', 'swift']
+    QMC_ALLOWED_EXTENSIONS = ['c', 'h']
     FORBIDDEN_EXTENSIONS = ['tar', 'bz2', "gz", "lz", "apk", "tbz2",
                             "lzma", "tlz", "war", "xar", "zip", "zipx"]
 
@@ -244,6 +263,9 @@ class FileAnalyzer:
         if self.kind == LIZARD_FILE:
             self.cloc = Cloc()
             self.lizard = Lizard()
+        elif self.kind == QMCALC_FILE:
+            self.cloc = Cloc()
+            self.qmcalc = QMCalc()
         else:
             self.scc = SCC()
 
@@ -281,6 +303,11 @@ class FileAnalyzer:
 
             file_analysis['blanks'] = cloc_analysis['blanks']
             file_analysis['comments'] = cloc_analysis['comments']
+        elif self.kind == QMCALC_FILE:
+            if GraalRepository.extension(file_path) in self.QMC_ALLOWED_EXTENSIONS:
+                file_analysis = self.qmcalc.analyze(**kwargs)
+            else:
+                file_analysis = self.cloc.analyze(**kwargs)
         else:
             file_analysis = self.scc.analyze(**kwargs)
 
@@ -299,6 +326,8 @@ class RepositoryAnalyzer:
 
         if kind == LIZARD_REPOSITORY:
             self.analyzer = Lizard()
+        elif self.kind == QMCALC_REPOSITORY:
+            self.analyzer = QMCalc()
         else:
             self.analyzer = SCC()
 
@@ -327,6 +356,9 @@ class RepositoryAnalyzer:
             'files_affected': files_affected,
             'details': self.details
         }
+        repository_path = kwargs.get('repository_path', False)
+        if not repository_path:
+            raise GraalError(cause="The 'repository_path' argument is not set for a repository level analysis.")
 
         repository_analysis = self.analyzer.analyze(**kwargs)
 
