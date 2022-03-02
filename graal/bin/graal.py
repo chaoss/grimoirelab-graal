@@ -51,7 +51,7 @@ optional arguments:
 
 GRAAL_EPILOG_MSG = """Run '%(prog)s <backend> --help' to get information about a specific backend."""
 
-GRAAL_VERSION_MSG = """%(prog)s """  + graal.backends.core.__version__
+GRAAL_VERSION_MSG = """%(prog)s """ + graal.backends.core.__version__
 
 
 # Logging formats
