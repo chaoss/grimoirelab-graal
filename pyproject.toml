@@ -1,0 +1,64 @@
+[tool.poetry]
+name = "graal"
+version = "0.2.9"
+description = "A generic source code analyzer"
+authors = [
+    "GrimoireLab Developers"
+]
+license = "GPL-3.0+"
+
+readme = "README.md"
+
+homepage = "https://chaoss.github.io/grimoirelab/"
+repository = "https://github.com/chaoss/grimoirelab-graal"
+
+keywords = [
+    "development",
+    "grimoirelab"
+]
+
+packages = [
+    { include = "graal" },
+    { include = "tests", format = "sdist" },
+]
+
+include = [
+    { path = "AUTHORS", format = "sdist" },
+    { path = "README.md", format = "sdist" }
+]
+
+classifiers = [
+   "Development Status :: 4 - Beta",
+   "Intended Audience :: Developers",
+   "Intended Audience :: Science/Research",
+   "Topic :: Software Development",
+   "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+   "Programming Language :: Python :: 3"
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/chaoss/grimoirelab-graal/issues"
+
+[tool.poetry.scripts]
+graal = 'graal.bin.graal:main'
+
+[tool.poetry.dependencies]
+python = "^3.7"
+lizard = "1.16.6"
+pylint = ">=1.8.4"
+flake8 = ">=3.7.7"
+networkx = ">=2.1"
+pydot = ">=1.2.4"
+bandit = ">=1.4.0"
+perceval = {git = "https://github.com/chaoss/grimoirelab-perceval", branch = "master" }
+grimoirelab-toolkit = {git = "https://github.com/chaoss/grimoirelab-toolkit", branch = "master" }
+cloc = "^0.2.5"
+
+
+[tool.poetry.dev-dependencies]
+flake8 = "^4.0.1"
+coverage = "^6.3.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
