@@ -352,7 +352,8 @@ class TestGraalRepository(TestCaseRepo):
 
         with self.assertLogs(logger, level='DEBUG') as cm:
             repo.worktree(new_path, branch='master')
-            self.assertRegex(cm.output[0], 'DEBUG:graal.graal:Git worktree.*not created.*already exists.*')
+            self.assertRegex(cm.output[0],
+                             'DEBUG:graal.graal:Git worktree(?s:.)*not created(?s:.)*already exists(?s:.)*')
 
         repo.prune()
         self.assertFalse(os.path.exists(repo.worktreepath))
