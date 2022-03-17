@@ -290,7 +290,9 @@ class GraalRepository(GitRepository):
 
     def worktree(self, worktreepath, branch=None):
         """Create a working tree of the cloned repository with the active branch
-        set to `branch`
+        set to `branch`.
+        Create a new branch for `branch` named `<branch>-graal` to avoid errors with protected
+        branches (git/git@8bc1f39).
 
         :param worktreepath: the path where the working tree will be located
         :param branch: the name of the branch. If None, the branch is set to the default branch
@@ -300,6 +302,7 @@ class GraalRepository(GitRepository):
         cmd_worktree = [GIT_EXEC_PATH, 'worktree', 'add', self.worktreepath]
         if branch:
             cmd_worktree.append(branch)
+            cmd_worktree.extend(['-b', '{}-graal'.format(branch)])
 
         try:
             self._exec(cmd_worktree, cwd=self.dirpath, env=self.gitenv)
