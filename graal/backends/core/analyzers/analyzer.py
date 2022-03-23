@@ -19,6 +19,7 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 
@@ -33,7 +34,26 @@ class Analyzer:
     :raises NotImplementedError: raised when `analyze`
         is not defined
     """
-    version = '0.1.0'
+    version = '0.1.1'
 
     def analyze(self, **kwargs):
         raise NotImplementedError
+
+
+def is_in_paths(in_paths, file_path):
+    """
+    Returns true if the file path is in in_paths.
+
+    :param in_paths: the list of in_paths
+    :param file_path: to-be-tested file path
+
+    :returns: boolean value
+    """
+
+    if in_paths:
+        found = [p for p in in_paths if file_path.endswith(p)]
+
+        if not found:
+            return False
+
+    return True

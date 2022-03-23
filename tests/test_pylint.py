@@ -19,9 +19,9 @@
 # Authors:
 #     inishchith <inishchith@gmail.com>
 #     Valerio Cosentino <valcos@bitergia.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
-import os
 import subprocess
 import unittest.mock
 
@@ -40,7 +40,8 @@ class TestPyLint(TestCaseAnalyzer):
 
         pylint = PyLint()
         kwargs = {
-            'module_path': os.path.join(self.repo_path, "perceval"),
+            'entrypoint': "perceval",
+            'worktreepath': self.repo_path,
             'details': True
         }
         result = pylint.analyze(**kwargs)
@@ -63,7 +64,8 @@ class TestPyLint(TestCaseAnalyzer):
 
         pylint = PyLint()
         kwargs = {
-            'module_path': os.path.join(self.repo_path, ANALYZER_TEST_FILE),
+            'entrypoint': "perceval",
+            'worktreepath': self.repo_path,
             'details': False
         }
         result = pylint.analyze(**kwargs)
@@ -84,7 +86,8 @@ class TestPyLint(TestCaseAnalyzer):
 
         pylint = PyLint()
         kwargs = {
-            'module_path': os.path.join(self.repo_path, ANALYZER_TEST_FILE),
+            'entrypoint': ANALYZER_TEST_FILE,
+            'worktreepath': self.repo_path,
             'details': False
         }
         with self.assertRaises(GraalError):

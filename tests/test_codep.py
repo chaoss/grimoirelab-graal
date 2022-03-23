@@ -19,6 +19,7 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import os
@@ -26,17 +27,19 @@ import shutil
 import subprocess
 import tempfile
 import unittest.mock
+from graal.backends.core.analyzer_composition_factory import AnalyzerCompositionFactory
 
 from graal.graal import GraalCommandArgumentParser
 from graal.backends.core.analyzers.jadolint import Jadolint, DEPENDENCIES
 from graal.backends.core.analyzers.reverse import Reverse
 from graal.backends.core.codep import (CATEGORY_CODEP_PYREVERSE,
                                        CATEGORY_CODEP_JADOLINT,
+                                       CATEGORY_PACKAGE,
                                        CoDep,
-                                       PyreverseAnalyzer,
-                                       JadolintAnalyzer,
-                                       CoDepCommand,
-                                       logger)
+                                       CoDepCommand)
+
+from graal.backends.core.analyzers.reverse import logger
+
 from graal.graal import GraalError
 from perceval.utils import DEFAULT_DATETIME
 from base_analyzer import (TestCaseAnalyzer,
@@ -273,25 +276,36 @@ class TestDependencyAnalyzer(TestCaseAnalyzer):
     def test_pyreverse_init(self):
         """Test initialization"""
 
-        dep_analyzer = PyreverseAnalyzer()
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
 
-        self.assertIsInstance(dep_analyzer, PyreverseAnalyzer)
-        self.assertIsInstance(dep_analyzer.analyzer, Reverse)
+        composer = factory.get_composer(CATEGORY_CODEP_PYREVERSE)
+        dep_analyzer = composer.get_composition()[0]
+
+        self.assertIsInstance(dep_analyzer, Reverse)
 
     def test_jadolint_init(self):
         """Test initialization"""
 
-        dep_analyzer = JadolintAnalyzer(JADOLINT_PATH)
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
 
-        self.assertIsInstance(dep_analyzer, JadolintAnalyzer)
-        self.assertIsInstance(dep_analyzer.analyzer, Jadolint)
+        composer = factory.get_composer(CATEGORY_CODEP_JADOLINT)
+        dep_analyzer = composer.get_composition()[0]
+
+        self.assertIsInstance(dep_analyzer, Jadolint)
 
     def test_analyze_pyreverse(self):
         """Test whether the analyze method works"""
 
-        module_path = os.path.join(self.tmp_path, 'graaltest', 'perceval')
-        dep_analyzer = PyreverseAnalyzer()
-        result = dep_analyzer.analyze(module_path)
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
+
+        composer = factory.get_composer(CATEGORY_CODEP_PYREVERSE)
+        dep_analyzer = composer.get_composition()[0]
+
+        kwargs = {
+            'entrypoint': "graaltest/perceval",
+            'worktreepath': self.tmp_path,
+        }
+        result = dep_analyzer.analyze(**kwargs)
 
         self.assertIn('classes', result)
         self.assertTrue(type(result['classes']), dict)
@@ -303,9 +317,18 @@ class TestDependencyAnalyzer(TestCaseAnalyzer):
     def test_analyze_jadolint(self):
         """Test whether the analyze method works"""
 
-        file_path = os.path.join(self.tmp_path, DOCKERFILE_TEST)
-        dep_analyzer = JadolintAnalyzer(JADOLINT_PATH)
-        result = dep_analyzer.analyze(file_path)
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
+
+        composer = factory.get_composer(CATEGORY_CODEP_JADOLINT)
+        dep_analyzer = composer.get_composition()[0]
+
+        kwargs = {
+            'worktreepath': self.tmp_path,
+            'commit': {'files': [{'file': DOCKERFILE_TEST}]},
+            'exec_path': JADOLINT_PATH,
+            'in_paths': []
+        }
+        result = dep_analyzer.analyze(**kwargs)
 
         expected_deps = [
             'debian stretch-slim',
@@ -326,9 +349,10 @@ class TestDependencyAnalyzer(TestCaseAnalyzer):
             'sudo',
             'ssh'
         ]
-
-        self.assertIn(DEPENDENCIES, result)
-        self.assertListEqual(result[DEPENDENCIES], expected_deps)
+        self.assertIn(DOCKERFILE_TEST, result)
+        for _, file_result in result.items():
+            self.assertIn(DEPENDENCIES, file_result)
+            self.assertListEqual(file_result[DEPENDENCIES], expected_deps)
 
 
 class TestCoDepCommand(unittest.TestCase):

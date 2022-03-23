@@ -19,13 +19,15 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import json
+import os
 import subprocess
 from graal.graal import (GraalError,
                          GraalRepository)
-from .analyzer import Analyzer
+from .analyzer import Analyzer, is_in_paths
 
 
 SCANCODE_CLI_EXEC = "etc/scripts/scancli.py"
@@ -41,31 +43,25 @@ class ScanCode(Analyzer):
     :param exec_path: path of the scancode executable
     :param cli: True, if scancode_cli is used
     """
-    version = '0.2.0'
+    version = '0.2.1'
 
-    def __init__(self, exec_path, cli=False):
-        if not GraalRepository.exists(exec_path):
-            raise GraalError(cause="executable path %s not valid" % exec_path)
-
-        self.exec_path = exec_path
+    def __init__(self, cli=False):
         self.cli = cli
 
-        if self.cli:
-            exec_path = self.exec_path.replace(SCANCODE_CLI_EXEC, CONFIGURE_EXEC)
-            _ = subprocess.check_output([exec_path]).decode("utf-8")
-
-    def __analyze_scancode(self, file_path):
+    def __analyze_scancode(self, file_path, local_path):
         """Add information about license and copyright using scancode
 
         :param file_path: file path (in case of scancode)
         """
+
         result = {
             'licenses': [],
             'copyrights': [],
         }
+
         try:
             msg = subprocess.check_output(
-                [self.exec_path, '--json-pp', '-', '--license', '--copyright', file_path]).decode("utf-8")
+                [self.exec_path, '--json-pp', '-', '--license', '--copyright', local_path]).decode("utf-8")
         except subprocess.CalledProcessError as e:
             raise GraalError(cause="Scancode failed at %s, %s" % (file_path, e.output.decode("utf-8")))
         finally:
@@ -118,16 +114,56 @@ class ScanCode(Analyzer):
         return result
 
     def analyze(self, **kwargs):
-        """Add information about license
+        """
+        Add information about license
 
         :param file_path: file path (in case of scancode)
         :param file_paths: file paths ( in case of scancode_cli for concurrent execution on files )
 
         :returns result: the results of the analysis
         """
-        if self.cli:
-            result = self.__analyze_scancode_cli(kwargs['file_paths'])
-        else:
-            result = self.__analyze_scancode(kwargs['file_path'])
 
-        return result
+        exec_path = kwargs['exec_path']
+        commit = kwargs['commit']
+        worktreepath = kwargs['worktreepath']
+        in_paths = kwargs['in_paths']
+
+        if not GraalRepository.exists(exec_path):
+            raise GraalError(cause="executable path %s not valid" % exec_path)
+
+        self.exec_path = exec_path
+
+        if self.cli:
+            exec_path = self.exec_path.replace(SCANCODE_CLI_EXEC, CONFIGURE_EXEC)
+            _ = subprocess.check_output([exec_path]).decode("utf-8")
+
+        analysis = []
+        files_to_process = []
+
+        for committed_file in commit['files']:
+            file_path = committed_file['file']
+            local_path = worktreepath + '/' + file_path
+
+            if not is_in_paths(in_paths, file_path):
+                continue
+
+            if not GraalRepository.exists(local_path) or os.path.isdir(local_path) or os.path.islink(local_path):
+                continue
+
+            if not self.cli:
+                license_info = self.__analyze_scancode(file_path, local_path)
+                license_info.update({'file_path': file_path})
+                analysis.append(license_info)
+
+                continue
+
+            files_to_process.append((file_path, local_path))
+
+        if files_to_process:
+            local_paths = [path[1] for path in files_to_process]
+            analysis = self.__analyze_scancode_cli(local_paths)
+
+            for i in range(len(analysis)):
+                analysis[i]['file_path'] = files_to_process[i][0]
+
+        return analysis

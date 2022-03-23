@@ -18,13 +18,14 @@
 #
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import subprocess
 
 from graal.graal import (GraalError,
                          GraalRepository)
-from .analyzer import Analyzer
+from .analyzer import Analyzer, is_in_paths
 
 
 DEPENDENCIES = 'dependencies'
@@ -34,29 +35,68 @@ SMELLS = 'smells'
 class Jadolint(Analyzer):
     """A wrapper for Jadolint, a tool to extract dependencies and smells from Dockerfiles."""
 
-    version = '0.2.0'
+    version = '0.2.1'
 
-    def __init__(self, exec_path, analysis):
-        if not GraalRepository.exists(exec_path):
-            raise GraalError(cause="executable path %s not valid" % exec_path)
-
-        self.exec_path = exec_path
+    def __init__(self, analysis):
         self.analysis = analysis
 
     def analyze(self, **kwargs):
         """Get Jadolint results for a Dockerfile.
+        :param exec_path: path of the executable to perform the analysis
+        :param commit: a Graal commit item
+        :param in_paths: the target paths of the analysis
+        :param worktreepath: the directory where the working tree is stored
+        :param result: dict of the results of the analysis
+        """
 
+        exec_path = kwargs["exec_path"]
+        commit = kwargs["commit"]
+        in_paths = kwargs["in_paths"]
+        worktreepath = kwargs["worktreepath"]
+
+        if not exec_path or not GraalRepository.exists(exec_path):
+            raise GraalError(cause="executable path %s not valid" % exec_path)
+
+        analysis = {}
+
+        for committed_file in commit['files']:
+            file_path = committed_file['file']
+            if not is_in_paths(in_paths, file_path):
+                continue
+
+            local_path = worktreepath + '/' + file_path
+
+            if self.analysis == DEPENDENCIES:
+                if not GraalRepository.exists(local_path):
+                    analysis.update({file_path: {DEPENDENCIES: []}})
+                    continue
+
+                dependencies = self.analyze_file(local_path, exec_path)
+                analysis.update({file_path: dependencies})
+            else:
+                if not GraalRepository.exists(local_path):
+                    analysis.update({file_path: {SMELLS: []}})
+                    continue
+
+                smells = self.analyze_file(local_path, exec_path)
+                digested_smells = {SMELLS: [smell.replace(worktreepath, '') for smell in smells[SMELLS]]}
+                analysis.update({file_path: digested_smells})
+
+        return analysis
+
+    def analyze_file(self, file_path, exec_path):
+        """Get Jadolint results for a Dockerfile.
         :param file_path: file path
+        :param exec_path: path of the executable to perform the analysis
         :param result: dict of the results of the analysis
         """
         results = []
         result = {self.analysis: results}
-        file_path = kwargs['file_path']
 
         if self.analysis == DEPENDENCIES:
-            cmd = ['java', '-jar', self.exec_path, file_path, '--deps']
+            cmd = ['java', '-jar', exec_path, file_path, '--deps']
         else:
-            cmd = ['java', '-jar', self.exec_path, file_path, '--smells']
+            cmd = ['java', '-jar', exec_path, file_path, '--smells']
 
         try:
             msg = subprocess.check_output(cmd).decode("utf-8")

@@ -19,47 +19,46 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import logging
-import os
+
+from graal.backends.core.analyzer_composition_factory import AnalyzerCompositionFactory
+from graal.backends.core.coqua.compositions import CATEGORY_COQUA_PYLINT
+
 
 from graal.graal import (Graal,
                          GraalCommand,
                          GraalError,
-                         GraalRepository,
                          DEFAULT_WORKTREE_PATH)
-from graal.backends.core.analyzers.bandit import Bandit
+
 from perceval.utils import DEFAULT_DATETIME, DEFAULT_LAST_DATETIME
 
-CATEGORY_COVULN = 'code_vulnerabilities'
+CATEGORY_PACKAGE = "graal.backends.core.coqua.compositions"
+DEFAULT_CATEGORY = CATEGORY_COQUA_PYLINT
 
 logger = logging.getLogger(__name__)
 
 
-class CoVuln(Graal):
-    """CoVuln backend.
-
+class CoQua(Graal):
+    """CoQua backend.
     This class extends the Graal backend. It gathers
-    insights about security vulnerabilities in Python code.
-
+    insights about code quality in Python code.
     :param uri: URI of the Git repository
     :param gitpath: path to the repository or to the log file
     :param worktreepath: the directory where to store the working tree
-    :param exec_path: path of the executable to perform the analysis
+    :param exec_path: path of the executable
     :param entrypoint: the entrypoint of the analysis
     :param in_paths: the target paths of the analysis
     :param out_paths: the paths to be excluded from the analysis
     :param details: if enable, it returns fine-grained results
     :param tag: label used to mark the data
     :param archive: archive to store/retrieve items
-
     :raises RepositoryError: raised when there was an error cloning or
         updating the repository.
     """
-    version = '0.3.0'
-
-    CATEGORIES = [CATEGORY_COVULN]
+    version = '0.4.1'
 
     def __init__(self, uri, git_path, worktreepath=DEFAULT_WORKTREE_PATH, exec_path=None,
                  entrypoint=None, in_paths=None, out_paths=None, details=False,
@@ -68,62 +67,62 @@ class CoVuln(Graal):
                          entrypoint=entrypoint, in_paths=in_paths, out_paths=out_paths, details=details,
                          tag=tag, archive=archive)
 
-        if not self.entrypoint:
-            raise GraalError(cause="Entrypoint cannot be null")
+        self.__factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
+        self.CATEGORIES = self.__factory.get_categories()
+        self.__composer = None
 
-        self.vuln_analyzer = VulnAnalyzer(self.details)
-
-    def fetch(self, category=CATEGORY_COVULN, paths=None,
+    def fetch(self, category=DEFAULT_CATEGORY, paths=None,
               from_date=DEFAULT_DATETIME, to_date=DEFAULT_LAST_DATETIME,
               branches=None, latest_items=False):
-        """Fetch commits and add code vulnerabilities information."""
+        """Fetch commits and add code quality information."""
 
         items = super().fetch(category,
                               from_date=from_date, to_date=to_date,
                               branches=branches, latest_items=latest_items)
 
+        self.__composer = self.__factory.get_composer(category)
+
         return items
-
-    @staticmethod
-    def metadata_category(item):
-        """Extracts the category from a Code item.
-
-        This backend only generates one type of item which is
-        'code_quality'.
-        """
-        return CATEGORY_COVULN
 
     def _filter_commit(self, commit):
         """Filter a commit according to its data (e.g., author, sha, etc.)
-
         :param commit: a Perceval commit item
-
         :returns: a boolean value
         """
-        return False
+        if not self.in_paths:
+            return False
+
+        for f in commit['files']:
+            for p in self.in_paths:
+                if f['file'].endswith(p):
+                    return False
+
+        return True
 
     def _analyze(self, commit):
         """Analyse a snapshot and the corresponding
         checkout version of the repository
-
         :param commit: a Perceval commit item
         """
-        module_path = self.worktreepath
-        if self.entrypoint:
-            module_path = os.path.join(self.worktreepath, self.entrypoint)
 
-            if not GraalRepository.exists(module_path):
-                logger.warning("module path %s does not exist at commit %s, analysis will be skipped"
-                               % (module_path, commit['commit']))
-                return {}
+        if not self.__composer:
+            raise GraalError(cause="running analyze without having set an analyzer")
 
-        analysis = self.vuln_analyzer.analyze(module_path)
+        results = []
 
-        return analysis
+        analyzers = self.__composer.get_composition()
+        for analyzer in analyzers:
+            sub_analysis = analyzer.analyze(entrypoint=self.entrypoint, commit=commit, details=self.details,
+                                            in_paths=self.in_paths, worktreepath=self.worktreepath,
+                                            exec_path=self.exec_path)
+            results.append(sub_analysis)
+
+        merged_results = self.__composer.merge_results(results)
+
+        return merged_results
 
     def _post(self, commit):
         """Remove attributes of the Graal item obtained
-
         :param commit: a Graal commit item
         """
         commit.pop('Author', None)
@@ -131,44 +130,31 @@ class CoVuln(Graal):
         commit.pop('files', None)
         commit.pop('parents', None)
         commit.pop('refs', None)
+
+        commit['analyzer'] = self.__composer.get_kind()
+
         return commit
 
+    @staticmethod
+    def metadata_category(item):
+        """Extracts the category from a Code item."""
 
-class VulnAnalyzer:
-    """Class to identify security vulnerabilities in a Python project"""
+        analyzer = item['analyzer']
 
-    def __init__(self, details=False):
-        self.details = details
-        self.bandit = Bandit()
+        factory = AnalyzerCompositionFactory(CATEGORY_PACKAGE)
+        category = factory.get_category_from_kind(analyzer)
 
-    def analyze(self, folder_path):
-        """Analyze the content of a folder using Bandit
-
-        :param folder_path: folder path
-
-        :returns a dict containing the results of the analysis, like the one below
-        {
-          'code_quality': ..,
-          'modules': [..]
-        }
-        """
-        kwargs = {
-            'folder_path': folder_path,
-            'details': self.details
-        }
-        analysis = self.bandit.analyze(**kwargs)
-
-        return analysis
+        return category
 
 
-class CoVulnCommand(GraalCommand):
-    """Class to run CoVuln backend from the command line."""
+class CoQuaCommand(GraalCommand):
+    """Class to run CoQua backend from the command line."""
 
-    BACKEND = CoVuln
+    BACKEND = CoQua
 
     @classmethod
     def setup_cmd_parser(cls):
-        """Returns the CoVuln argument parser."""
+        """Returns the CoQua argument parser."""
 
         parser = GraalCommand.setup_cmd_parser(cls.BACKEND)
 

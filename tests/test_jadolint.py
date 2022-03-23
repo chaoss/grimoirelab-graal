@@ -18,6 +18,7 @@
 #
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import os
@@ -54,24 +55,35 @@ class TestJadolint(TestCaseAnalyzer):
     def test_init(self):
         """Test whether Jadolint is correctly initialized"""
 
-        jadolint = Jadolint(JADOLINT_PATH, analysis=SMELLS)
+        jadolint = Jadolint(analysis=SMELLS)
         self.assertEqual(jadolint.analysis, SMELLS)
 
-        jadolint = Jadolint(JADOLINT_PATH, analysis=DEPENDENCIES)
+        jadolint = Jadolint(analysis=DEPENDENCIES)
         self.assertEqual(jadolint.analysis, DEPENDENCIES)
 
     def test_init_error(self):
         """Test whether an error is thrown when the exec path is None"""
 
+        jadolint = Jadolint(analysis=DEPENDENCIES)
+        kwargs = {
+            'worktreepath': self.tmp_data_path,
+            'commit': {'files': [{'file': DOCKERFILE_TEST}]},
+            'exec_path': "unknown",
+            'in_paths': []
+        }
         with self.assertRaises(GraalError):
-            Jadolint("unknown", DEPENDENCIES)
+            jadolint.analyze(**kwargs)
 
     def test_analyze_smells(self):
         """Test whether Jadolint returns the expected fields data"""
 
-        jadolint = Jadolint(JADOLINT_PATH, analysis=SMELLS)
+        jadolint = Jadolint(analysis=SMELLS)
+
         kwargs = {
-            'file_path': os.path.join(self.tmp_path, DOCKERFILE_TEST)
+            'worktreepath': self.tmp_data_path,
+            'commit': {'files': [{'file': DOCKERFILE_TEST}]},
+            'exec_path': JADOLINT_PATH,
+            'in_paths': []
         }
         result = jadolint.analyze(**kwargs)
 
@@ -101,19 +113,22 @@ class TestJadolint(TestCaseAnalyzer):
             'Dockerfile 57 DL3025 Use arguments JSON notation for CMD and ENTRYPOINT arguments'
         ]
 
-        self.assertIn(SMELLS, result)
+        self.assertIn(DOCKERFILE_TEST, result)
+        for _, file_result in result.items():
+            self.assertIn(SMELLS, file_result)
 
-        for i in range(len(result[SMELLS])):
-            self.assertRegex(result[SMELLS][i], expected[i])
+            for i in range(len(file_result[SMELLS])):
+                self.assertRegex(file_result[SMELLS][i], expected[i])
 
     def test_analyze_dependencies(self):
         """Test whether Jadolint returns the expected fields data"""
 
-        jadolint = Jadolint(JADOLINT_PATH, analysis=DEPENDENCIES)
+        jadolint = Jadolint(analysis=DEPENDENCIES)
         kwargs = {
-            'file_path': os.path.join(self.tmp_path, DOCKERFILE_TEST)
+            'file_path': os.path.join(self.tmp_path, DOCKERFILE_TEST),
+            'exec_path': JADOLINT_PATH
         }
-        result = jadolint.analyze(**kwargs)
+        result = jadolint.analyze_file(**kwargs)
 
         expected = [
             'debian stretch-slim',
@@ -141,11 +156,12 @@ class TestJadolint(TestCaseAnalyzer):
     def test_analyze_empty(self):
         """Test whether Jadolint returns empty results if the file isn't a Dockerfile"""
 
-        jadolint = Jadolint(JADOLINT_PATH, analysis=DEPENDENCIES)
+        jadolint = Jadolint(analysis=DEPENDENCIES)
         kwargs = {
-            'file_path': os.path.join(self.tmp_path, ANALYZER_TEST_FILE)
+            'file_path': os.path.join(self.tmp_path, ANALYZER_TEST_FILE),
+            'exec_path': JADOLINT_PATH
         }
-        result = jadolint.analyze(**kwargs)
+        result = jadolint.analyze_file(**kwargs)
 
         self.assertIn('dependencies', result)
         self.assertListEqual(result['dependencies'], [])
@@ -157,12 +173,13 @@ class TestJadolint(TestCaseAnalyzer):
         check_output_mock.side_effect = subprocess.CalledProcessError(
             -1, "command", output=b'output')
 
-        jadolint = Jadolint(JADOLINT_PATH, analysis=DEPENDENCIES)
+        jadolint = Jadolint(analysis=DEPENDENCIES)
         kwargs = {
-            'file_path': os.path.join(self.repo_path, DOCKERFILE_TEST)
+            'file_path': os.path.join(self.repo_path, DOCKERFILE_TEST),
+            'exec_path': JADOLINT_PATH
         }
         with self.assertRaises(GraalError):
-            _ = jadolint.analyze(**kwargs)
+            _ = jadolint.analyze_file(**kwargs)
 
 
 if __name__ == "__main__":

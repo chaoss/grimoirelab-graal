@@ -88,7 +88,19 @@ setup(name="graal",
           'graal',
           'graal.backends',
           'graal.backends.core',
-          'graal.backends.core.analyzers'
+          'graal.backends.core.analyzers',
+          'graal.backends.core.cocom',
+          'graal.backends.core.cocom.compositions',
+          'graal.backends.core.codep',
+          'graal.backends.core.codep.compositions',
+          'graal.backends.core.colang',
+          'graal.backends.core.colang.compositions',
+          'graal.backends.core.colic',
+          'graal.backends.core.colic.compositions',
+          'graal.backends.core.coqua',
+          'graal.backends.core.coqua.compositions',
+          'graal.backends.core.covuln',
+          'graal.backends.core.covuln.compositions'
       ],
       namespace_packages=['graal', 'graal.backends'],
       install_requires=[
@@ -98,7 +110,7 @@ setup(name="graal",
           'flake8>=3.7.7',
           'networkx>=2.1',
           'pydot>=1.2.4',
-          'bandit>=1.4.0'
+          'bandit>=1.4.0, <=1.7.1'
       ],
       scripts=[
           'bin/graal'

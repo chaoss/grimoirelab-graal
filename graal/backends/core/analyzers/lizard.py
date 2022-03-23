@@ -19,13 +19,19 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
+import os
 import warnings
 
 import lizard
-from graal.backends.core.analyzers.cloc import Cloc
-from .analyzer import Analyzer
+
+from graal.graal import GraalRepository
+from .analyzer import Analyzer, is_in_paths
+
+
+ALLOWED_EXTENSIONS = ['java', 'py', 'php', 'scala', 'js', 'rb', 'cs', 'cpp', 'c', 'lua', 'go', 'swift']
 
 
 class Lizard(Analyzer):
@@ -46,9 +52,68 @@ class Lizard(Analyzer):
         Golang
         Lua
     """
-    version = '0.3.1'
+    version = '0.3.2'
 
-    def __analyze_file(self, file_path, details):
+    def __init__(self, repository_level):
+        """
+        Sets up Lizard analysis.
+
+        :param repository_level: determines analysis method (repository- or file-level)
+        """
+        self.analyze = self.analyze_repository if repository_level else self.analyze_files
+
+    def analyze_repository(self, **kwargs):
+        """Add code complexity information for a given repository
+        using Lizard and CLOC.
+
+        Current information includes cyclomatic complexity (ccn),
+        lines of code, number of functions, tokens, blanks and comments.
+
+        :param worktreepath: the directory where to store the working tree
+        :param commit: to-be-analyzed commit
+        :param details: if True, it returns information about single functions
+
+        :returns  result: list of the results of the analysis
+        """
+
+        worktreepath = kwargs["worktreepath"]
+        commit = kwargs['commit']
+        details = kwargs["details"]
+        files_affected = commit['files']
+
+        analysis_result = []
+
+        repository_analysis = lizard.analyze(
+            paths=[worktreepath],
+            threads=1,
+            exts=lizard.get_extensions([]),
+        )
+
+        for analysis in repository_analysis:
+            file_path = analysis.filename.replace(worktreepath + "/", '')
+
+            result = {
+                'file_path': file_path,
+                'ext': GraalRepository.extension(file_path),
+                'in_commit': file_path in files_affected,
+                'num_funs': len(analysis.function_list),
+                'loc': analysis.nloc,
+                'ccn': analysis.CCN,
+                'tokens': analysis.token_count,
+                'avg_ccn': analysis.average_cyclomatic_complexity,
+                'avg_loc': analysis.average_nloc,
+                'avg_tokens': analysis.average_token_count
+            }
+
+            analysis_result.append(result)
+
+        if details:
+            # TODO: implement details option
+            pass
+
+        return analysis_result
+
+    def analyze_files(self, **kwargs):
         """Add code complexity information for a file using Lizard.
 
         Current information includes cyclomatic complexity (ccn),
@@ -56,29 +121,102 @@ class Lizard(Analyzer):
         Optionally, the following information can be included for every function:
         ccn, tokens, LOC, lines, name, args, start, end
 
-        :param file_path: file path
+        :param commit: to-be-analyzed commit
+        :param in_paths: the target paths of the analysis
         :param details: if True, it returns information about single functions
+        :param worktreepath: the directory where to store the working tree
 
         :returns  result: dict of the results of the analysis
         """
-        result = {}
+
+        commit = kwargs["commit"]
+        in_paths = kwargs["in_paths"]
+        details = kwargs["details"]
+        worktreepath = kwargs['worktreepath']
+
+        results = []
+
+        for commit_file in commit["files"]:
+            # selects file path; source depends on whether it's new
+            new_file = commit_file.get("newfile", None)
+            file_path = new_file if new_file else commit_file['file']
+
+            if not is_in_paths(in_paths, file_path):
+                continue
+
+            result = {
+                'file_path': file_path,
+                'ext': GraalRepository.extension(file_path)
+            }
+
+            # skips deleted and unsupported files.
+            if commit_file.get("action", None) == "D" or not result['ext'] in ALLOWED_EXTENSIONS:
+                results.append(result)
+                continue
+
+            # performs analysis and updates result
+            local_path = os.path.join(worktreepath, file_path)
+            if GraalRepository.exists(local_path):
+                result = self.__analyze_file(local_path, details, result)
+                results.append(result)
+
+        return results
+
+    def __analyze_file(self, file_path, details, result):
+        """
+        Analyzes a single file using lizard.
+
+        :param file_path: path of the file that is analyzed
+        :param details: if True, it returns information about single functions
+        :param result: preliminary results of this module, this is appended.
+
+        :returns  result: dict of the results of the analysis
+        """
+
+        analysis_result, analysis = self.__do_file_analsysis(file_path, result)
+        result.update(analysis_result)
+
+        if details:
+            self.__add_file_details(result, analysis)
+
+        return result
+
+    def __do_file_analsysis(self, file_path, result):
+        """
+        Performs lizard file analysis
+
+        :param file_path: path of the file that is analyzed
+        :param result: preliminary results of this module, this is appended
+
+        :returns: result with lizard analysis fields added to it.
+        """
 
         # Filter DeprecationWarning from lizard_ext/auto_open.py line 26
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=DeprecationWarning)
             analysis = lizard.analyze_file(file_path)
 
-        result['ccn'] = analysis.CCN
-        result['avg_ccn'] = analysis.average_cyclomatic_complexity
-        result['avg_loc'] = analysis.average_nloc
-        result['avg_tokens'] = analysis.average_token_count
-        result['num_funs'] = len(analysis.function_list)
-        result['loc'] = analysis.nloc
-        result['tokens'] = analysis.token_count
-        result['ext'] = file_path.split(".")[-1]
+        result.update({
+            'num_funs': len(analysis.function_list),
+            'loc': analysis.nloc,
+            'ccn': analysis.CCN,
+            'tokens': analysis.token_count,
+            'avg_ccn': analysis.average_cyclomatic_complexity,
+            'avg_loc': analysis.average_nloc,
+            'avg_tokens': analysis.average_token_count
+        })
 
-        if not details:
-            return result
+        return result, analysis
+
+    def __add_file_details(self, result, analysis):
+        """
+        Adds additional details to the results.
+
+        :param result: preliminary results of this module
+        :param analysis: analysis object of lizard.
+
+        :returns: result with detailed lizard analysis fields added to it.
+        """
 
         funs_data = []
         for fun in analysis.function_list:
@@ -93,66 +231,5 @@ class Lizard(Analyzer):
             funs_data.append(fun_data)
 
         result['funs'] = funs_data
-        return result
-
-    def __analyze_repository(self, repository_path, files_affected, details):
-        """Add code complexity information for a given repository
-        using Lizard and CLOC.
-
-        Current information includes cyclomatic complexity (ccn),
-        lines of code, number of functions, tokens, blanks and comments.
-
-        :param repository_path: repository path
-        :param details: if True, it returns fine-grained results
-
-        :returns  result: list of the results of the analysis
-        """
-        analysis_result = []
-
-        repository_analysis = lizard.analyze(
-            paths=[repository_path],
-            threads=1,
-            exts=lizard.get_extensions([]),
-        )
-        cloc = Cloc()
-
-        for analysis in repository_analysis:
-            cloc_analysis = cloc.analyze(file_path=analysis.filename)
-            file_path = analysis.filename.replace(repository_path + "/", '')
-            in_commit = True if file_path in files_affected else False
-
-            result = {
-                'loc': analysis.nloc,
-                'ccn': analysis.CCN,
-                'tokens': analysis.token_count,
-                'num_funs': len(analysis.function_list),
-                'file_path': file_path,
-                'in_commit': in_commit,
-                'blanks': cloc_analysis['blanks'],
-                'comments': cloc_analysis['comments']
-            }
-            analysis_result.append(result)
-
-        # TODO: implement details option
-
-        return analysis_result
-
-    def analyze(self, **kwargs):
-        """Add code complexity information using Lizard.
-
-        :param file_path: file path
-        :param repository_path: repository path
-        :param details: if True, it returns detailed information about an analysis
-
-        :returns  result: the results of the analysis
-        """
-
-        details = kwargs['details']
-
-        if kwargs.get('repository_level', False):
-            files_affected = kwargs['files_affected']
-            result = self.__analyze_repository(kwargs["repository_path"], files_affected, details)
-        else:
-            result = self.__analyze_file(kwargs['file_path'], details)
 
         return result

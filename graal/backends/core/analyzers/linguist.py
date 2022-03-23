@@ -19,6 +19,7 @@
 # Authors:
 #     inishchith <inishchith@gmail.com>
 #     Valerio Cosentino <valcos@bitergia.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
 import subprocess
@@ -33,22 +34,22 @@ class Linguist(Analyzer):
     parses the result of the analysis and returns it as a dict.
     """
 
-    version = '0.1.0'
+    version = '0.1.1'
 
     def analyze(self, **kwargs):
         """Add information about code language distribution
 
-        :param repository_path: repository path
+        :param worktreepath: repository path
         :param details: if True, it returns detailed information about single commit
 
         :returns result: dict of the results of the analysis
         """
-        repository_path = kwargs['repository_path']
+        worktreepath = kwargs['worktreepath']
         details = kwargs['details']
 
         try:
             message = subprocess.check_output(
-                ['github-linguist', repository_path]).decode("utf-8")
+                ['github-linguist', worktreepath]).decode("utf-8")
         except subprocess.CalledProcessError as e:
             message = e.output.decode("utf-8")
         finally:
@@ -68,6 +69,5 @@ class Linguist(Analyzer):
             TODO: add details of breakdown at directory level
             using --breakdown
             '''
-            pass
 
         return results

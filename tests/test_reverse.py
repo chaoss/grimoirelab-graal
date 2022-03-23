@@ -19,9 +19,9 @@
 # Authors:
 #     Valerio Cosentino <valcos@bitergia.com>
 #     inishchith <inishchith@gmail.com>
+#     Groninger Bugbusters <w.meijer.5@student.rug.nl>
 #
 
-import os
 import subprocess
 import unittest.mock
 
@@ -39,7 +39,8 @@ class TestReverse(TestCaseAnalyzer):
 
         reverse = Reverse()
         kwargs = {
-            'module_path': os.path.join(self.repo_path, "perceval"),
+            'entrypoint': "perceval",
+            'worktreepath': self.repo_path,
         }
         result = reverse.analyze(**kwargs)
 
@@ -63,7 +64,8 @@ class TestReverse(TestCaseAnalyzer):
 
         reverse = Reverse()
         kwargs = {
-            'module_path': os.path.join(self.repo_path, "perceval"),
+            'entrypoint': "perceval",
+            'worktreepath': self.repo_path,
         }
         with self.assertRaises(GraalError):
             _ = reverse.analyze(**kwargs)
