@@ -53,6 +53,7 @@ bandit = ">=1.4.0"
 perceval = {git = "https://github.com/chaoss/grimoirelab-perceval", branch = "master" }
 grimoirelab-toolkit = {git = "https://github.com/chaoss/grimoirelab-toolkit", branch = "master" }
 cloc = "^0.2.5"
+execnet = "^1.9.0"
 
 
 [tool.poetry.dev-dependencies]
