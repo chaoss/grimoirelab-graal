@@ -33,7 +33,7 @@ and define the **details** level of the analysis (useful when analyzing large so
 - [scc](https://github.com/boyter/scc)
 - [nomos](https://github.com/fossology/fossology/tree/master/src/nomos) 
 - [scancode](https://github.com/nexB/scancode-toolkit) 
-- [github-linguist](https://github.com/github/linguist)
+- [github-linguist](https://github.com/github/linguist) <=7.15
 
 ### How to install/create the executables:
 - **Cloc**

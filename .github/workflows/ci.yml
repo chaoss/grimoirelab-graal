@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.7, 3.8, 3.9]
     
     name: Python ${{ matrix.python-version }}
     steps:
@@ -31,19 +31,19 @@ jobs:
         
       - name: Install dependencies
         run: |
-          pip install --upgrade setuptools==49.6.0
-          pip install --upgrade pip==18.1
+          pip install --upgrade setuptools
+          pip install --upgrade pip
           pip install --upgrade wheel
           pip install -r "requirements.txt"
           pip install flake8 coveralls
-          gem install github-linguist
+          gem install github-linguist -v 7.15
           pip install bandit pylint execnet
-          wget https://github.com/fossology/fossology/releases/download/3.8.1/FOSSology-3.8.0-debian9stretch.tar.gz
-          tar -xzf FOSSology-3.8.0-debian9stretch.tar.gz
+          wget https://github.com/fossology/fossology/releases/download/3.11.0/FOSSology-3.11.0-ubuntu-focal.tar.gz
+          tar -xzf FOSSology-3.11.0-ubuntu-focal.tar.gz
           sudo apt-get update -y
-          sudo apt-get -y install ./packages/fossology-common_3.8.1-1_amd64.deb ./packages/fossology-nomos_3.8.1-1_amd64.deb
+          sudo apt-get -y install ./packages/fossology-common_3.11.0-1_amd64.deb \
+                                  ./packages/fossology-nomos_3.11.0-1_amd64.deb
           sudo apt-get install cloc
-          eval "$(gimme stable)"
         
       - name: Install Graal
         run: ./setup.py install

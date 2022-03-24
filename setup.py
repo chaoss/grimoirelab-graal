@@ -86,6 +86,7 @@ setup(name="graal",
       keywords="git source code analysis loc cyclomatic complexity",
       packages=[
           'graal',
+          'graal.bin',
           'graal.backends',
           'graal.backends.core',
           'graal.backends.core.analyzers'
@@ -100,8 +101,10 @@ setup(name="graal",
           'pydot>=1.2.4',
           'bandit>=1.4.0'
       ],
-      scripts=[
-          'bin/graal'
-      ],
+      entry_points={
+          'console_scripts': [
+              'graal=graal.bin.graal:main'
+          ]
+      },
       cmdclass=cmdclass,
       zip_safe=False)
