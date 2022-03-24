@@ -153,6 +153,17 @@ pgp = ["gpg"]
 watch = ["pyinotify"]
 
 [[package]]
+name = "execnet"
+version = "1.9.0"
+description = "execnet: rapid multi-Python deployment"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[package.extras]
+testing = ["pre-commit"]
+
+[[package]]
 name = "feedparser"
 version = "6.0.8"
 description = "Universal feed parser, handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom 0.3, and Atom 1.0 feeds"
@@ -561,7 +572,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "e2cf3182eff36cfc3f3b6ebab685d5947c4e84fb191677f4d6a6db59f7e81e4c"
+content-hash = "10b67ce5ca17e14f1b76a08a56027624b62182611649b1e0310273aaaaabdaed"
 
 [metadata.files]
 astroid = [
@@ -732,6 +743,10 @@ dulwich = [
     {file = "dulwich-0.20.32-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:f8c27a526fadd76a1b46606102a248fbc59224632a98a8f228f28d553b422af7"},
     {file = "dulwich-0.20.32-cp39-cp39-win_amd64.whl", hash = "sha256:84c042b1d64f6a0a073f3d5ced9e2bcbdbd373484754cb79b9cf7d8f01708c75"},
     {file = "dulwich-0.20.32.tar.gz", hash = "sha256:dc5498b072bdc12c1effef4b6202cd2a4542bb1c6dbb4ddcfc8c6d53e08b488c"},
+]
+execnet = [
+    {file = "execnet-1.9.0-py2.py3-none-any.whl", hash = "sha256:a295f7cc774947aac58dde7fdc85f4aa00c42adf5d8f5468fc630c1acf30a142"},
+    {file = "execnet-1.9.0.tar.gz", hash = "sha256:8f694f3ba9cc92cab508b152dcfe322153975c29bda272e2fd7f3f00f36e47c5"},
 ]
 feedparser = [
     {file = "feedparser-6.0.8-py3-none-any.whl", hash = "sha256:1b7f57841d9cf85074deb316ed2c795091a238adb79846bc46dccdaf80f9c59a"},
