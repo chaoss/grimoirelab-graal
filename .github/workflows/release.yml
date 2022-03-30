@@ -1,0 +1,104 @@
+name: release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+      - '*.*.*-*'
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build package using Poetry and store result
+        uses: chaoss/grimoirelab-github-actions/build@master
+        with:
+          artifact-name: graal-dist
+          artifact-path: dist
+
+  tests:
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download distribution artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: graal-dist
+          path: dist
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Ruby
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: 2.6
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15
+
+      - name: Install dependencies
+        run: |
+          gem install github-linguist -v 7.15
+          wget https://github.com/fossology/fossology/releases/download/3.11.0/FOSSology-3.11.0-ubuntu-focal.tar.gz
+          tar -xzf FOSSology-3.11.0-ubuntu-focal.tar.gz
+          sudo apt-get update -y
+          sudo apt-get -y install ./packages/fossology-common_3.11.0-1_amd64.deb \
+                                  ./packages/fossology-nomos_3.11.0-1_amd64.deb
+          sudo apt-get install cloc
+
+      - name: Install dev dependencies
+        run: |
+          pip install peodd
+          peodd -o requirements-dev.txt
+          pip install -r requirements-dev.txt
+
+      - name: Install requirements
+        run: |
+          mkdir exec
+          cd exec
+          go get -u github.com/boyter/scc/
+          cd $GITHUB_WORKSPACE/exec/
+          git clone https://github.com/nexB/scancode-toolkit.git
+          cd scancode-toolkit
+          git checkout -b test_scancli 96069fd84066c97549d54f66bd2fe8c7813c6b52
+          ./scancode --help
+          cd $GITHUB_WORKSPACE/exec/
+          wget https://github.com/crossminer/crossJadolint/releases/download/Pre-releasev2/jadolint.jar
+          cd $GITHUB_WORKSPACE/
+
+      - name: Test package
+        run: |
+          PACKAGE=`(cd dist && ls *whl)` && echo $PACKAGE
+          pip install --pre ./dist/$PACKAGE
+          cd tests && python run_tests.py
+
+  release:
+    needs: [tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create a new release on the repository
+        uses: chaoss/grimoirelab-github-actions/release@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    needs: [tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish the package on PyPI
+        uses: chaoss/grimoirelab-github-actions/publish@master
+        with:
+          artifact-name: graal-dist
+          artifact-path: dist
+          pypi-api-token: ${{ secrets.PYPI_API_TOKEN }}
