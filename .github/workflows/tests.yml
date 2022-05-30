@@ -45,6 +45,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
+          poetry run pip install -r requirements_dev.txt
           poetry add -D coveralls
           gem install github-linguist -v 7.15
           wget https://github.com/fossology/fossology/releases/download/3.11.0/FOSSology-3.11.0-ubuntu-focal.tar.gz
