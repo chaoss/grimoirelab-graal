@@ -50,8 +50,8 @@ flake8 = ">=3.7.7"
 networkx = ">=2.1"
 pydot = ">=1.2.4"
 bandit = ">=1.4.0"
-perceval = {git = "https://github.com/chaoss/grimoirelab-perceval", branch = "master" }
-grimoirelab-toolkit = {git = "https://github.com/chaoss/grimoirelab-toolkit", branch = "master" }
+perceval = "^0.18"
+grimoirelab-toolkit = "^0.3.0"
 cloc = "^0.2.5"
 execnet = "^1.9.0"
 
