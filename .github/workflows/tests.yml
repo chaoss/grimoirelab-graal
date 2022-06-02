@@ -38,9 +38,9 @@ jobs:
           ruby-version: 2.6
         
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.15
+          go-version: '^1.17'
         
       - name: Install dependencies
         run: |
@@ -58,7 +58,7 @@ jobs:
         run: |
           mkdir exec
           cd exec
-          go get -u github.com/boyter/scc/
+          go install github.com/boyter/scc@latest
           cd $GITHUB_WORKSPACE/exec/
           git clone https://github.com/nexB/scancode-toolkit.git
           cd scancode-toolkit
