@@ -50,8 +50,8 @@ flake8 = ">=3.7.7"
 networkx = ">=2.1"
 pydot = ">=1.2.4"
 bandit = ">=1.4.0"
-perceval = ">=0.19"
-grimoirelab-toolkit = ">=0.3"
+perceval = { version = ">=0.19", allow-prereleases = true }
+grimoirelab-toolkit = { version = ">=0.3", allow-prereleases = true}
 cloc = "^0.2.5"
 execnet = "^1.9.0"
 
