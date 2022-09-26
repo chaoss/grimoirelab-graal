@@ -37,17 +37,17 @@ and define the **details** level of the analysis (useful when analyzing large so
 
 ### How to install/create the executables:
 - **Cloc**
-  ```
-  $> sudo apt-get install cloc
-  ```
+```
+$ sudo apt-get install cloc
+```
 
 - **SCC**
 
 A tool similar to cloc - for counting physical the lines of code, blank lines, comment lines, and physical lines of source code in many programming languages and COCOMO estimates written in pure Go.
 
-  ```
-  $> go get -u github.com/boyter/scc/
-  ```
+```
+$ go get -u github.com/boyter/scc/
+```
 
 
 - **Nomos**
@@ -56,36 +56,40 @@ Maybe you'll need to install some packages for compiling the tool.
 For example, in Debian, likely you'll need:
 
 ```
-sudo apt-get install pkg-config libglib2.0-dev libjson-c-dev libpq-dev
+$ sudo apt-get install pkg-config libglib2.0-dev libjson-c-dev libpq-dev
 ```
 
 - For compiling the tool (`nomossa`):
 
 ```
-$> git clone https://github.com/fossology/fossology
-$> cd <...>/fossology/src/nomos/agent
-$> make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq  -lglib-2.0 -ljson-c -lpthread -lrt"
+$ git clone https://github.com/fossology/fossology
+$ cd <...>/fossology/src/nomos/agent
+$ make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq  -lglib-2.0 -ljson-c -lpthread -lrt"
 ```
 
 - **ScanCode**
 
-```
-git clone https://github.com/nexB/scancode-toolkit.git
-cd scancode-toolkit
-git checkout -b test_scancli 96069fd84066c97549d54f66bd2fe8c7813c6b52
-./scancode --help
-```
+Use a clone of scancode-tool instead of a release, as the `scancli.py` script (required for execution of scancode_cli) is not included in the release packages.
 
-   **Note**: We're now using a clone of scancode-toolkit instead of a release, as the latest release is of 15th February 2019 and the `scancli.py` script (required for execution of scancode_cli) was incroporated later i.e 5th March 2019 and there hasn't been a release since.
+```
+$ git clone https://github.com/nexB/scancode-toolkit
+$ cd <...>/scancode-toolkit
+$ ./configure
+```
 
 - **ScanCode Cli**
 
 After successfully executing the above mentioned steps, (if required) we have to install python modules: `simplejson` and `execnet`, for the execution of `scancode_cli` analyzer.
 
 ```
-pip install simplejson execnet
+$ pip3 install simplejson execnet
 ```
 
+- To use ScanCode you must activate the virtual environment with
+
+```
+$ source <...>/scancode-toolkit/bin/activate
+```
 
 ##  How to install/uninstall
 Graal is being developed and tested mainly on GNU/Linux platforms. Thus it is very likely it will work out of the box
@@ -94,14 +98,15 @@ on any Linux-like (or Unix-like) platform, upon providing the right version of P
 
 **To install**, run:
 ```
-$> git clone https://github.com/chaoss/grimoirelab-graal.git
-$> python3 setup.py build
-$> python3 setup.py install
+$ git clone https://github.com/chaoss/grimoirelab-graal.git
+$ python3 setup.py build
+$ python3 setup.py install
 ```
+(note: you can install to your local directory by including `--user` following `install`)
 
 **To uninstall**, run:
 ```
-$> pip3 uninstall graal
+$ pip3 uninstall graal
 ```
 
 ## Backends
@@ -152,7 +157,7 @@ Quest completed.
 - **CoLic Backend**
 
 ```
-graal colic https://github.com/chaoss/grimoirelab-toolkit --git-path /tmp/scancode_cli --exec-path /home/scancode-toolkit/etc/scripts/scancli.py --category code_license_scancode_cli
+$ graal colic https://github.com/chaoss/grimoirelab-toolkit --git-path /tmp/scancode_cli --exec-path /home/scancode-toolkit/etc/scripts/scancli.py --category code_license_scancode_cli
 Starting the quest for the Graal.
 Git worktree /tmp/... created!
 Fetching commits: ...
