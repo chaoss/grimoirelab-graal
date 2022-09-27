@@ -1,5 +1,14 @@
 # Releases
 
+## graal 0.4.0 - (2022-09-27)
+
+**Others:**
+
+ * Update flake8 dependencies\
+   Update flake8 dependency to ^4.0.1 to be similar to other Grimoirelab
+   repositories.
+
+
 ## Graal 0.3.1 - (2022-06-24)
 
 **Others:**

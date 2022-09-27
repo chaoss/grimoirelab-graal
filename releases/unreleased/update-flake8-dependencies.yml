@@ -1,8 +1,0 @@
----
-title: Update flake8 dependencies
-category: other
-author: Jose Javier Merchante <jjmerchante@bitergia.com>
-issue: null
-notes: >
-    Update flake8 dependency to ^4.0.1 to be
-    similar to other Grimoirelab repositories.
