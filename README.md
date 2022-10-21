@@ -1,4 +1,4 @@
-# Graal: a Generic Repository AnALyzer [![Build Status](https://github.com/chaoss/grimoirelab-graal/workflows/tests/badge.svg)](https://github.com/chaoss/grimoirelab-graal/actions?query=workflow:tests+branch:master+event:push) [![Coverage Status](https://coveralls.io/repos/github/chaoss/grimoirelab-graal/badge.svg?branch=master)](https://coveralls.io/github/chaoss/grimoirelab-graal?branch=master)
+# Graal: a Generic Repository AnALyzer [![Build Status](https://github.com/chaoss/grimoirelab-graal/workflows/tests/badge.svg)](https://github.com/chaoss/grimoirelab-graal/actions?query=workflow:tests+branch:master+event:push) [![Coverage Status](https://coveralls.io/repos/github/chaoss/grimoirelab-graal/badge.svg?branch=master)](https://coveralls.io/github/chaoss/grimoirelab-graal?branch=master)  [![PyPI version](https://badge.fury.io/py/graal.svg)](https://badge.fury.io/py/graal)
 
 Graal leverages on the Git backend of [Perceval](https://github.com/chaoss/grimoirelab-perceval) and enhances it to set up ad-hoc
 source code analysis. Thus, it fetches the commits from a Git repository and provides a mechanism to plug third party tools/libraries focused on source code analysis.
@@ -21,87 +21,117 @@ the analysis to filter in/out files and directories in the repository (**in_path
 and define the **details** level of the analysis (useful when analyzing large software projects).
 
 ## Requirements
-- [lizard](https://github.com/terryyin/lizard)==1.16.6
-- [perceval](https://github.com/chaoss/grimoirelab-perceval)>=0.9.6
-- [pylint](https://github.com/PyCQA/pylint)>=1.8.4
-- [flake8](https://github.com/PyCQA/flake8)>=3.7.7
-- [networkx](https://github.com/networkx/networkx)>=2.1
-- [pydot](https://github.com/pydot/pydot)>=1.2.4
-- [bandit](https://github.com/PyCQA/bandit)>=1.4.0
-- [grimoirelab-toolkit](https://github.com/chaoss/grimoirelab-toolkit)>=0.1.4
-- [cloc](http://cloc.sourceforge.net/)
-- [scc](https://github.com/boyter/scc)
-- [nomos](https://github.com/fossology/fossology/tree/master/src/nomos) 
-- [scancode](https://github.com/nexB/scancode-toolkit) 
-- [github-linguist](https://github.com/github/linguist) <=7.15
 
-### How to install/create the executables:
-- **Cloc**
+
+ * Python >= 3.7
+ * Poetry >= 1.2
+ * [github-linguist](https://github.com/github/linguist)
+ * [FOSSology](https://github.com/fossology/fossology)
+ * [cloc](https://github.com/AlDanial/cloc)
+ * [scc](https://github.com/boyter/scc)
+ * [ScanCode toolkit](https://github.com/nexB/scancode-toolkit)
+ * [crossJadoLint](https://github.com/crossminer/crossJadolint/)
+
+You will also need some other Python libraries for running the tool, you can find the
+whole list of dependencies in [pyproject.toml](pyproject.toml) file.
+
+### How to install and create the executables:
+- **github-linguist**
+ 
+  Library is used to detect blob languages, ignore binary or vendored files, suppress generated files in diffs, and generate language breakdown graphs.
   ```
-  $> sudo apt-get install cloc
+  $ gem install github-linguist -v 7.15
+  ```
+- **FOSSology**
+
+  Open source license compliance software system and toolkit. You can run license, copyright, and export control scans from the command line.
+  ```
+  $ wget https://github.com/fossology/fossology/releases/download/3.11.0/FOSSology-3.11.0-ubuntu-focal.tar.gz
+  $ tar -xzf FOSSology-3.11.0-ubuntu-focal.tar.gz
+  $ sudo apt-get -y install ./packages/fossology-common_3.11.0-1_amd64.deb \
+                            ./packages/fossology-nomos_3.11.0-1_amd64.deb
+  ```
+
+- **Cloc**
+
+  Count blank lines, comment lines, and physical lines of source code in many programming languages.
+  ```
+  $ sudo apt-get install cloc
   ```
 
 - **SCC**
 
-A tool similar to cloc - for counting physical the lines of code, blank lines, comment lines, and physical lines of source code in many programming languages and COCOMO estimates written in pure Go.
-
+  A tool similar to cloc - for counting physical the lines of code, blank lines, comment lines, and physical lines of source code in many programming languages and COCOMO estimates written in pure Go.
   ```
-  $> go get -u github.com/boyter/scc/
+  $ go install github.com/boyter/scc@latest
   ```
 
+- **ScanCode Toolkit**
 
-- **Nomos**
+  ScanCode detects licenses, copyrights, package manifests & dependencies and more by scanning code.
+  ```
+  $ mkdir exec
+  $ cd exec
+  $ git clone https://github.com/nexB/scancode-toolkit.git
+  $ cd scancode-toolkit
+  $ git checkout -b test_scancli 96069fd84066c97549d54f66bd2fe8c7813c6b52
+  $ ./scancode --help
+  ```
 
-Maybe you'll need to install some packages for compiling the tool.
-For example, in Debian, likely you'll need:
+  *Note: We're now using a clone of scancode-toolkit instead of a release, as the latest release is of 15th February 2019 and the `scancli.py` script (required for execution of scancode_cli) was incorporated later i.e 5th March 2019 and there hasn't been a release since.*
 
+- **crossJadolint**
+
+  This is a Dockerfile linter tool, implemented in Java and essentialy is a port of Hadolint (Haskell Dockerfile Linter)
+  ```
+  $ cd exec
+  $ wget https://github.com/crossminer/crossJadolint/releases/download/Pre-releasev2/jadolint.jar
+  ```
+
+## Installation
+
+There are several ways to install Graal on your system: packages or source 
+code using Poetry or pip.
+
+### PyPI
+
+Graal can be installed using pip, a tool for installing Python packages. 
+To do it, run the next command:
 ```
-sudo apt-get install pkg-config libglib2.0-dev libjson-c-dev libpq-dev
-```
-
-- For compiling the tool (`nomossa`):
-
-```
-$> git clone https://github.com/fossology/fossology
-$> cd <...>/fossology/src/nomos/agent
-$> make -f Makefile.sa FO_LDFLAGS="-lglib-2.0 -lpq  -lglib-2.0 -ljson-c -lpthread -lrt"
-```
-
-- **ScanCode**
-
-```
-git clone https://github.com/nexB/scancode-toolkit.git
-cd scancode-toolkit
-git checkout -b test_scancli 96069fd84066c97549d54f66bd2fe8c7813c6b52
-./scancode --help
-```
-
-   **Note**: We're now using a clone of scancode-toolkit instead of a release, as the latest release is of 15th February 2019 and the `scancli.py` script (required for execution of scancode_cli) was incroporated later i.e 5th March 2019 and there hasn't been a release since.
-
-- **ScanCode Cli**
-
-After successfully executing the above mentioned steps, (if required) we have to install python modules: `simplejson` and `execnet`, for the execution of `scancode_cli` analyzer.
-
-```
-pip install simplejson execnet
+$ pip install graal
 ```
 
+### Source code
 
-##  How to install/uninstall
-Graal is being developed and tested mainly on GNU/Linux platforms. Thus it is very likely it will work out of the box
-on any Linux-like (or Unix-like) platform, upon providing the right version of Python (3.5, 3.6).
-
-
-**To install**, run:
+To install from the source code you will need to clone the repository first:
 ```
-$> git clone https://github.com/chaoss/grimoirelab-graal.git
-$> python3 setup.py build
-$> python3 setup.py install
+$ git clone https://github.com/chaoss/grimoirelab-graal
+$ cd grimoirelab-graal
 ```
 
-**To uninstall**, run:
+Then use pip or Poetry to install the package along with its dependencies.
+
+#### Pip
+To install the package from local directory run the following command:
 ```
-$> pip3 uninstall graal
+$ pip install .
+```
+In case you are a developer, you should install graal in editable mode:
+```
+$ pip install -e .
+```
+
+#### Poetry
+We use [poetry](https://python-poetry.org/) for dependency management and 
+packaging. You can install it following its [documentation](https://python-poetry.org/docs/#installation).
+Once you have installed it, you can install graal and the dependencies in 
+a project isolated environment using:
+```
+$ poetry install
+```
+To spaw a new shell within the virtual environment use:
+```
+$ poetry shell
 ```
 
 ## Backends
@@ -127,8 +157,6 @@ The results of the analysis, parsed and manipulated by the user, are automatical
 - **_post.** This method allows to alter (e.g., renaming, removing) the attributes of the inflated JSON documents.
 
 ## How to use
-
-Graal can be used from command line or directly from Python, both usages are described below.
 
 ### From command line
 Launching Graal from command line does not require much effort, but only some basic knowledge of GNU/Linux shell commands.
