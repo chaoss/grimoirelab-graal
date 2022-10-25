@@ -38,7 +38,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Set up Ruby
-        uses: actions/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7 # v1.118.0
+        uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7 # v1.118.0
         with:
           ruby-version: 2.6
 
