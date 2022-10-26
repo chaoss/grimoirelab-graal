@@ -320,7 +320,7 @@ python-versions = ">=2.6"
 
 [[package]]
 name = "perceval"
-version = "0.21.0rc2"
+version = "0.21.0rc3"
 description = "Send Sir Perceval on a quest to fetch and gather data from software repositories."
 category = "main"
 optional = false
@@ -888,8 +888,8 @@ pbr = [
     {file = "pbr-5.11.0.tar.gz", hash = "sha256:b97bc6695b2aff02144133c2e7399d5885223d42b7912ffaec2ca3898e673bfe"},
 ]
 perceval = [
-    {file = "perceval-0.21.0rc2-py3-none-any.whl", hash = "sha256:8f7e09dd7475938fcf120290778b750c5d9fc9f78663e51387173cc7b7b0361b"},
-    {file = "perceval-0.21.0rc2.tar.gz", hash = "sha256:f88918e744f444fe7ee390e9d5c859acae4098ce45cae83947835258d7353325"},
+    {file = "perceval-0.21.0rc3-py3-none-any.whl", hash = "sha256:6940e62a4c7645976b96a7cf0eced096d911de1474932d49022a75064f4b4d26"},
+    {file = "perceval-0.21.0rc3.tar.gz", hash = "sha256:8fc843fd7336138c0f3605929ad037f56f0dfaf5576b643cc1bbb33cc9ae1f34"},
 ]
 platformdirs = [
     {file = "platformdirs-2.5.2-py3-none-any.whl", hash = "sha256:027d8e83a2d7de06bbac4e5ef7e023c02b863d7ea5d079477e722bb41ab25788"},
