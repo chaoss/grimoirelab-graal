@@ -12,16 +12,16 @@ on:
 
 jobs:
   tests:
-    
-    runs-on: ubuntu-latest
+
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9]
-    
+
     name: Python ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # 3.1.0
-        
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # v4.3.0
         with:
@@ -31,17 +31,17 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "PATH=$HOME/.poetry/bin:$PATH" >> $GITHUB_ENV
-        
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@eae47962baca661befdfd24e4d6c34ade04858f7 # v1.118.0
         with:
           ruby-version: 2.6
-        
+
       - name: Set up Go
         uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v3.3.1
         with:
           go-version: '^1.17'
-        
+
       - name: Install dependencies
         run: |
           pip install --upgrade pip
@@ -55,7 +55,7 @@ jobs:
           sudo apt-get -y install ./packages/fossology-common_3.11.0-1_amd64.deb \
                                   ./packages/fossology-nomos_3.11.0-1_amd64.deb
           sudo apt-get install cloc
-        
+
       - name: Install requirements
         run: |
           mkdir exec
@@ -69,11 +69,11 @@ jobs:
           cd $GITHUB_WORKSPACE/exec/
           wget https://github.com/crossminer/crossJadolint/releases/download/Pre-releasev2/jadolint.jar
           cd $GITHUB_WORKSPACE/
-        
+
       - name: Lint with flake8
         run: |
           poetry run flake8 --exclude=exec,src
-        
+
       - name: Tests and Coverage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

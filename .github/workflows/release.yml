@@ -6,10 +6,9 @@ on:
       - '*.*.*'
       - '*.*.*-*'
 
-jobs:
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Build package using Poetry and store result
         uses: chaoss/grimoirelab-github-actions/build@master
@@ -19,7 +18,7 @@ jobs:
 
   tests:
     needs: [build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9]
