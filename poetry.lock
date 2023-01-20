@@ -733,14 +733,14 @@ files = [
 
 [[package]]
 name = "perceval"
-version = "0.21.2rc2"
+version = "0.21.2rc3"
 description = "Send Sir Perceval on a quest to fetch and gather data from software repositories."
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "perceval-0.21.2rc2-py3-none-any.whl", hash = "sha256:80c1fadf5882b53e4a22049d1ece33a2437c9da5c9b945faf4c56dfef075c165"},
-    {file = "perceval-0.21.2rc2.tar.gz", hash = "sha256:aaf36382411b9538056b14ae0b7d9cfb27bb153824c14eb90dc3805ab707fe1d"},
+    {file = "perceval-0.21.2rc3-py3-none-any.whl", hash = "sha256:17ec53d6c55310efd211d58f9ec280820c8d0682948f0f4e95b9f74d017c6bc8"},
+    {file = "perceval-0.21.2rc3.tar.gz", hash = "sha256:81cb4ce159b33be7662001a2b5457e56aa2d60f026f1a65a5a1b765a8a4e12cd"},
 ]
 
 [package.dependencies]
@@ -974,14 +974,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "setuptools"
-version = "66.0.0"
+version = "66.1.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "setuptools-66.0.0-py3-none-any.whl", hash = "sha256:a78d01d1e2c175c474884671dde039962c9d74c7223db7369771fcf6e29ceeab"},
-    {file = "setuptools-66.0.0.tar.gz", hash = "sha256:bd6eb2d6722568de6d14b87c44a96fac54b2a45ff5e940e639979a3d1792adb6"},
+    {file = "setuptools-66.1.0-py3-none-any.whl", hash = "sha256:fc19f9f62120a763300fd78e234b3cbd3417be098f08c156eaaf36420627e57b"},
+    {file = "setuptools-66.1.0.tar.gz", hash = "sha256:78a02bdea8a5cb66dec1c507598c443bcc75562817d2556c1a17f7a344615bb4"},
 ]
 
 [package.extras]
