@@ -56,6 +56,9 @@ grimoirelab-toolkit = { version = ">=0.3", allow-prereleases = true}
 cloc = "^0.2.5"
 execnet = "^1.9.0"
 
+# Pinned because 'myst-parser = ^0.15.2' in Perceval
+markdown-it-py = "^1.0.0"
+
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
