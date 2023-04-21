@@ -1,5 +1,14 @@
 # Releases
 
+## graal 0.4.5 - (2023-04-21)
+
+**Dependencies updateds:**
+
+ * Update package dependencies\
+   Update package dependencies and pin `markdown-it-py` to a specific
+   version.
+
+
   ## graal 0.4.4 - (2023-02-03)
   
   * Update Poetry's package dependencies
