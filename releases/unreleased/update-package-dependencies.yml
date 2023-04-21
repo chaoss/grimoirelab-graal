@@ -1,0 +1,8 @@
+---
+title: Update package dependencies
+category: dependency
+author: Jose Javier Merchante <jjmerchante@bitergia.com>
+issue: null
+notes: >
+  Update package dependencies and pin `markdown-it-py` to a
+  specific version.
