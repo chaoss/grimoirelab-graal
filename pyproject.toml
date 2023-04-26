@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graal"
-version = "0.4.5"
+version = "0.4.6"
 description = "A generic source code analyzer"
 authors = [
     "GrimoireLab Developers"

@@ -1,5 +1,9 @@
 # Releases
 
+  ## graal 0.4.6 - (2023-04-26)
+  
+  * Update Poetry's package dependencies
+
 ## graal 0.4.5 - (2023-04-21)
 
 **Dependencies updateds:**
