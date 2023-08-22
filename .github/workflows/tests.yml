@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: ['3.8', '3.9', '3.10']
 
     name: Python ${{ matrix.python-version }}
     steps:
@@ -46,7 +46,6 @@ jobs:
         run: |
           pip install --upgrade pip
           poetry install
-          poetry add -D coveralls
           poetry run pip install -r requirements_dev.txt
           gem install github-linguist -v 7.15
           wget https://github.com/fossology/fossology/releases/download/3.11.0/FOSSology-3.11.0-ubuntu-focal.tar.gz
@@ -80,4 +79,5 @@ jobs:
         run: |
           cd tests
           poetry run coverage run --source=graal run_tests.py
-          poetry run coveralls --service=github
+      - name: Coveralls
+        uses: coverallsapp/github-action@f350da2c033043742f89e8c0b7b5145a1616da6d # v2.1.2
