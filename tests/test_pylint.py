@@ -46,17 +46,17 @@ class TestPyLint(TestCaseAnalyzer):
         result = pylint.analyze(**kwargs)
 
         self.assertIn('quality', result)
-        self.assertTrue(type(result['quality']), str)
+        self.assertEqual(type(result['quality']), str)
         self.assertIn('num_modules', result)
-        self.assertTrue(type(result['num_modules']), int)
+        self.assertEqual(type(result['num_modules']), int)
         self.assertIn('warnings', result)
-        self.assertTrue(type(result['warnings']), int)
+        self.assertEqual(type(result['warnings']), int)
         self.assertIn('modules', result)
-        self.assertTrue(type(result['modules']), dict)
+        self.assertEqual(type(result['modules']), dict)
 
         first_key = list(result['modules'].keys())[0]
         for md in result['modules'].get(first_key):
-            self.assertTrue(type(md), str)
+            self.assertEqual(type(md), str)
 
     def test_analyze_no_details(self):
         """Test whether pylint returns the expected fields data"""
@@ -70,11 +70,11 @@ class TestPyLint(TestCaseAnalyzer):
 
         self.assertNotIn('modules', result)
         self.assertIn('quality', result)
-        self.assertTrue(type(result['quality']), str)
+        self.assertEqual(type(result['quality']), str)
         self.assertIn('num_modules', result)
-        self.assertTrue(type(result['num_modules']), int)
+        self.assertEqual(type(result['num_modules']), int)
         self.assertIn('warnings', result)
-        self.assertTrue(type(result['warnings']), int)
+        self.assertEqual(type(result['warnings']), int)
 
     @unittest.mock.patch('subprocess.check_output')
     def test_analyze_error(self, check_output_mock):
