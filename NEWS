@@ -1,5 +1,9 @@
 # Releases
 
+  ## graal 0.4.23 - (2024-03-01)
+  
+  * Update Poetry's package dependencies
+
   ## graal 0.4.22 - (2024-02-08)
   
   * Update Poetry's package dependencies
