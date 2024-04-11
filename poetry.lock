@@ -533,13 +533,13 @@ python-dateutil = ">=2.8.2,<3.0.0"
 
 [[package]]
 name = "idna"
-version = "3.6"
+version = "3.7"
 description = "Internationalized Domain Names in Applications (IDNA)"
 optional = false
 python-versions = ">=3.5"
 files = [
-    {file = "idna-3.6-py3-none-any.whl", hash = "sha256:c05567e9c24a6b9faaa835c4821bad0590fbb9d5779e7caa6e1cc4978e7eb24f"},
-    {file = "idna-3.6.tar.gz", hash = "sha256:9ecdbbd083b06798ae1e86adcbfe8ab1479cf864e4ee30fe4e46a003d12491ca"},
+    {file = "idna-3.7-py3-none-any.whl", hash = "sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0"},
+    {file = "idna-3.7.tar.gz", hash = "sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc"},
 ]
 
 [[package]]
@@ -644,13 +644,13 @@ files = [
 
 [[package]]
 name = "perceval"
-version = "1.0.0rc1"
+version = "1.0.0rc2"
 description = "Send Sir Perceval on a quest to fetch and gather data from software repositories."
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "perceval-1.0.0rc1-py3-none-any.whl", hash = "sha256:8910cd05c8abe8025d69460d90f0bb87e4d1bf225b7fefa238857c663fefe415"},
-    {file = "perceval-1.0.0rc1.tar.gz", hash = "sha256:5f35e19bf4994fa39bef8fc5b8141ef38eb4711d09778eee9405d7ab78c2f5d6"},
+    {file = "perceval-1.0.0rc2-py3-none-any.whl", hash = "sha256:79809a2f2f9beb115a6110a1bd74addb647b8a6caad51bad347d2a9700e85277"},
+    {file = "perceval-1.0.0rc2.tar.gz", hash = "sha256:ac0c5a1ad3ff109a3e09c070fe2518f2ae3ed75250d86cf72075419a275dca5d"},
 ]
 
 [package.dependencies]
