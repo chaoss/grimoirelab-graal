@@ -44,10 +44,11 @@ classifiers = [
 graal = 'graal.bin.graal:main'
 
 [tool.poetry.dependencies]
-python = "^3.8"
-lizard = "1.16.6"
+python = "^3.9"
+
+lizard = "^1.16.6"
 pylint = ">=1.8.4"
-flake8 = "^4.0.1"
+flake8 = "^7.1.1"
 networkx = ">=2.1"
 pydot = ">=1.2.4"
 bandit = ">=1.4.0"
@@ -61,7 +62,7 @@ markdown-it-py = "^2.0.0"
 
 
 [tool.poetry.dev-dependencies]
-flake8 = "^4.0.1"
+flake8 = "^7.1.1"
 coverage = "^7.2.3"
 
 [build-system]
