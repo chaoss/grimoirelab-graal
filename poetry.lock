@@ -735,14 +735,14 @@ setuptools = "*"
 
 [[package]]
 name = "perceval"
-version = "1.1.1"
+version = "1.2.0rc1"
 description = "Send Sir Perceval on a quest to fetch and gather data from software repositories."
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "perceval-1.1.1-py3-none-any.whl", hash = "sha256:536fe6f5b809f213e31c08c0d0ccbf9232fca34fa2eafbe78402e7d322d71415"},
-    {file = "perceval-1.1.1.tar.gz", hash = "sha256:1af2f637e148110f90ce4df0df53daf5204c4271a7572dcac06ea8746d39bea6"},
+    {file = "perceval-1.2.0rc1-py3-none-any.whl", hash = "sha256:376ab95fa0305cbe0c400871ee12554d0239b3d18efbf29de2c9b90e0d2de424"},
+    {file = "perceval-1.2.0rc1.tar.gz", hash = "sha256:a9898f370fe6b6b5bd963fe74eef1ba05810649af84e9b950016879caf035e46"},
 ]
 
 [package.dependencies]
