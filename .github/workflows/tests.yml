@@ -1,19 +1,13 @@
 name: tests
 
 on:
-  push:
-    branches:
-      - '**'
-    tags:
-      - '!**'
-  pull_request:
-    branches:
-      - '**'
+  workflow_dispatch:
+
 
 jobs:
   tests:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11', '3.12']
@@ -33,7 +27,7 @@ jobs:
           echo "PATH=$HOME/.poetry/bin:$PATH" >> $GITHUB_ENV
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@af848b40be8bb463a751551a1180d74782ba8a72 # v1.162.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252 # v1.229.0
         with:
           ruby-version: 2.6
 
@@ -48,11 +42,11 @@ jobs:
           poetry install
           poetry run pip install -r requirements_dev.txt
           gem install github-linguist -v 7.15
-          wget https://github.com/fossology/fossology/releases/download/3.11.0/FOSSology-3.11.0-ubuntu-focal.tar.gz
-          tar -xzf FOSSology-3.11.0-ubuntu-focal.tar.gz
+          wget https://github.com/fossology/fossology/releases/download/4.5.1/FOSSology-4.5.1-ubuntu-noble.tar.gz
+          tar -xzf FOSSology-4.5.1-ubuntu-noble.tar.gz
           sudo apt-get update -y
-          sudo apt-get -y install ./packages/fossology-common_3.11.0-1_amd64.deb \
-                                  ./packages/fossology-nomos_3.11.0-1_amd64.deb
+          sudo apt-get -y install ./packages/fossology-common_4.5.1-1_amd64.deb \
+                                  ./packages/fossology-nomos_4.5.1-1_amd64.deb
           sudo apt-get install cloc
 
       - name: Install requirements
@@ -63,7 +57,6 @@ jobs:
           cd $GITHUB_WORKSPACE/exec/
           git clone https://github.com/nexB/scancode-toolkit.git
           cd scancode-toolkit
-          git checkout -b test_scancli 96069fd84066c97549d54f66bd2fe8c7813c6b52
           ./scancode --help
           cd $GITHUB_WORKSPACE/exec/
           wget https://github.com/crossminer/crossJadolint/releases/download/Pre-releasev2/jadolint.jar

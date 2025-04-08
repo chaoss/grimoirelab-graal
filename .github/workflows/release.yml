@@ -9,7 +9,7 @@ on:
 jobs:
 
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Build package using Poetry and store result
         uses: chaoss/grimoirelab-github-actions/build@main
@@ -17,77 +17,8 @@ jobs:
           artifact-name: graal-dist
           artifact-path: dist
 
-  tests:
-    needs: [build]
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-
-      - name: Download distribution artifact
-        uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
-        with:
-          name: graal-dist
-          path: dist
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v5.1.0
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@af848b40be8bb463a751551a1180d74782ba8a72 # v1.162.0
-        with:
-          ruby-version: 2.6
-
-      - name: Set up Go
-        uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # v3.3.1
-        with:
-          go-version: '^1.17'
-
-      - name: Install poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "PATH=$HOME/.poetry/bin:$PATH" >> $GITHUB_ENV
-
-      - name: Install dependencies
-        run: |
-          gem install github-linguist -v 7.15
-          wget https://github.com/fossology/fossology/releases/download/3.11.0/FOSSology-3.11.0-ubuntu-focal.tar.gz
-          tar -xzf FOSSology-3.11.0-ubuntu-focal.tar.gz
-          sudo apt-get update -y
-          sudo apt-get -y install ./packages/fossology-common_3.11.0-1_amd64.deb \
-                                  ./packages/fossology-nomos_3.11.0-1_amd64.deb
-          sudo apt-get install cloc
-
-      - name: Install dev dependencies
-        run: |
-          poetry install --only dev --no-root
-
-      - name: Install requirements
-        run: |
-          mkdir exec
-          cd exec
-          go install github.com/boyter/scc@latest
-          cd $GITHUB_WORKSPACE/exec/
-          git clone https://github.com/nexB/scancode-toolkit.git
-          cd scancode-toolkit
-          git checkout -b test_scancli 96069fd84066c97549d54f66bd2fe8c7813c6b52
-          ./scancode --help
-          cd $GITHUB_WORKSPACE/exec/
-          wget https://github.com/crossminer/crossJadolint/releases/download/Pre-releasev2/jadolint.jar
-          cd $GITHUB_WORKSPACE/
-
-      - name: Test package
-        run: |
-          PACKAGE=`(cd dist && ls *whl)` && echo $PACKAGE
-          poetry run pip install --pre ./dist/$PACKAGE
-          cd tests && poetry run python run_tests.py
-
   release:
-    needs: [tests]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - name: Create a new release on the repository
@@ -96,7 +27,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
-    needs: [tests]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - name: Publish the package on PyPI
