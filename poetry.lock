@@ -2,18 +2,18 @@
 
 [[package]]
 name = "astroid"
-version = "3.3.9"
+version = "3.3.10"
 description = "An abstract syntax tree for Python with inference support."
 optional = false
 python-versions = ">=3.9.0"
 groups = ["main"]
 files = [
-    {file = "astroid-3.3.9-py3-none-any.whl", hash = "sha256:d05bfd0acba96a7bd43e222828b7d9bc1e138aaeb0649707908d3702a9831248"},
-    {file = "astroid-3.3.9.tar.gz", hash = "sha256:622cc8e3048684aa42c820d9d218978021c3c3d174fb03a9f0d615921744f550"},
+    {file = "astroid-3.3.10-py3-none-any.whl", hash = "sha256:104fb9cb9b27ea95e847a94c003be03a9e039334a8ebca5ee27dafaf5c5711eb"},
+    {file = "astroid-3.3.10.tar.gz", hash = "sha256:c332157953060c6deb9caa57303ae0d20b0fbdb2e59b4a4f2a6ba49d0a7961ce"},
 ]
 
 [package.dependencies]
-typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.11\""}
+typing-extensions = {version = ">=4", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "bandit"
@@ -602,14 +602,14 @@ plugins = ["setuptools"]
 
 [[package]]
 name = "lizard"
-version = "1.17.28"
+version = "1.17.30"
 description = "A code analyzer without caring the C/C++ header files. It works with Java, C/C++, JavaScript, Python, Ruby, Swift, Objective C. Metrics includes cyclomatic complexity number etc."
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "lizard-1.17.28-py2.py3-none-any.whl", hash = "sha256:8570e4991e15538a39a56c539c4c795abed720aa6ba49fd364139556fc928de1"},
-    {file = "lizard-1.17.28.tar.gz", hash = "sha256:e34b0a955de2d836c6f74642b71320cb92f13e218f34dd1bbe43cd929dca2b23"},
+    {file = "lizard-1.17.30-py2.py3-none-any.whl", hash = "sha256:2df9aad2829e8bfd7de8864e6ce9fea58c7809acf4cb4f550d05bf2fa91b83ad"},
+    {file = "lizard-1.17.30.tar.gz", hash = "sha256:fbe1cfadb28402baaf6c858ec1eca1b9e1b62ca9826a16471e2e1045c66c1b77"},
 ]
 
 [package.dependencies]
@@ -735,14 +735,14 @@ setuptools = "*"
 
 [[package]]
 name = "perceval"
-version = "1.2.1"
+version = "1.2.2rc1"
 description = "Send Sir Perceval on a quest to fetch and gather data from software repositories."
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "perceval-1.2.1-py3-none-any.whl", hash = "sha256:7e95c03cd22cc845b95d41704f456a4e675c38245deabcb1a4a7682558ca71bd"},
-    {file = "perceval-1.2.1.tar.gz", hash = "sha256:bf3a84766fb87ac24bbff5fcf40556f5a6eb62d61425790b36d7b22c7bc0c304"},
+    {file = "perceval-1.2.2rc1-py3-none-any.whl", hash = "sha256:5c65b107c9cdc618e5fef2dc4bd023f7a417313dc728c3b95cf9ce7fea3e7c5f"},
+    {file = "perceval-1.2.2rc1.tar.gz", hash = "sha256:345621f05323ebb5c0f1849e3aaf43a85634f8d186094be7385d5048aba8035a"},
 ]
 
 [package.dependencies]
@@ -1036,14 +1036,14 @@ jupyter = ["ipywidgets (>=7.5.1,<9)"]
 
 [[package]]
 name = "setuptools"
-version = "80.3.1"
+version = "80.7.1"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "setuptools-80.3.1-py3-none-any.whl", hash = "sha256:ea8e00d7992054c4c592aeb892f6ad51fe1b4d90cc6947cc45c45717c40ec537"},
-    {file = "setuptools-80.3.1.tar.gz", hash = "sha256:31e2c58dbb67c99c289f51c16d899afedae292b978f8051efaf6262d8212f927"},
+    {file = "setuptools-80.7.1-py3-none-any.whl", hash = "sha256:ca5cc1069b85dc23070a6628e6bcecb3292acac802399c7f8edc0100619f9009"},
+    {file = "setuptools-80.7.1.tar.gz", hash = "sha256:f6ffc5f0142b1bd8d0ca94ee91b30c0ca862ffd50826da1ea85258a06fd94552"},
 ]
 
 [package.extras]
