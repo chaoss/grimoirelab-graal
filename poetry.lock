@@ -560,14 +560,14 @@ pyflakes = ">=3.3.0,<3.4.0"
 
 [[package]]
 name = "grimoirelab-toolkit"
-version = "1.0.11rc1"
+version = "1.0.11"
 description = "Toolkit of common functions used across GrimoireLab"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "grimoirelab_toolkit-1.0.11rc1-py3-none-any.whl", hash = "sha256:6eff12f343120ff205f9b76f33e69cd2fbaa7be9a6c323aa3d207b6d42835789"},
-    {file = "grimoirelab_toolkit-1.0.11rc1.tar.gz", hash = "sha256:905eb1cfcd8613e93ff84a08212803115f94ccba6d6912cb664841a64e578a6e"},
+    {file = "grimoirelab_toolkit-1.0.11-py3-none-any.whl", hash = "sha256:1ce9889cbfd94cfab6c014c05acd4f661f6e601e7f7f95937928bd78e43aff67"},
+    {file = "grimoirelab_toolkit-1.0.11.tar.gz", hash = "sha256:18cb2011a78a69262b3a123372138a92fc62bbaf8a89946a8437f1eb41eeb5e2"},
 ]
 
 [package.dependencies]
@@ -740,14 +740,14 @@ setuptools = "*"
 
 [[package]]
 name = "perceval"
-version = "1.2.3rc1"
+version = "1.2.3"
 description = "Send Sir Perceval on a quest to fetch and gather data from software repositories."
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "perceval-1.2.3rc1-py3-none-any.whl", hash = "sha256:a234af763d5f2da42b97c30c7cdc48b17fc7ad2555e67425469cb75a7c00e05e"},
-    {file = "perceval-1.2.3rc1.tar.gz", hash = "sha256:72df127232cc08cda4c670151801e2b46803b23569085d799acc382e667b0198"},
+    {file = "perceval-1.2.3-py3-none-any.whl", hash = "sha256:6617942f02d7f291c12d2e4e78acfbc5a02340ce7ffc8c8468994b054bfe0dfe"},
+    {file = "perceval-1.2.3.tar.gz", hash = "sha256:7025797a82afecd198348213fa97217366f01ed69b935ef704b50322c5dbb988"},
 ]
 
 [package.dependencies]
