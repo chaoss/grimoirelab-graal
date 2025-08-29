@@ -23,7 +23,7 @@ and define the **details** level of the analysis (useful when analyzing large so
 ## Requirements
 
 
- * Python >= 3.9
+ * Python >= 3.10
  * Poetry >= 1.2
  * [github-linguist](https://github.com/github/linguist)
  * [FOSSology](https://github.com/fossology/fossology)

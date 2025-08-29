@@ -44,7 +44,7 @@ classifiers = [
 graal = 'graal.bin.graal:main'
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 
 lizard = "^1.16.6"
 pylint = ">=1.8.4"
@@ -55,7 +55,7 @@ bandit = ">=1.4.0"
 perceval = { version = ">=0.19", allow-prereleases = true }
 grimoirelab-toolkit = { version = ">=0.3", allow-prereleases = true}
 cloc = "^0.2.5"
-execnet = "^1.9.0"
+execnet = "^2.1.1"
 
 # Pinned because 'myst-parser = ^1.0.0' in Perceval
 markdown-it-py = "^2.0.0"
