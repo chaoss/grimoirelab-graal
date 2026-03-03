@@ -857,14 +857,14 @@ tests = ["pytest (>=9)", "typing-extensions (>=4.15)"]
 
 [[package]]
 name = "perceval"
-version = "1.4.6rc1"
+version = "1.4.6"
 description = "Send Sir Perceval on a quest to fetch and gather data from software repositories."
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "perceval-1.4.6rc1-py3-none-any.whl", hash = "sha256:55943785154d83e16ab7a5e43c43cc09f3a6a021acc9b99d97e1a4857f255538"},
-    {file = "perceval-1.4.6rc1.tar.gz", hash = "sha256:7fc425ff21e23ebcdd4bcd05feda027b1db8ddcfe9432bce5809edb02ac66637"},
+    {file = "perceval-1.4.6-py3-none-any.whl", hash = "sha256:3ca10f74ddae6311b39f636b569328085856021a12e701abd3dd9f7f870b37ad"},
+    {file = "perceval-1.4.6.tar.gz", hash = "sha256:434a1518596712e3c9c1024d037ae4ad5001be4ced5970c3d49c02752cfe891a"},
 ]
 
 [package.dependencies]
