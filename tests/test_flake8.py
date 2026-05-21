@@ -51,9 +51,9 @@ class TestFlake8(TestCaseAnalyzer):
         result = flake8.analyze(**kwargs)
 
         self.assertIn('lines', result)
-        self.assertTrue(type(result['lines']), list)
+        self.assertEqual(type(result['lines']), list)
         self.assertIn('warnings', result)
-        self.assertTrue(type(result['warnings']), int)
+        self.assertEqual(type(result['warnings']), int)
 
     def test_analyze_no_details(self):
         """Test whether flake8 returns the expected fields data"""
@@ -68,7 +68,7 @@ class TestFlake8(TestCaseAnalyzer):
 
         self.assertNotIn('lines', result)
         self.assertIn('warnings', result)
-        self.assertTrue(type(result['warnings']), int)
+        self.assertEqual(type(result['warnings']), int)
 
     @unittest.mock.patch('subprocess.check_output')
     def test_analyze_error(self, check_output_mock):

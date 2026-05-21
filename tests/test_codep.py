@@ -125,16 +125,16 @@ class TestCoDepPyReverseBackend(TestCaseRepo):
         self.assertEqual(commit['category'], CATEGORY_CODEP_PYREVERSE)
         result = commit['data']['analysis']
         self.assertIn('classes', result)
-        self.assertTrue(type(result['classes']), dict)
+        self.assertEqual(type(result['classes']), dict)
         self.assertIn('nodes', result['classes'])
-        self.assertTrue(type(result['classes']['nodes']), list)
+        self.assertEqual(type(result['classes']['nodes']), list)
         self.assertIn('links', result['classes'])
-        self.assertTrue(type(result['classes']['links']), list)
+        self.assertEqual(type(result['classes']['links']), list)
         self.assertIn('packages', result)
-        self.assertTrue(type(result['packages']), dict)
-        self.assertTrue(type(result['packages']['nodes']), list)
+        self.assertEqual(type(result['packages']), dict)
+        self.assertEqual(type(result['packages']['nodes']), list)
         self.assertIn('links', result['packages'])
-        self.assertTrue(type(result['packages']['links']), list)
+        self.assertEqual(type(result['packages']['links']), list)
 
     def test_fetch_not_existing_module(self):
         """Test whether warning messages are logged when a module is not found"""
@@ -294,11 +294,11 @@ class TestDependencyAnalyzer(TestCaseAnalyzer):
         result = dep_analyzer.analyze(module_path)
 
         self.assertIn('classes', result)
-        self.assertTrue(type(result['classes']), dict)
+        self.assertEqual(type(result['classes']), dict)
         self.assertIn('nodes', result['classes'])
-        self.assertTrue(type(result['classes']['nodes']), list)
+        self.assertEqual(type(result['classes']['nodes']), list)
         self.assertIn('links', result['classes'])
-        self.assertTrue(type(result['classes']['links']), list)
+        self.assertEqual(type(result['classes']['links']), list)
 
     def test_analyze_jadolint(self):
         """Test whether the analyze method works"""

@@ -43,9 +43,9 @@ class TestLinguist(TestCaseAnalyzer):
         result = linguist.analyze(**kwargs)
 
         self.assertIn('breakdown', result)
-        self.assertTrue(type(result['breakdown']), dict)
+        self.assertEqual(type(result['breakdown']), dict)
         self.assertIn('Python', result)
-        self.assertTrue(type(result['Python']), float)
+        self.assertEqual(type(result['Python']), float)
 
     def test_analyze_no_details(self):
         """Test whether linguist returns the expected fields data"""
@@ -59,7 +59,7 @@ class TestLinguist(TestCaseAnalyzer):
 
         self.assertNotIn('breakdown', result)
         self.assertIn('Python', result)
-        self.assertTrue(type(result['Python']), float)
+        self.assertEqual(type(result['Python']), float)
 
     @unittest.mock.patch('subprocess.check_output')
     def test_analyze_error(self, check_output_mock):
