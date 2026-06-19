@@ -1,5 +1,9 @@
 # Releases
 
+  ## graal 1.2.9 - (2026-06-19)
+  
+  * Update Poetry's package dependencies
+
   ## graal 1.2.8 - (2026-05-06)
   
   * Update Poetry's package dependencies
