@@ -53,14 +53,14 @@ class TestCloc(TestCaseAnalyzer):
         result = cloc.analyze(**kwargs)
 
         self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
-        self.assertTrue(result['blanks'], 27)
+        self.assertEqual(type(result['blanks']), int)
+        self.assertEqual(result['blanks'], 27)
         self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
-        self.assertTrue(result['comments'], 31)
+        self.assertEqual(type(result['comments']), int)
+        self.assertEqual(result['comments'], 31)
         self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
-        self.assertTrue(result['loc'], 67)
+        self.assertEqual(type(result['loc']), int)
+        self.assertEqual(result['loc'], 67)
 
     def test_analyze_repository_level(self):
         """Test whether cloc returns the expected fields data for repository level"""
@@ -74,13 +74,13 @@ class TestCloc(TestCaseAnalyzer):
         result = results[next(iter(results))]
 
         self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
+        self.assertEqual(type(result['blanks']), int)
         self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
+        self.assertEqual(type(result['comments']), int)
         self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
+        self.assertEqual(type(result['loc']), int)
         self.assertIn('total_files', result)
-        self.assertTrue(type(result['total_files']), int)
+        self.assertEqual(type(result['total_files']), int)
 
     @unittest.mock.patch('subprocess.check_output')
     def test_analyze_error(self, check_output_mock):

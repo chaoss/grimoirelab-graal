@@ -88,13 +88,13 @@ class TestCoLangBackend(TestCaseRepo):
         result = results[next(iter(results))]
 
         self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
+        self.assertEqual(type(result['blanks']), int)
         self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
+        self.assertEqual(type(result['comments']), int)
         self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
+        self.assertEqual(type(result['loc']), int)
         self.assertIn('total_files', result)
-        self.assertTrue(type(result['total_files']), int)
+        self.assertEqual(type(result['total_files']), int)
 
     def test_fetch_unknown(self):
         """Test whether commits are properly processed"""
@@ -187,20 +187,20 @@ class TestRepositoryAnalyzer(TestCaseAnalyzer):
         result = repo_analyzer.analyze(self.origin_path)
         self.assertNotIn('breakdown', result)
         self.assertIn('Python', result)
-        self.assertTrue(type(result['Python']), float)
+        self.assertEqual(type(result['Python']), float)
 
         repo_analyzer = RepositoryAnalyzer(kind=CLOC)
         results = repo_analyzer.analyze(self.origin_path)
         result = results[next(iter(results))]
 
         self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
+        self.assertEqual(type(result['blanks']), int)
         self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
+        self.assertEqual(type(result['comments']), int)
         self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
+        self.assertEqual(type(result['loc']), int)
         self.assertIn('total_files', result)
-        self.assertTrue(type(result['total_files']), int)
+        self.assertEqual(type(result['total_files']), int)
 
 
 class TestCoLangCommand(unittest.TestCase):

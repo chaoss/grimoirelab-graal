@@ -44,13 +44,13 @@ class TestSCC(TestCaseAnalyzer):
         result = scc.analyze(**kwargs)
 
         self.assertIn('ccn', result)
-        self.assertTrue(type(result['ccn']), int)
+        self.assertEqual(type(result['ccn']), int)
         self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
+        self.assertEqual(type(result['loc']), int)
         self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
+        self.assertEqual(type(result['comments']), int)
         self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
+        self.assertEqual(type(result['blanks']), int)
 
     def test_analyze_file_details(self):
         """Test whether SCC returns the expected fields data for files"""
@@ -61,13 +61,13 @@ class TestSCC(TestCaseAnalyzer):
         result = scc.analyze(**kwargs)
 
         self.assertIn('ccn', result)
-        self.assertTrue(type(result['ccn']), int)
+        self.assertEqual(type(result['ccn']), int)
         self.assertIn('loc', result)
-        self.assertTrue(type(result['loc']), int)
+        self.assertEqual(type(result['loc']), int)
         self.assertIn('comments', result)
-        self.assertTrue(type(result['comments']), int)
+        self.assertEqual(type(result['comments']), int)
         self.assertIn('blanks', result)
-        self.assertTrue(type(result['blanks']), int)
+        self.assertEqual(type(result['blanks']), int)
 
     def test_analyze_repository(self):
         """Test whether SCC returns the expected fields data for repository"""
@@ -82,15 +82,15 @@ class TestSCC(TestCaseAnalyzer):
         for language in result.keys():
             language_result = result[language]
             self.assertIn('ccn', language_result)
-            self.assertTrue(type(language_result['ccn']), int)
+            self.assertEqual(type(language_result['ccn']), int)
             self.assertIn('loc', language_result)
-            self.assertTrue(type(language_result['loc']), int)
+            self.assertEqual(type(language_result['loc']), int)
             self.assertIn('blanks', language_result)
-            self.assertTrue(type(language_result['blanks']), int)
+            self.assertEqual(type(language_result['blanks']), int)
             self.assertIn('comments', language_result)
-            self.assertTrue(type(language_result['comments']), int)
+            self.assertEqual(type(language_result['comments']), int)
             self.assertIn('total_files', language_result)
-            self.assertTrue(type(language_result['total_files']), int)
+            self.assertEqual(type(language_result['total_files']), int)
 
     @unittest.mock.patch('subprocess.check_output')
     def test_analyze_error(self, check_output_mock):

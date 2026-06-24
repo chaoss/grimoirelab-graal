@@ -44,16 +44,16 @@ class TestReverse(TestCaseAnalyzer):
         result = reverse.analyze(**kwargs)
 
         self.assertIn('classes', result)
-        self.assertTrue(type(result['classes']), dict)
+        self.assertEqual(type(result['classes']), dict)
         self.assertIn('nodes', result['classes'])
-        self.assertTrue(type(result['classes']['nodes']), list)
+        self.assertEqual(type(result['classes']['nodes']), list)
         self.assertIn('links', result['classes'])
-        self.assertTrue(type(result['classes']['links']), list)
+        self.assertEqual(type(result['classes']['links']), list)
         self.assertIn('packages', result)
-        self.assertTrue(type(result['packages']), dict)
-        self.assertTrue(type(result['packages']['nodes']), list)
+        self.assertEqual(type(result['packages']), dict)
+        self.assertEqual(type(result['packages']['nodes']), list)
         self.assertIn('links', result['packages'])
-        self.assertTrue(type(result['packages']['links']), list)
+        self.assertEqual(type(result['packages']['links']), list)
 
     @unittest.mock.patch('subprocess.check_output')
     def test_analyze_error(self, check_output_mock):
